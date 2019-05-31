@@ -224,3 +224,7 @@ span.chip.badge {
   line-height: 25px;
   float: right;
 }
+
+li.list-group-item span.badge{
+  float: right;
+}
