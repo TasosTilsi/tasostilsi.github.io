@@ -1,12 +1,13 @@
-# Personal Web Page
+![alt text](https://raw.githubusercontent.com/TasosTilsi/tasostilsi.github.io/master/img/favicon.png)
 
+# Personal Web Page
 
 **[View Live Preview](https://tasostilsi.github.io/)**
 
 ## Download and Installation
 
 To begin using this template, choose one of the following options to get started:
-* [Fork, Clone, or Download on GitHub](https://github.com/BlackrockDigital/startbootstrap-resume)
+* [Fork, Clone, or Download on GitHub](https://github.com/TasosTilsi/tasostilsi.github.io.git)
 
 ## Usage
 
