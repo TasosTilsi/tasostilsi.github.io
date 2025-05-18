@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="keywords" content="">
+    <meta name="author" content="">
+    <title>Dynamic Resume</title>
+    <link rel="stylesheet" href="css/index.css">
+</head>
+<body>
+    <header>
+        <h1 id="name">Loading...</h1>
+        <p id="location"></p>
+        <p id="dob"></p>
+        <p id="email"></p>
+        <p id="description"></p>
+        <div id="social-links"></div>
+    </header>
+
+    <main>
+        <section id="experience">
+            <h2>Experience</h2>
+            <div id="experience-list"></div>
+        </section>
+
+        <section id="education">
+            <h2>Education</h2>
+            <div id="education-list"></div>
+        </section>
+
+        <section id="skills">
+            <h2>Skills</h2>
+            <div id="skills-list"></div>
+        </section>
+
+        <section id="interests">
+            <h2>Interests</h2>
+            <p id="interests-content"></p>
+        </section>
+
+        <section id="projects">
+            <h2>Projects</h2>
+            <div id="projects-list"></div>
+        </section>
+
+        <section id="certifications">
+            <h2>Certifications</h2>
+            <div id="certifications-list"></div>
+        </section>
+    </main>
+
+    <script>
+        async function loadData() {
+            const response = await fetch('data.json');
+            const data = await response.json();
+
+            // Meta tags
+            document.querySelector('meta[name="description"]').setAttribute('content', data.meta.description);
+            document.querySelector('meta[name="keywords"]').setAttribute('content', data.meta.keywords);
+            document.querySelector('meta[name="author"]').setAttribute('content', data.meta.author);
+
+            // About section
+            document.getElementById('name').textContent = data.about.name;
+            document.getElementById('location').textContent = `Location: ${data.about.location}`;
+            document.getElementById('dob').textContent = `Date of Birth: ${data.about.dob}`;
+            document.getElementById('email').textContent = `Email: ${data.about.email}`;
+            document.getElementById('description').textContent = data.about.description;
+
+            const socialLinks = document.getElementById('social-links');
+            for (const [platform, url] of Object.entries(data.about.social_links)) {
+                const link = document.createElement('a');
+                link.href = url;
+                link.textContent = platform;
+                link.target = '_blank';
+                socialLinks.appendChild(link);
+            }
+
+            // Experience section
+            const experienceList = document.getElementById('experience-list');
+            data.experience.forEach(exp => {
+                const expDiv = document.createElement('div');
+                expDiv.innerHTML = `
+                    <h3>${exp.title} at ${exp.company}</h3>
+                    <p>${exp.location}</p>
+                    <p>${exp.duration}</p>
+                    <ul>${exp.responsibilities.map(res => `<li>${res}</li>`).join('')}</ul>
+                `;
+                experienceList.appendChild(expDiv);
+            });
+
+            // Education section
+            const educationList = document.getElementById('education-list');
+            data.education.forEach(edu => {
+                const eduDiv = document.createElement('div');
+                eduDiv.innerHTML = `
+                    <h3>${edu.degree} at ${edu.institution}</h3>
+                    <p>${edu.location}</p>
+                    <p>${edu.duration}</p>
+                    <ul>${(edu.courses.general || []).concat(edu.courses.occupational || []).map(course => `<li>${course}</li>`).join('')}</ul>
+                `;
+                educationList.appendChild(eduDiv);
+            });
+
+            // Skills section
+            const skillsList = document.getElementById('skills-list');
+            for (const [category, skills] of Object.entries(data.skills.hard_skills)) {
+                const skillDiv = document.createElement('div');
+                skillDiv.innerHTML = `
+                    <h4>${category}</h4>
+                    <ul>${skills.map(skill => `<li>${skill}</li>`).join('')}</ul>
+                `;
+                skillsList.appendChild(skillDiv);
+            }
+
+            // Interests section
+            document.getElementById('interests-content').textContent = data.interests;
+
+            // Projects section
+            const projectsList = document.getElementById('projects-list');
+            data.projects.forEach(project => {
+                const projectDiv = document.createElement('div');
+                projectDiv.innerHTML = `
+                    <h3>${project.name}</h3>
+                    <a href="${project.link}" target="_blank">${project.link}</a>
+                    <p>${project.date}</p>
+                `;
+                projectsList.appendChild(projectDiv);
+            });
+
+            // Certifications section
+            const certificationsList = document.getElementById('certifications-list');
+            data.certifications.forEach(cert => {
+                const certDiv = document.createElement('div');
+                certDiv.innerHTML = `
+                    <h3>${cert.name}</h3>
+                    ${cert.link ? `<a href="${cert.link}" target="_blank">${cert.link}</a>` : ''}
+                    <p>${cert.date}</p>
+                `;
+                certificationsList.appendChild(certDiv);
+            });
+        }
+
+        loadData();
+    </script>
+</body>
+</html>
