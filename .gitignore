@@ -5,7 +5,6 @@ out/
 
 # Node.js dependencies
 node_modules/
-package-lock.json
 yarn.lock
 
 # Next.js build artifacts
@@ -20,3 +19,6 @@ yarn.lock
 
 # Ignore deployment script
 !deploy.sh
+
+# Allow package-lock.json to be tracked
+!package-lock.json
