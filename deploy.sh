@@ -5,9 +5,15 @@
 # Exit immediately if a command exits with a non-zero status
 set -e
 
-# Build and export the Next.js project
+# Build the Next.js project
 echo "Building the project..."
 npm run build
+
+# Ensure the out folder exists
+if [ ! -d "out" ]; then
+  echo "Error: 'out' folder not found. Make sure the build step completed successfully."
+  exit 1
+fi
 
 # Switch to the gh-pages branch
 echo "Switching to gh-pages branch..."
@@ -15,7 +21,9 @@ git checkout gh-pages || git checkout -b gh-pages
 
 # Remove all files except the .git directory
 echo "Cleaning up old files..."
-find . -maxdepth 1 ! -name '.git' ! -name '.' -exec rm -rf {} +
+shopt -s extglob
+rm -rf !(".git")
+shopt -u extglob
 
 # Copy the contents of the out folder to the root
 echo "Copying new files..."
