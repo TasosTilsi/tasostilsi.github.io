@@ -3,8 +3,8 @@ import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
   output: 'export', // Enables static HTML export
-  // basePath: '/tasostilsi.github.io', // Set to your repository name
-  // assetPrefix: '/tasostilsi.github.io', // Ensure assets are served correctly
+  basePath: '/tasostilsi.github.io', // Set to your repository name
+  assetPrefix: '/tasostilsi.github.io', // Ensure assets are served correctly
   eslint: {
     ignoreDuringBuilds: true,
   },
