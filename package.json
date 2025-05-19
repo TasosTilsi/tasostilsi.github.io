@@ -8,8 +8,7 @@
     "serve": "serve ./out",
     "start": "next start",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit",
-    "export": "next export"
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@hookform/resolvers": "^4.1.3",
