@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://tasostilsi.github.io/sitemap.xml
+# IMPORTANT: If your site is not at the root of tasostilsi.github.io, 
+# or if you deploy to a custom domain, update the Sitemap URL above.

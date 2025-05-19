@@ -1,0 +1,22 @@
+# Ignore everything except the source code and necessary files
+
+# Ignore the out folder (static export)
+out/
+
+# Node.js dependencies
+node_modules/
+package-lock.json
+yarn.lock
+
+# Next.js build artifacts
+.next/
+.cache/
+
+
+# Temporary files
+.DS_Store
+*.swp
+*.log
+
+# Ignore deployment script
+!deploy.sh

@@ -1,0 +1,181 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: var(--font-geist-mono), Menlo, Monaco, 'Courier New', monospace; /* Prioritize mono for CLI */
+}
+
+@layer base {
+  :root {
+    --background: 0 0% 10%; /* Dark background for dark mode (CLI standard) */
+    --foreground: 165 70% 85%; /* Muted Cyan/Green for dark mode text (Terminal-like) */
+    --card: 0 0% 15%;
+    --card-foreground: 165 70% 85%; 
+    --popover: 0 0% 15%;
+    --popover-foreground: 165 70% 85%;
+    --primary: 231 48% 58%; /* Lighter Deep Blue for dark mode */
+    --primary-foreground: 0 0% 98%;
+    --secondary: 0 0% 20%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 25%;
+    --muted-foreground: 0 0% 63.9%;
+    --accent: 174 100% 39%; /* Lighter Teal for dark mode */
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 72% 51%; /* Adjusted for better contrast on dark */
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 25%;
+    --input: 0 0% 20%;
+    --ring: 174 100% 39%; /* Accent color for rings */
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+    --radius: 0.5rem;
+    --sidebar-background: 0 0% 10%; /* Ensured dark for CLI */
+    --sidebar-foreground: 165 70% 85%;
+    --sidebar-primary: 231 48% 58%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 174 100% 29%; /* Original Teal */
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 0 0% 25%;
+    --sidebar-ring: 174 100% 39%;
+  }
+  /* Light theme (can be toggled by removing 'dark' class from html or via JS) */
+  .light {
+    --background: 0 0% 93%; /* Light Gray #EEEEEE */
+    --foreground: 0 0% 10%; /* Dark Gray for text on light background */
+    --card: 0 0% 100%; /* White */
+    --card-foreground: 0 0% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 10%;
+    --primary: 231 48% 48%; /* Deep Blue #3F51B5 */
+    --primary-foreground: 0 0% 98%; /* Light color for text on primary */
+    --secondary: 0 0% 96.1%;
+    --secondary-foreground: 0 0% 9%;
+    --muted: 0 0% 85%; /* Lighter gray for muted elements */
+    --muted-foreground: 0 0% 45.1%;
+    --accent: 174 100% 29%; /* Teal #009688 */
+    --accent-foreground: 0 0% 98%; /* Light color for text on accent */
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 85%; /* Border color */
+    --input: 0 0% 89.8%;
+    --ring: 231 48% 48%; /* Primary color for rings */
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.blinking-cursor {
+  animation: blink 1s step-end infinite;
+  display: inline-block;
+  background-color: hsl(var(--accent)); /* Make cursor a block using background */
+  width: 0.5em; /* Adjust width as needed */
+  height: 1.2em; /* Adjust height to match text line height */
+  vertical-align: text-bottom; /* Align with baseline of text */
+}
+
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    scroll-behavior: smooth;
+  }
+}
+
+@layer utilities {
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+}
+
+/* CLI specific styles */
+.cli-input {
+  font-family: var(--font-geist-mono), Menlo, Monaco, 'Courier New', monospace;
+  /* caret-color: transparent; No longer needed on a visible input if we use a hidden one */
+}
+
+.cli-input-display {
+  font-family: var(--font-geist-mono), Menlo, Monaco, 'Courier New', monospace;
+  color: hsl(var(--foreground)); /* Or your desired input text color */
+  /* whitespace-pre is applied inline in the component */
+  /* Add any other styling for the visible text part of the input */
+  line-height: 1.2em; /* Match cursor height for better alignment */
+}
+
+
+.cli-output-area {
+  font-family: var(--font-geist-mono), Menlo, Monaco, 'Courier New', monospace;
+}
+
+.cli-output-area ul { /* General reset for our custom styling */
+  list-style-type: none; 
+  padding-left: 1rem; /* Indentation for the list itself */
+}
+.cli-output-area ul:not(.list-none) li::before { /* Default for non list-none */
+  content: "- "; 
+  display: inline-block;
+  margin-right: 0.5rem;
+}
+.cli-output-area ul.list-disc li::before { /* For list-disc specifically */
+   content: "* ";
+}
+.cli-output-area ul.list-none li::before { /* Ensure list-none truly has no prefix */
+    content: "";
+    margin-right: 0;
+}
+
+/* ASCII Table styles */
+.table-ascii {
+  border-collapse: collapse;
+  width: 100%;
+  font-family: var(--font-geist-mono), Menlo, Monaco, 'Courier New', monospace;
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+  box-shadow: 0 2px 4px hsl(var(--accent) / 0.1); /* Subtle shadow */
+}
+
+.th-ascii,
+.td-ascii {
+  border: 1px solid hsl(var(--border));
+  padding: 0.4em 0.6em; /* Slightly reduced padding */
+  text-align: left;
+  vertical-align: top; /* Align content to the top of the cell */
+}
+
+.th-ascii {
+  background-color: hsl(var(--muted) / 0.1); /* Very subtle background for header */
+  font-weight: bold;
+  color: hsl(var(--accent)); /* Header text in accent color */
+}
+
+/* Forcing borders for ASCII look, !important to override potential Tailwind resets if needed */
+.table-ascii, .th-ascii, .td-ascii {
+  border: 1px solid hsl(var(--border)) !important;
+}
+
+.table-ascii a {
+  word-break: break-all; /* Helps long URLs wrap better */
+}
+    

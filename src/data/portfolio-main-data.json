@@ -1,0 +1,287 @@
+
+{
+  "meta": {
+    "charset": "utf-8",
+    "viewport": "width=device-width, initial-scale=1, shrink-to-fit=no",
+    "description": "Tilsizoglou Anastasios personal Web Page, a summary of my working experience and skills. Explore my interactive CLI-style portfolio.",
+    "keywords": "TasosTilsi, resume, cv, skills, experience, Software, developer, engineer, QA, Tester, Web, android, java, html, css, JavaScript, Anastasios Tilsizoglou, Senior Software Engineer in Test, Portfolio, CLI, Command Line, Next.js, React, Cyber Security Enthusiast",
+    "author": "Anastasios Tilsizoglou"
+  },
+  "about": {
+    "name": "Anastasios Tilsizoglou",
+    "title": "Senior Software Engineer in Test",
+    "location": "Thessaloniki, Greece",
+    "dob": "12 Oct 1994",
+    "email": "tilsizoglou@protonmail.com",
+    "description": "As Anastasios Tilsizoglou, I'm a dedicated Quality Assurance Automation Engineer with a strong passion for cybersecurity. My foundation in software and web development is complemented by extensive expertise in diverse automation tools and frameworks, alongside proficiency in multiple programming languages. I thrive on continuous learning and actively seek new challenges. Valued for my organizational skills, strategic mindset, and collaborative nature, I aim to elevate software quality through robust QA practices. I hold a Master's degree in Applied Informatics, specializing in Software Quality Assurance Engineering, and am a certified tester by the ISTQB Organization.",
+    "contact": {
+      "email":"tilsizoglou@protonmail.com",
+      "linkedin": "http://www.linkedin.com/in/tasostilsi",
+      "github": "http://github.com/tasostilsi",
+      "medium": "https://medium.com/@tasostilsi",
+      "facebook": "http://facebook.com/tasostilsi",
+      "instagram": "http://instagram.com/tasostilsi",
+      "twitter": "http://twitter.com/tasostilsi",
+      "twitch": "http://twitch.tv/tasostilsi"
+    },
+    "profileImageUrl": "https://tasostilsi.github.io/assets/img/profile-img.jpg",
+    "cvUrl": "https://www.dropbox.com/s/s7sjt7lrr1rh17d/TasosTilsi_Resume_tasostilsi.github.io.pdf?dl=1"
+  },
+  "experience": [
+    {
+      "title": "Senior Software Engineer in Test",
+      "company": "Chubb",
+      "location": "Leof. Georgikis Scholis 27, Thermi, 57001 Thessaloniki (Greece)",
+      "duration": "September 2023 - Present",
+      "isTechRelated": true,
+      "responsibilities": [
+        "Collaborated with progressive engineers to develop and optimize workflows for software development.",
+        "Ensured high-quality standards and compliance with requirements throughout the software delivery cycle.",
+        "Designed and executed both manual and automated tests based on project needs.",
+        "Generated regular and comprehensive test reports highlighting testing progress, issues, and risks.",
+        "Successfully resolved quality issues by adapting and enhancing test procedures.",
+        "Conducted thorough reviews of existing system designs and engineering processes, recommending improvements where necessary.",
+        "Developed detailed test artifacts, including test plans, traceability matrix, and test cases with expected outcomes, utilizing Jira.",
+        "Maintained and updated the existing automation framework and created automation scripts using tools like Selenium, Rest Assured, Playwright.",
+        "Effectively communicated testing outcomes to project team members and relevant stakeholders.",
+        "Maintained Git repositories.",
+        "Created and Maintained CI/CD jobs.",
+        "Assisted colleagues, risk analysis and reporting among the team.",
+        "Discussed ideas for improving the way the team works.",
+        "Analyzed release notes for turnover to testing."
+      ]
+    },
+    {
+      "title": "Software Engineer in Test",
+      "company": "Upstream Systems",
+      "location": "Kastorias 4, Gerakas, 15344 Athens (Greece)",
+      "duration": "September 2022 - August 2023",
+      "isTechRelated": true,
+      "responsibilities": [
+        "Created QA reports and filed bug tickets based on the outcome of QA test cycles.",
+        "Provided feedback to developers around UX based on test outcomes.",
+        "Performed Front-end (UI) testing.",
+        "Performed Back-end (API) testing.",
+        "Performed and Maintained smoke, functional, compatibility, regression testing.",
+        "Created test plans, requirements, scenarios and test data for use during testing.",
+        "Maintained Git repositories.",
+        "Created and Maintained CI/CD jobs.",
+        "Assisted colleagues, risk analysis and reporting among the team.",
+        "Discussed ideas for improving the way the team works.",
+        "Analyzed release notes for turnover to testing.",
+        "Supported continuous improvement by investigating alternatives and technologies.",
+        "Contributed to extending automation to cover new products and modules.",
+        "Designed and implemented tools for executing automated tests.",
+        "Ensured designs were in compliance with specifications.",
+        "Provided feedback on design documentation and created test plans."
+      ]
+    },
+    {
+      "title": "Software Engineer in Test",
+      "company": "Netcompany-Intrasoft",
+      "location": "Agiou Georgiou 5, Pylaia, 57001 Thessaloniki (Greece)",
+      "duration": "June 2019 - September 2022",
+      "isTechRelated": true,
+      "responsibilities": [
+        "Involved in numerous projects under CUST-DEV3 contract.",
+        "Created QA reports and file bug tickets based on the outcome of QA test cycles.",
+        "Provided feedback to developers around UX based on test outcomes.",
+        "Performed Front-end (UI) testing of website applications using Selenium.",
+        "Performed Back-end (API) testing of website applications using SoapUI.",
+        "Performed Performance testing of website applications using LoadUI and custom scripts using Java.",
+        "Performed and Maintained smoke, functional, compatibility, regression and GUI testing.",
+        "Created test plans, requirements, scenarios and test data for use during testing.",
+        "Maintained Git repositories, participated in code reviews as a reviewer.",
+        "Assisted colleagues, risk analysis and reporting among the team, discussing ideas for improving the way the team works."
+      ]
+    },
+    {
+      "title": "Android Developer",
+      "company": "Smartup PCC",
+      "location": "Komninon 45, Evosmos, 56224 Thessaloniki (Greece)",
+      "duration": "November 2017 - April 2018",
+      "isTechRelated": true,
+      "responsibilities": [
+        "Creation of Android applications.",
+        "Uploaded Android applications to Google's Playstore.",
+        "Maintained existing projects (Android, Javascript).",
+        "Provided First Level Support.",
+        "Provided Technical Support."
+      ]
+    },
+    {
+      "title": "Barista",
+      "company": "Sweet Corner",
+      "location": "Thessaloniki (Greece)",
+      "duration": "May 2018 - June 2018",
+      "isTechRelated": false,
+      "responsibilities": []
+    },
+    {
+      "title": "Storekeeper",
+      "company": "Mini Market at University Campus of AUTH",
+      "location": "Possidi, Kalándra, 63077 Possidi (Greece)",
+      "duration": "June 2017 - July 2017",
+      "isTechRelated": false,
+      "responsibilities": []
+    },
+    {
+      "title": "Washer",
+      "company": "WashPark",
+      "location": "Leoforos Georgikis Scholis 4, Pylaia, 57001 Thessaloniki (Greece)",
+      "duration": "March 2017 - June 2017",
+      "isTechRelated": false,
+      "responsibilities": []
+    }
+  ],
+  "education": [
+    {
+      "institution": "University of Macedonia",
+      "location": "Thessaloniki, Greece",
+      "degree": "Master of Science in Computer Science",
+      "duration": "October 2021 - June 2023",
+      "specialization": "Software Quality Assurance Engineering",
+      "courses": [
+        "Advanced Software Engineering",
+        "Data Structures and Algorithms",
+        "Web and Mobile Application Development",
+        "Cryptography",
+        "Parallel and Distributed Computing",
+        "Information Security in the Internet Age",
+        "Serious Games Programming",
+        "Advanced Artificial Intelligence"
+      ]
+    },
+    {
+      "institution": "TEI of Central Macedonia",
+      "location": "Serres, Greece",
+      "degree": "Bachelor of Computer Engineering",
+      "duration": "September 2012 - December 2018",
+      "courses": {
+        "general": ["Operating Systems", "Computer Networks", "Mathematics"],
+        "occupational": ["Software Engineering", "Programming Applications on the Internet", "Databases"]
+      }
+    },
+    {
+      "institution": "1st General High School of Sykies",
+      "location": "Thessaloniki, Greece",
+      "degree": "High School Degree",
+      "duration": "September 2009 - June 2012",
+      "courses": []
+    }
+  ],
+  "skills": {
+    "soft_skills": ["Analytical Skills", "Teamwork", "Creative Problem Solving", "Organizational Skills", "Time Management"],
+    "hard_skills": {
+      "Programming Languages": ["Java", "JavaScript", "ReactJS", "Spring Boot Framework", "electron.JS", "C", "C++", "PHP", "SQL", "Python", "TypeScript"],
+      "Testing Tools & Frameworks": ["Selenium", "Playwright", "Rest Assured", "ReadyAPI (SoapUI)", "ReadyAPI (LoadUI)", "Postman"],
+      "Web Technologies & Markup": ["HTML5", "CSS3", "Markdown", "Bootstrap", "MaterializeCSS", "XML", "JSON"],
+      "Simulation Software": ["Matlab", "Simulink", "Lindo"],
+      "Operating Systems": ["Linux", "Windows", "Android", "macOS"],
+      "DevOps & Other Tools": ["Docker", "Git", "Jira", "Jenkins", "Confluence", "GitHub", "GitLab", "Bitbucket", "Office Suites (Microsoft, Libre, Open)" ]
+    },
+    "languages": ["Greek (Native)", "English (Fluent)"]
+  },
+  "interests": [
+    "Spending time with friends",
+    "Enjoying good coffee and being a food lover",
+    "Going on road trips and scenic walks",
+    "Watching sports",
+    "Playing video games (PC and consoles) [*]",
+    "Following adventure and historical movies/series",
+    "Exploring latest technology advancements",
+    "Developing personal project ideas"
+  ],
+  "favorite_games": {
+    "simulation_games": ["Football Manager","Cities Skylines","Euro Truck Simulator", "Farming Simulator"],
+    "strategy_games": ["Rome Total War","Age of Empires","Civiliazation"],
+    "single_player_games": ["GTA","Witcher","Red Dead Redemption","Spiderman"],
+    "racing_games":["Grand Turismo","Need for Speed","F1"]
+  },
+  "projects": [
+    {"name": "SDK4ED-TD", "description": "Technical Debt management tool for the SDK4ED platform.", "link": "https://github.com/TasosTilsi/sdk4ed-td", "date": "June 2023"},
+    {"name": "ServicedMetricsCalculator", "description": "A tool to calculate metrics for services, likely related to software architecture or performance.", "link": "https://github.com/TasosTilsi/ServicedMetricsCalculator", "date": "June 2023"},
+    {"name": "Avoid Traffic Extended", "description": "An extended version of a traffic avoidance application, likely for route optimization.", "link": "https://github.com/TasosTilsi/AvoidTrafficExtended", "date": "May 2022"},
+    {"name": "Uom Track", "description": "Tracking application, possibly for University of Macedonia (UOM) related purposes.", "link": "https://github.com/TasosTilsi/WebnMobileDevelopmentUOM", "date": "December 2021"},
+    {"name": "Visualized Environment for Search Methods (VESM)", "description": "A tool for visualizing search algorithms, available as both web and desktop (Electron) applications. Web: https://tasostilsi.github.io/VESM/, Desktop: https://github.com/TasosTilsi/VESM-Electron-App/releases", "link": "https://tasostilsi.github.io/VESM/", "sourceUrl": "https://github.com/TasosTilsi/VESM-Electron-App/releases", "date": "August 2018"},
+    {"name": "The Petbook", "description": "A social application or utility for pet owners.", "link": "https://play.google.com/store/apps/details?id=com.tasostilsi.smartup.thepetbook", "date": "April 2018"},
+    {"name": "Landhaus", "description": "An Android application, purpose not specified but linked to Play Store.", "link": "https://play.google.com/store/apps/details?id=com.landhaus.tasostilsi.smartup.landhaus", "date": "January 2018"},
+    {"name": "Calbari", "description": "An Android application, purpose not specified but linked to Play Store.", "link": "https://play.google.com/store/apps/details?id=com.calbarisproj.tasostilsi.smartup.calbari&hl=el", "date": "December 2017"},
+    {"name": "Attendance Book Technological Institute of Serres", "description": "An attendance tracking system for the Technological Institute of Serres.", "link": "https://github.com/JamesNikolaidis/Attedance_Book_Technological_Institute_of_Serres", "date": "January 2017"},
+    {"name": "The Elucidated", "description": "A project by TransCoders, details to be inferred from repository.", "link": "https://github.com/TransCoders/The_Elucidated", "date": "November 2016"},
+    {"name": "Locate Nearest Stores", "description": "A project by TransCoders for finding nearby stores.", "link": "https://github.com/TransCoders/Locate_Nearest_Stores", "date": "October 2016"},
+    {"name": "Old Portfolio Website (Static)", "description": "My previous personal portfolio website, built with static HTML, CSS, and JavaScript. Showcasing my skills and projects.", "link": "https://tasostilsi.github.io/", "sourceUrl": "https://github.com/tasostilsi/tasostilsi.github.io", "date": "Ongoing"}
+  ],
+  "certifications": [
+    {"name": "Introduction to Playwright", "link": "https://tinyurl.com/5n6n2684", "date": "July 2023"},
+    {"name": "Introduction to Javascript", "link": "https://tinyurl.com/yfehxyhk", "date": "July 2023"},
+    {"name": "Scaling Tests with Docker", "link": "https://tinyurl.com/7r5ptuw4", "date": "September 2022"},
+    {"name": "Selenium 4 in Java", "link": "https://tinyurl.com/mrxxnwr7", "date": "March 2022"},
+    {"name": "Web Element Locator Strategies", "link": "https://tinyurl.com/2p8c3k7p", "date": "March 2022"},
+    {"name": "Jenkins - The Complete Tutorial | Master CICD and DevOps", "link": "https://tinyurl.com/5yhh7kzd", "date": "December 2021"},
+    {"name": "Automating your API tests with REST Assured", "link": "https://tinyurl.com/3v8p733z", "date": "March 2021"},
+    {"name": "Getting started with Angular", "link": null, "date": "April 2020"},
+    {"name": "Intellij for Test Automation Engineers", "link": "https://tinyurl.com/yzkhjx9y", "date": "February 2020"},
+    {"name": "Setting a Foundation for Successful Test Automation", "link": "https://tinyurl.com/yx7xa8lv", "date": "February 2020"},
+    {"name": "Selenium WebDriver with Java", "link": "https://tinyurl.com/yyjmpnet", "date": "October 2019"},
+    {"name": "REST API Testing using SOAP UI - Quick Introduction", "link": "http://ude.my/UC-7NUJDT8E", "date": "July 2019"},
+    {"name": "Kotlin for Beginners: Next Android platform language", "link": "http://ude.my/UC-N4H6ZWLE", "date": "July 2019"},
+    {"name": "JENKINS Beginner Tutorial - Step by Step", "link": "http://ude.my/UC-WZX1V3RY", "date": "June 2019"},
+    {"name": "Selenium Basics - Step by Step for Beginners", "link": "http://ude.my/UC-VC0QFJGL", "date": "May 2019"},
+    {"name": "Getting Started With Test Automation Using Selenium", "link": "http://ude.my/UC-W0EYNQM7", "date": "May 2019"},
+    {"name": "Become an Android Developer from Scratch", "link": "http://ude.my/UC-I1EMX49W", "date": "August 2018"},
+    {"name": "Fundamentals of Computer Hacking", "link": "http://ude.my/UC-RGJYILPS", "date": "July 2018"},
+    {"name": "Hacking Academy: How to Monitor & Intercept Transmitted Data", "link": "http://ude.my/UC-S8QS4DF1", "date": "July 2018"},
+    {"name": "Google Greek Grow Tourism", "link": null, "date": "October 2017"},
+    {"name": "IEEEday 2017", "link": null, "date": "October 2017"},
+    {"name": "Managing and saving energy from buildings using software", "link": null, "date": "May 2017"},
+    {"name": "The evolution of the Greek economy in the years of the Memorandum, policies of stability, growth and employment", "link": null, "date": "May 2017"},
+    {"name": "Electronic identities. Why; For whom; When;", "link": null, "date": "May 2015"},
+    {"name": "Opening the way for 5G networks", "link": null, "date": "May 2015"},
+    {"name": "Archimedes 3 - Supporting research teams at TEI of Serres", "link": null, "date": "May 2015"},
+    {"name": "Advanced services for the citizen and the student at TEI Serres", "link": null, "date": "May 2015"},
+    {"name": "Digital services of the TEI Library of Serres", "link": null, "date": "May 2015"},
+    {"name": "ECDL Progress Certificate", "link": null, "date": "February 2010"},
+    {"name": "Upper Intermediate Communication (London Tests of English Level 3)", "link": null, "date": "May 2008"},
+    {"name": "Entry Level Certificate in English (ESOL) - Entry 3", "link": null, "date": "May 2007"}
+  ],
+  "articles": [
+    {
+      "name": "Unpopular Opinion (or Maybe Not): ISTQB Shouldn’t Be for Testers — It Should Be for Everyone Else",
+      "platform": "Medium",
+      "link": "https://medium.com/@tasostilsi/unpopular-opinion-or-maybe-not-istqb-shouldnt-be-for-testers-it-should-be-for-everyone-else-6ec3e57fcdba",
+      "summary": "This isn’t just another article about testing. It’s about respect — for the work, for the people who do it, and for the role it plays in delivering quality software.",
+      "date": "May 9, 2024"
+    },
+    {
+      "name": "Unlock Effortless Updates: Mastering Maintainable Test Automation Frameworks",
+      "platform": "Medium",
+      "link": "https://medium.com/@tasostilsi/unlock-effortless-updates-mastering-maintainable-test-automation-frameworks-98667ad03016",
+      "summary": "A guide to building test automation frameworks that are easy to update and scale, ensuring long-term viability and efficiency.",
+      "date": "May 2, 2024"
+    },
+    {
+      "name": "More than a Year with Allure Reporting: From Reporting Tool to Team Catalyst",
+      "platform": "Medium",
+      "link": "https://medium.com/@tasostilsi/more-than-a-year-with-allure-reporting-from-reporting-tool-to-team-catalyst-2558e42b75f0",
+      "summary": "Leveraging Allure Reporting to Bridge Gaps Between Test Execution, CI/CD, and Team Collaboration.",
+      "date": "Apr 23, 2024"
+    },
+    {
+      "name": "Manual Testing: The Foundation That Makes Test Automation Truly Work",
+      "platform": "Medium",
+      "link": "https://medium.com/@tasostilsi/manual-testing-the-foundation-that-makes-test-automation-truly-work-0bdfe484a2d7",
+      "summary": "Before we automate, we need to understand. Why manual testing and test analysis remain essential in building robust, meaningful automation.",
+      "date": "Apr 16, 2024"
+    },
+    {
+      "name": "Assembly Lines & Algorithms: The Realities of Modern Engineering",
+      "platform": "Medium",
+      "link": "https://medium.com/@tasostilsi/assembly-lines-algorithms-the-realities-of-modern-engineering-e4d3c7117c7e",
+      "summary": "A deep dive into how software engineering mirrors industrial production — exploring shared workflows, metrics, and a path forward beyond the digital factory.",
+      "date": "Apr 8, 2024"
+    }
+  ]
+}
+
+    
