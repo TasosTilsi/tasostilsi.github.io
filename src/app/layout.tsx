@@ -1,9 +1,9 @@
+
 import type { Metadata, Viewport } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import portfolioData from '@/data/portfolio-main-data.json';
-import Script from 'next/script';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -88,28 +88,23 @@ export default function RootLayout({
   return (
     // The 'dark' or 'light' class will be applied dynamically by TerminalInterface.tsx
     // h-full is important for the CLI layout to fill the screen
-    <html lang="en" className="h-full">
+    <html lang="en" className="h-full" suppressHydrationWarning>
       <head>
         <meta charSet={portfolioData.meta.charset} />
         <meta name="viewport" content={portfolioData.meta.viewport} />
+        <link
+          rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+          integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+          crossOrigin="anonymous"
+          referrerPolicy="no-referrer"
+        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(personSchema) }}
         />
-        <Script
-          src="https://www.googletagmanager.com/gtag/js?id=G-TLWL6FDZE7"
-          strategy="afterInteractive"
-        />
-        <Script id="google-analytics" strategy="afterInteractive">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'G-TLWL6FDZE7');
-          `}
-        </Script>
       </head>
-      <body className={`${geistSans.variable} ${geistMono.variable} font-mono antialiased h-full flex flex-col`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} font-mono antialiased h-full flex flex-col`} suppressHydrationWarning>
         {children}
         <Toaster />
       </body>

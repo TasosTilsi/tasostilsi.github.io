@@ -13,7 +13,7 @@
     "location": "Thessaloniki, Greece",
     "dob": "12 Oct 1994",
     "email": "tilsizoglou@protonmail.com",
-    "description": "As Anastasios Tilsizoglou, I'm a dedicated Quality Assurance Automation Engineer with a strong passion for cybersecurity. My foundation in software and web development is complemented by extensive expertise in diverse automation tools and frameworks, alongside proficiency in multiple programming languages. I thrive on continuous learning and actively seek new challenges. Valued for my organizational skills, strategic mindset, and collaborative nature, I aim to elevate software quality through robust QA practices. I hold a Master's degree in Applied Informatics, specializing in Software Quality Assurance Engineering, and am a certified tester by the ISTQB Organization.",
+    "description": "I am a dedicated Quality Assurance Automation Engineer with a strong passion for cybersecurity. My foundation in software and web development is complemented by extensive expertise in diverse automation tools and frameworks, alongside proficiency in multiple programming languages. I thrive on continuous learning and actively seek new challenges. Valued for my organizational skills, strategic mindset, and collaborative nature, I aim to elevate software quality through robust QA practices. I hold a Master's degree in Applied Informatics, specializing in Software Quality Assurance Engineering, and am a certified tester by the ISTQB Organization.",
     "contact": {
       "email":"tilsizoglou@protonmail.com",
       "linkedin": "http://www.linkedin.com/in/tasostilsi",
@@ -23,9 +23,7 @@
       "instagram": "http://instagram.com/tasostilsi",
       "twitter": "http://twitter.com/tasostilsi",
       "twitch": "http://twitch.tv/tasostilsi"
-    },
-    "profileImageUrl": "https://tasostilsi.github.io/assets/img/profile-img.jpg",
-    "cvUrl": "https://www.dropbox.com/s/s7sjt7lrr1rh17d/TasosTilsi_Resume_tasostilsi.github.io.pdf?dl=1"
+    }
   },
   "experience": [
     {
@@ -283,5 +281,3 @@
     }
   ]
 }
-
-    
