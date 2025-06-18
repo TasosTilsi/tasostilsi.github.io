@@ -1,6 +1,6 @@
 export interface ExperienceEntry {
   isTechRelated: boolean;
-  duration: ReactNode;
+  duration: string;
   location: string;
   responsibilities?: string[];
   title: string;
@@ -8,16 +8,12 @@ export interface ExperienceEntry {
 }
 
 export interface EducationEntry {
-  duration: ReactNode;
-  location: any;
-  specialization?: any;
+  duration: string;
+  location: string;
+  specialization?: string;
   courses?: string[] | { [key: string]: string[] };
   degree: string;
-  major?: string;
   institution: string;
-  startDate?: string;
-  endDate?: string;
-  description?: string;
 }
 
 export interface Project {
@@ -30,46 +26,62 @@ export interface Project {
 
 export interface Certification {
   name: string;
-  issuingBody?: string;
   date: string;
   link?: string | null;
 }
 
 export interface Article {
-  name: ReactNode;
-  platform: ReactNode;
-  summary: any;
-  title?: string;
+  name: string;
+  platform: string;
+  summary: string;
   link: string;
   date: string;
-  description?: string;
 }
 
 export interface PortfolioData {
+  meta: {
+    charset: string;
+    viewport: string;
+    description: string;
+    keywords: string;
+    author: string;
+  };
   about: {
     name: string;
     title: string;
+    location: string;
+    dob: string;
+    email: string;
     description: string;
     contact: {
       email: string;
-      phone?: string;
-      linkedin?: string;
-      github?: string;
-      twitter?: string;
-      website?: string;
+      linkedin: string;
+      github: string;
+      medium: string;
+      facebook: string;
+      instagram: string;
+      twitter: string;
+      twitch: string;
     };
+    profileImageUrl: string;
   };
   experience: ExperienceEntry[];
   education: EducationEntry[];
   skills: {
+    soft_skills: string[];
+    hard_skills: {
+      [category: string]: string[];
+    };
     languages: string[];
-    frameworks: string[];
-    tools: string[];
-    databases: string[];
-    platforms: string[];
+  };
+  interests: string[];
+  favorite_games: {
+    simulation_games: string[];
+    strategy_games: string[];
+    single_player_games: string[];
+    racing_games: string[];
   };
   projects: Project[];
-  articles: Article[];
-  interests: string[];
   certifications: Certification[];
+  articles: Article[];
 }

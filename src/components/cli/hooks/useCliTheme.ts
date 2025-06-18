@@ -1,19 +1,21 @@
-
 "use client";
 
-import { useState, useEffect, useCallback } from 'react';
-import { LOCAL_STORAGE_THEME_KEY } from '@/components/cli/constants';
+import {
+  LOCAL_STORAGE_THEME_KEY,
+  Theme,
+  VALID_THEMES,
+} from "@/components/cli/constants";
+import { useCallback, useEffect, useState } from "react";
 
-export type Theme = 'light' | 'dark' | 'sepia' | 'monokai' | 'github' | 'solarized-dark';
-const VALID_THEMES: Theme[] = ['light', 'dark', 'sepia', 'monokai', 'github', 'solarized-dark'];
-
-export function useCliTheme(defaultTheme: Theme = 'dark') {
+export function useCliTheme(defaultTheme: Theme = "dark") {
   const [currentTheme, setCurrentTheme] = useState<Theme>(() => {
-    if (typeof window === 'undefined') {
+    if (typeof window === "undefined") {
       return defaultTheme;
     }
     try {
-      const savedTheme = localStorage.getItem(LOCAL_STORAGE_THEME_KEY) as Theme | null;
+      const savedTheme = localStorage.getItem(
+        LOCAL_STORAGE_THEME_KEY
+      ) as Theme | null;
       if (savedTheme && VALID_THEMES.includes(savedTheme)) {
         return savedTheme;
       }
@@ -24,17 +26,20 @@ export function useCliTheme(defaultTheme: Theme = 'dark') {
   });
 
   useEffect(() => {
-    if (typeof document !== 'undefined') {
-      VALID_THEMES.forEach(themeName => {
-        if (themeName !== currentTheme) { 
-             document.documentElement.classList.remove(themeName);
+    if (typeof document !== "undefined") {
+      VALID_THEMES.forEach((themeName) => {
+        if (themeName !== currentTheme) {
+          document.documentElement.classList.remove(themeName);
         }
       });
 
-      if (VALID_THEMES.includes(currentTheme) && !document.documentElement.classList.contains(currentTheme)) {
+      if (
+        VALID_THEMES.includes(currentTheme) &&
+        !document.documentElement.classList.contains(currentTheme)
+      ) {
         document.documentElement.classList.add(currentTheme);
       }
-      
+
       try {
         localStorage.setItem(LOCAL_STORAGE_THEME_KEY, currentTheme);
       } catch (e) {

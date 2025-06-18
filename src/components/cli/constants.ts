@@ -2,19 +2,36 @@ export const USERNAME = "guest";
 export const HOSTNAME = "tasostilsi-portfolio";
 export const PROMPT_SYMBOL = "$";
 
+export type Theme =
+  | "light"
+  | "dark"
+  | "sepia"
+  | "monokai"
+  | "github"
+  | "solarized-dark";
+
+export const VALID_THEMES: Theme[] = [
+  "light",
+  "dark",
+  "sepia",
+  "monokai",
+  "github",
+  "solarized-dark",
+];
+
 export const EASTER_EGG_IDS = {
-  PROJECTS_ALL: 'projects_all_flag_found',
-  CERTS_ALL: 'certs_all_flag_found',
-  EDUCATION_ALL: 'education_all_flag_found',
-  SUPERMARIO: 'supermario_cmd_found',
-  GAMING_CMD_FOUND: 'gaming_cmd_found',
-  CMD_HISTORY_USED: 'cmd_history_used_flag',
-  EXPERIENCE_ALL: 'experience_all_flag_found',
-  CTRL_C_CLEAR: 'ctrl_c_clear_easter_egg',
-  DATE_CMD_USED: 'date_cmd_used_flag',
-  ECHO_CMD_USED: 'echo_cmd_used_flag',
-  ALIAS_CMD_USED: 'alias_cmd_used_flag',
-  REVELIO_CMD_USED: 'revelio_cmd_used_flag',
+  PROJECTS_ALL: "projects_all_flag_found",
+  CERTS_ALL: "certs_all_flag_found",
+  EDUCATION_ALL: "education_all_flag_found",
+  SUPERMARIO: "supermario_cmd_found",
+  GAMING_CMD_FOUND: "gaming_cmd_found",
+  CMD_HISTORY_USED: "cmd_history_used_flag",
+  EXPERIENCE_ALL: "experience_all_flag_found",
+  CTRL_C_CLEAR: "ctrl_c_clear_easter_egg",
+  DATE_CMD_USED: "date_cmd_used_flag",
+  ECHO_CMD_USED: "echo_cmd_used_flag",
+  ALIAS_CMD_USED: "alias_cmd_used_flag",
+  REVELIO_CMD_USED: "revelio_cmd_used_flag",
 };
 
 export const EASTER_EGG_NAMES: Record<string, string> = {
@@ -33,5 +50,5 @@ export const EASTER_EGG_NAMES: Record<string, string> = {
 };
 
 export const TOTAL_EASTER_EGGS = Object.keys(EASTER_EGG_IDS).length;
-export const LOCAL_STORAGE_EASTER_EGGS_KEY = 'portfolioCliFoundEasterEggs';
-export const LOCAL_STORAGE_THEME_KEY = 'portfolio-theme';
+export const LOCAL_STORAGE_EASTER_EGGS_KEY = "portfolioCliFoundEasterEggs";
+export const LOCAL_STORAGE_THEME_KEY = "portfolio-theme";
