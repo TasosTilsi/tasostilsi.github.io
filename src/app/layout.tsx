@@ -103,6 +103,18 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(personSchema) }}
         />
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-TLWL6FDZE7"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-TLWL6FDZE7');
+          `}
+        </Script>
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} font-mono antialiased h-full flex flex-col`} suppressHydrationWarning>
         {children}
