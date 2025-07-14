@@ -149,6 +149,8 @@ export default function TerminalInterface() {
         }
         return <CertsOutput />;
       case "gaming":
+      case "games":
+      case "videoGames":
         triggerEasterEgg(EASTER_EGG_IDS.GAMING_CMD_FOUND);
         return <FavoriteGamesOutput />;
       case "date":

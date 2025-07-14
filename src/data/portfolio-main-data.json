@@ -24,7 +24,7 @@
       "twitter": "http://twitter.com/tasostilsi",
       "twitch": "http://twitch.tv/tasostilsi"
     },
-    "profileImageUrl":""
+    "profileImageUrl":"https://tinyurl.com/5cfm72u7"
   },
   "experience": [
     {
@@ -170,7 +170,7 @@
     }
   ],
   "skills": {
-    "soft_skills": ["Analytical Skills", "Teamwork", "Creative Problem Solving", "Organizational Skills", "Time Management"],
+    "soft_skills": ["Analytical Skills", "Teamwork", "Creative Problem Solving", "Organizational Skills", "Time Management","Attention to Detail"],
     "hard_skills": {
       "Programming Languages": ["Java", "JavaScript", "ReactJS", "Spring Boot Framework", "electron.JS", "C", "C++", "PHP", "SQL", "Python", "TypeScript"],
       "Testing Tools & Frameworks": ["Selenium", "Playwright", "Rest Assured", "ReadyAPI (SoapUI)", "ReadyAPI (LoadUI)", "Postman"],
@@ -209,9 +209,19 @@
     {"name": "Attendance Book Technological Institute of Serres", "description": "An attendance tracking system for the Technological Institute of Serres.", "link": "https://github.com/JamesNikolaidis/Attedance_Book_Technological_Institute_of_Serres", "date": "January 2017"},
     {"name": "The Elucidated", "description": "A project by TransCoders, details to be inferred from repository.", "link": "https://github.com/TransCoders/The_Elucidated", "date": "November 2016"},
     {"name": "Locate Nearest Stores", "description": "A project by TransCoders for finding nearby stores.", "link": "https://github.com/TransCoders/Locate_Nearest_Stores", "date": "October 2016"},
-    {"name": "Old Portfolio Website (Static)", "description": "My previous personal portfolio website, built with static HTML, CSS, and JavaScript. Showcasing my skills and projects.", "link": "https://tasostilsi.github.io/", "sourceUrl": "https://github.com/tasostilsi/tasostilsi.github.io", "date": "Ongoing"}
+    {"name": "Portfolio Website", "description": "My personal portfolio website, Showcasing my skills and projects.", "link": "https://tasostilsi.github.io/", "sourceUrl": "https://github.com/tasostilsi/tasostilsi.github.io", "date": "Ongoing"}
   ],
   "certifications": [
+    {"name": "The AI-Driven Software Developer: Optimize, Innovate, Transform", "link": "https://tinyurl.com/hfrby9mv", "date": "June 2025"},
+    {"name": "Advanced Prompt Engineering Techniques", "link": "https://tinyurl.com/5n6n264326zzsn84", "date": "June 2025"},
+    {"name": "Artificial Intelligence Foundations: Thinking Machines", "link": "https://tinyurl.com/3rthjtss", "date": "June 2025"},
+    {"name": "Introduction to Large Language Models", "link": "https://tinyurl.com/2r8vyzaa", "date": "June 2025"},
+    {"name": "Introduction to Prompt Engineering for Generative AI", "link": "https://tinyurl.com/ut2b4zx5", "date": "June 2025"},
+    {"name": "What Is Generative AI", "link": "https://tinyurl.com/3zeks6xj", "date": "June 2025"},
+    {"name": "JavaScript Essential Training", "link": "https://tinyurl.com/ms4m3z97", "date": "May 2025"},
+    {"name": "ISTQB® Foundation Level", "link": "Credential ID GRTB-24-1S20-CTFL", "date": "July 2024"},
+    {"name": "Test Automation in DevOps", "link": "https://tinyurl.com/crd4cp43", "date": "October 2023"},
+    {"name": "Advanced Playwright", "link": "https://tinyurl.com/2s9fsukf", "date": "September 2023"},
     {"name": "Introduction to Playwright", "link": "https://tinyurl.com/5n6n2684", "date": "July 2023"},
     {"name": "Introduction to Javascript", "link": "https://tinyurl.com/yfehxyhk", "date": "July 2023"},
     {"name": "Scaling Tests with Docker", "link": "https://tinyurl.com/7r5ptuw4", "date": "September 2022"},
