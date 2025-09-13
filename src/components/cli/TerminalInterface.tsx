@@ -39,14 +39,7 @@ interface OutputLine {
   command?: string;
 }
 
-const VALID_RESUME_SECTIONS = [
-  "education",
-  "skills",
-  "projects",
-  "certifications",
-  "articles",
-  "interests",
-];
+// Resume now uses smart defaults - no section customization needed
 
 export default function TerminalInterface() {
   const { setTheme, VALID_THEMES } = useCliTheme();
@@ -62,9 +55,7 @@ export default function TerminalInterface() {
   const [commandHistory, setCommandHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState<number>(-1);
   const [isResumeModalOpen, setIsResumeModalOpen] = useState(false);
-  const [resumeSections, setResumeSections] = useState<string[]>(
-    VALID_RESUME_SECTIONS
-  );
+  // Resume sections are now handled by smart defaults
 
   useEffect(() => {
     hiddenInputRef.current?.focus();
@@ -100,7 +91,7 @@ export default function TerminalInterface() {
   const processCommand = async (
     command: string
   ): Promise<
-    React.ReactNode | { openModal: "resume"; sections?: string[] }
+    React.ReactNode | { openModal: "resume" }
   > => {
     const [cmd, ...args] = command.toLowerCase().trim().split(" ");
     const allFlag = args.includes("-a") || args.includes("--all");
@@ -169,14 +160,7 @@ export default function TerminalInterface() {
       case "resume":
       case "pdf":
       case "cv":
-        const requestedSections = args.filter((arg) =>
-          VALID_RESUME_SECTIONS.includes(arg.toLowerCase())
-        );
-        const sectionsForModal =
-          requestedSections.length > 0
-            ? requestedSections
-            : VALID_RESUME_SECTIONS;
-        return { openModal: "resume", sections: sectionsForModal };
+        return { openModal: "resume" };
       case "supermario":
         triggerEasterEgg(EASTER_EGG_IDS.SUPERMARIO);
         return (
@@ -247,7 +231,7 @@ export default function TerminalInterface() {
       ) {
         // Handle modal opening and resume sections here
         setIsResumeModalOpen(true);
-        setResumeSections(result.sections || VALID_RESUME_SECTIONS); // Default to all if not provided
+        // Resume uses smart defaults now
         // Push a string output to history, not the object
         newHistoryLog.push({
           id: Date.now().toString() + "-output",
@@ -390,7 +374,6 @@ export default function TerminalInterface() {
         isOpen={isResumeModalOpen}
         onClose={() => setIsResumeModalOpen(false)}
         data={portfolioData}
-        sectionsToDisplay={resumeSections}
       />
     </>
   );
