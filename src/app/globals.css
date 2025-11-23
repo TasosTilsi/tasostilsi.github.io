@@ -1,44 +1,52 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 body {
-  font-family: var(--font-geist-mono), Menlo, Monaco, 'Courier New', monospace; /* Prioritize mono for CLI */
+  font-family: var(--font-geist-mono), Menlo, Monaco, 'Courier New', monospace;
+  /* Prioritize mono for CLI */
 }
 
 @layer base {
   :root {
-    --background: 0 0% 10%; /* Dark background for dark mode (CLI standard) */
-    --foreground: 165 70% 85%; /* Muted Cyan/Green for dark mode text (Terminal-like) */
+    --background: 0 0% 10%;
+    /* Dark background for dark mode (CLI standard) */
+    --foreground: 165 70% 85%;
+    /* Muted Cyan/Green for dark mode text (Terminal-like) */
     --card: 0 0% 15%;
-    --card-foreground: 165 70% 85%; 
+    --card-foreground: 165 70% 85%;
     --popover: 0 0% 15%;
     --popover-foreground: 165 70% 85%;
-    --primary: 231 48% 58%; /* Lighter Deep Blue for dark mode */
+    --primary: 231 48% 58%;
+    /* Lighter Deep Blue for dark mode */
     --primary-foreground: 0 0% 98%;
     --secondary: 0 0% 20%;
     --secondary-foreground: 0 0% 98%;
     --muted: 0 0% 25%;
     --muted-foreground: 0 0% 63.9%;
-    --accent: 174 100% 39%; /* Lighter Teal for dark mode */
+    --accent: 174 100% 39%;
+    /* Lighter Teal for dark mode */
     --accent-foreground: 0 0% 98%;
-    --destructive: 0 72% 51%; /* Adjusted for better contrast on dark */
+    --destructive: 0 72% 51%;
+    /* Adjusted for better contrast on dark */
     --destructive-foreground: 0 0% 98%;
     --border: 0 0% 25%;
     --input: 0 0% 20%;
-    --ring: 174 100% 39%; /* Accent color for rings */
+    --ring: 174 100% 39%;
+    /* Accent color for rings */
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
     --radius: 0.5rem;
-    --sidebar-background: 0 0% 10%; /* Ensured dark for CLI */
+    --sidebar-background: 0 0% 10%;
+    /* Ensured dark for CLI */
     --sidebar-foreground: 165 70% 85%;
     --sidebar-primary: 231 48% 58%;
     --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 174 100% 29%; /* Original Teal */
+    --sidebar-accent: 174 100% 29%;
+    /* Original Teal */
     --sidebar-accent-foreground: 0 0% 98%;
     --sidebar-border: 0 0% 25%;
     --sidebar-ring: 174 100% 39%;
@@ -72,28 +80,32 @@ body {
     --sidebar-accent-foreground: 0 0% 98%;
     --sidebar-border: 0 0% 25%;
     --sidebar-ring: 174 100% 39%;
+    --success: 142 76% 36%;
+    /* Green */
+    --warning: 48 96% 53%;
+    /* Yellow/Orange */
   }
 
   .light {
-    --background: 0 0% 93%; /* Light Gray #EEEEEE */
-    --foreground: 0 0% 10%; /* Dark Gray for text on light background */
-    --card: 0 0% 100%; /* White */
+    --background: 0 0% 93%;
+    --foreground: 0 0% 10%;
+    --card: 0 0% 100%;
     --card-foreground: 0 0% 10%;
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 10%;
-    --primary: 231 48% 48%; /* Deep Blue #3F51B5 */
-    --primary-foreground: 0 0% 98%; /* Light color for text on primary */
+    --primary: 231 48% 48%;
+    --primary-foreground: 0 0% 98%;
     --secondary: 0 0% 96.1%;
     --secondary-foreground: 0 0% 9%;
-    --muted: 0 0% 85%; /* Lighter gray for muted elements */
+    --muted: 0 0% 85%;
     --muted-foreground: 0 0% 45.1%;
-    --accent: 174 100% 29%; /* Teal #009688 */
-    --accent-foreground: 0 0% 98%; /* Light color for text on accent */
+    --accent: 174 100% 29%;
+    --accent-foreground: 0 0% 98%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 85%; /* Border color */
+    --border: 0 0% 85%;
     --input: 0 0% 89.8%;
-    --ring: 231 48% 48%; /* Primary color for rings */
+    --ring: 231 48% 48%;
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
     --sidebar-primary: 240 5.9% 10%;
@@ -102,6 +114,8 @@ body {
     --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+    --success: 142 76% 36%;
+    --warning: 48 96% 53%;
   }
 
   .sepia {
@@ -132,6 +146,8 @@ body {
     --sidebar-accent-foreground: 30 40% 20%;
     --sidebar-border: 35 20% 70%;
     --sidebar-ring: 30 50% 45%;
+    --success: 142 76% 36%;
+    --warning: 48 96% 53%;
   }
 
   .monokai {
@@ -162,9 +178,11 @@ body {
     --sidebar-accent-foreground: 0 0% 100%;
     --sidebar-border: 240 5% 30%;
     --sidebar-ring: 150 70% 60%;
+    --success: 142 76% 36%;
+    --warning: 48 96% 53%;
   }
 
-  .github { /* GitHub Dark Inspired */
+  .github {
     --background: 220 13% 13%;
     --foreground: 210 17% 86%;
     --card: 220 14% 18%;
@@ -192,6 +210,8 @@ body {
     --sidebar-accent-foreground: 0 0% 100%;
     --sidebar-border: 220 13% 25%;
     --sidebar-ring: 212 92% 54%;
+    --success: 142 76% 36%;
+    --warning: 48 96% 53%;
   }
 
   .solarized-dark {
@@ -201,19 +221,19 @@ body {
     --card-foreground: 200 15% 58%;
     --popover: 205 32% 15%;
     --popover-foreground: 200 15% 58%;
-    --primary: 207 68% 50%; /* Solarized Blue */
+    --primary: 207 68% 50%;
     --primary-foreground: 0 0% 100%;
     --secondary: 205 28% 20%;
     --secondary-foreground: 200 15% 45%;
     --muted: 200 15% 35%;
     --muted-foreground: 200 15% 40%;
-    --accent: 175 59% 40%; /* Solarized Cyan */
+    --accent: 175 59% 40%;
     --accent-foreground: 0 0% 100%;
-    --destructive: 1 70% 52%; /* Solarized Red */
+    --destructive: 1 70% 52%;
     --destructive-foreground: 0 0% 100%;
     --border: 200 15% 30%;
     --input: 205 32% 15%;
-    --ring: 175 59% 40%; /* Accent for rings */
+    --ring: 175 59% 40%;
     --sidebar-background: 205 28% 13%;
     --sidebar-foreground: 200 15% 58%;
     --sidebar-primary: 207 68% 50%;
@@ -222,22 +242,35 @@ body {
     --sidebar-accent-foreground: 0 0% 100%;
     --sidebar-border: 200 15% 30%;
     --sidebar-ring: 175 59% 40%;
+    --success: 142 76% 36%;
+    --warning: 48 96% 53%;
   }
 }
 
 
 @keyframes blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0; }
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0;
+  }
 }
 
 .blinking-cursor {
   animation: blink 1s step-end infinite;
   display: inline-block;
-  background-color: hsl(var(--accent)); /* Make cursor a block using background */
-  width: 0.5em; /* Adjust width as needed */
-  height: 1.2em; /* Adjust height to match text line height */
-  vertical-align: text-bottom; /* Align with baseline of text */
+  background-color: hsl(var(--accent));
+  /* Make cursor a block using background */
+  width: 0.5em;
+  /* Adjust width as needed */
+  height: 1.2em;
+  /* Adjust height to match text line height */
+  vertical-align: text-bottom;
+  /* Align with baseline of text */
 }
 
 
@@ -245,6 +278,7 @@ body {
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
     scroll-behavior: smooth;
@@ -255,9 +289,12 @@ body {
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
+
   .scrollbar-hide {
-    -ms-overflow-style: none;  /* IE and Edge */
-    scrollbar-width: none;  /* Firefox */
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
   }
 }
 
@@ -269,10 +306,12 @@ body {
 
 .cli-input-display {
   font-family: var(--font-geist-mono), Menlo, Monaco, 'Courier New', monospace;
-  color: hsl(var(--foreground)); /* Or your desired input text color */
+  color: hsl(var(--foreground));
+  /* Or your desired input text color */
   /* whitespace-pre is applied inline in the component */
   /* Add any other styling for the visible text part of the input */
-  line-height: 1.2em; /* Match cursor height for better alignment */
+  line-height: 1.2em;
+  /* Match cursor height for better alignment */
 }
 
 
@@ -280,21 +319,29 @@ body {
   font-family: var(--font-geist-mono), Menlo, Monaco, 'Courier New', monospace;
 }
 
-.cli-output-area ul { /* General reset for our custom styling */
-  list-style-type: none; 
-  padding-left: 1rem; /* Indentation for the list itself */
+.cli-output-area ul {
+  /* General reset for our custom styling */
+  list-style-type: none;
+  padding-left: 1rem;
+  /* Indentation for the list itself */
 }
-.cli-output-area ul:not(.list-none) li::before { /* Default for non list-none */
-  content: "- "; 
+
+.cli-output-area ul:not(.list-none) li::before {
+  /* Default for non list-none */
+  content: "- ";
   display: inline-block;
   margin-right: 0.5rem;
 }
-.cli-output-area ul.list-disc li::before { /* For list-disc specifically */
-   content: "* ";
+
+.cli-output-area ul.list-disc li::before {
+  /* For list-disc specifically */
+  content: "* ";
 }
-.cli-output-area ul.list-none li::before { /* Ensure list-none truly has no prefix */
-    content: "";
-    margin-right: 0;
+
+.cli-output-area ul.list-none li::before {
+  /* Ensure list-none truly has no prefix */
+  content: "";
+  margin-right: 0;
 }
 
 /* ASCII Table styles */
@@ -304,30 +351,38 @@ body {
   font-family: var(--font-geist-mono), Menlo, Monaco, 'Courier New', monospace;
   margin-top: 0.5em;
   margin-bottom: 0.5em;
-  box-shadow: 0 2px 4px hsl(var(--accent) / 0.1); /* Subtle shadow */
+  box-shadow: 0 2px 4px hsl(var(--accent) / 0.1);
+  /* Subtle shadow */
 }
 
 .th-ascii,
 .td-ascii {
   border: 1px solid hsl(var(--border));
-  padding: 0.4em 0.6em; /* Slightly reduced padding */
+  padding: 0.4em 0.6em;
+  /* Slightly reduced padding */
   text-align: left;
-  vertical-align: top; /* Align content to the top of the cell */
+  vertical-align: top;
+  /* Align content to the top of the cell */
 }
 
 .th-ascii {
-  background-color: hsl(var(--muted) / 0.1); /* Very subtle background for header */
+  background-color: hsl(var(--muted) / 0.1);
+  /* Very subtle background for header */
   font-weight: bold;
-  color: hsl(var(--accent)); /* Header text in accent color */
+  color: hsl(var(--accent));
+  /* Header text in accent color */
 }
 
 /* Forcing borders for ASCII look, !important to override potential Tailwind resets if needed */
-.table-ascii, .th-ascii, .td-ascii {
+.table-ascii,
+.th-ascii,
+.td-ascii {
   border: 1px solid hsl(var(--border)) !important;
 }
 
 .table-ascii a {
-  word-break: break-all; /* Helps long URLs wrap better */
+  word-break: break-all;
+  /* Helps long URLs wrap better */
 }
 
 /* Resume Print Styles */
@@ -336,66 +391,72 @@ body {
     margin: 0.5in;
     size: A4;
   }
-  
+
   * {
     -webkit-print-color-adjust: exact !important;
     color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
-  
+
   body {
     font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
     line-height: 1.4 !important;
     color: #000000 !important;
     background: #ffffff !important;
   }
-  
+
   .resume-container {
     background: white !important;
     color: black !important;
     font-size: 12px !important;
     line-height: 1.4 !important;
   }
-  
-  h1, h2, h3, h4, h5, h6 {
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     color: #000000 !important;
     page-break-after: avoid;
   }
-  
-  p, li {
+
+  p,
+  li {
     color: #333333 !important;
     orphans: 3;
     widows: 3;
   }
-  
+
   a {
     color: #000000 !important;
     text-decoration: none !important;
   }
-  
+
   /* Page breaks */
   section {
     page-break-inside: avoid;
     break-inside: avoid;
   }
-  
+
   .page-break-before {
     page-break-before: always;
   }
-  
+
   .page-break-after {
     page-break-after: always;
   }
-  
+
   /* Hide and show elements for print */
   .print-hidden {
     display: none !important;
   }
-  
+
   .print-block {
     display: block !important;
   }
-  
+
   .print-inline {
     display: inline !important;
   }
@@ -472,9 +533,35 @@ body {
   color: #6b7280;
   font-size: 0.875rem;
 }
-    
 
-    
+/* Mobile Responsiveness */
+@media (max-width: 640px) {
+  html {
+    font-size: 14px;
+  }
 
-    
+  .cli-output-area {
+    font-size: 0.875rem;
+    /* 14px */
+  }
 
+  .table-ascii {
+    font-size: 0.75rem;
+    /* 12px */
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .cli-input-display,
+  .cli-input {
+    font-size: 16px !important;
+    /* Prevent iOS zoom */
+  }
+
+  .cli-output-area pre {
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+}

@@ -19,6 +19,7 @@ export const AdvancedHelpOutput = () => {
         <li><span className="text-primary w-32 inline-block">presentations</span>          - View presentations & talks</li>
         <li><span className="text-primary w-32 inline-block">certifications</span>         - View certifications</li>
         <li><span className="text-primary w-32 inline-block">interests</span>              - Learn about personal interests</li>
+        <li><span className="text-primary w-32 inline-block">achievements</span>           - View unlocked achievements</li>
         <li><span className="text-primary w-32 inline-block">resume</span>               - View/download professional resume</li>
         <li><span className="text-primary w-32 inline-block">theme</span>                  - Switch color theme (options: {themeOptions})</li>
         <li><span className="text-primary w-32 inline-block">help</span>                   - Show main help message</li>

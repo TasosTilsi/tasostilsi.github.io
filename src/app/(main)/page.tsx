@@ -6,7 +6,7 @@ import { TerminalLoader } from '@/components/cli/TerminalLoader';
 
 // Dynamically import TerminalInterface with no SSR
 const TerminalInterface = dynamic(
-  () => import('@/components/cli/TerminalInterface'), {
+  () => import('@/components/cli/TerminalInterface').then(mod => mod.TerminalInterface), {
   ssr: false,
   loading: () => {
     return <TerminalLoader />;

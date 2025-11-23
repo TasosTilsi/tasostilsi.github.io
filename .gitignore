@@ -24,3 +24,5 @@ yarn.lock
 !package-lock.json
 
 .claude/
+.agent/
+.bmad/

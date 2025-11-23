@@ -27,32 +27,32 @@ const ResumeArticles: React.FC<ResumeArticlesProps> = ({ data, limit = 5 }) => {
             className="print:mb-2"
             style={{ breakInside: "avoid-page" }}
           >
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-1">
               <div className="flex-1">
-                <h4 className="text-sm font-semibold text-gray-900 print:text-xs">
+                <h4 className="text-base font-semibold text-gray-900 print:text-sm">
                   {article.name}
                 </h4>
-                <p className="text-xs text-gray-600 print:text-xs">
-                  {article.platform} • {article.date}
-                  {isValidUrl(article.link) && (
-                    <>
-                      {" • "}
-                      <a
-                        href={article.link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:underline print:text-blue-700"
-                      >
-                        Read Article
-                      </a>
-                    </>
-                  )}
-                </p>
                 {article.summary && (
                   <p className="text-sm text-gray-700 mt-1 leading-relaxed print:text-xs print:leading-normal">
                     {article.summary}
+                    {isValidUrl(article.link) && (
+                      <>
+                        {" "}
+                        <a
+                          href={article.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:underline print:text-blue-700 text-xs"
+                        >
+                          [Read Article]
+                        </a>
+                      </>
+                    )}
                   </p>
                 )}
+              </div>
+              <div className="text-sm text-gray-600 mt-1 sm:mt-0 print:text-xs whitespace-nowrap ml-4">
+                {article.date}
               </div>
             </div>
           </div>

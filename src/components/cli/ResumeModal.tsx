@@ -18,6 +18,7 @@ interface ResumeModalProps {
   isOpen: boolean;
   onClose: () => void;
   data: PortfolioData;
+  autoDownload?: boolean;
 }
 
 // Smart defaults: always show core sections + intelligent optional sections
@@ -26,12 +27,15 @@ const ResumeModal: React.FC<ResumeModalProps> = ({
   isOpen,
   onClose,
   data,
+  autoDownload = false,
 }) => {
-  const resumeRef = useRef<HTMLDivElement>(null);
+  // Smart defaults: always show these sections initially
+  const [showCertifications, setShowCertifications] = React.useState(true);
+  const [showProjects, setShowProjects] = React.useState(true);
+  const [showArticles, setShowArticles] = React.useState(true);
+  const [showSettings, setShowSettings] = React.useState(false);
 
-  if (!isOpen) {
-    return null;
-  }
+  const resumeRef = useRef<HTMLDivElement>(null);
 
   const handlePrint = () => {
     console.log("Print button clicked, attempting to call window.print()");
@@ -120,10 +124,20 @@ const ResumeModal: React.FC<ResumeModalProps> = ({
     }
   };
 
-  // Smart defaults: always show these sections
-  const shouldShowCertifications = true; // Last 7 years, max 10
-  const shouldShowProjects = true; // Top 6 most relevant
-  const shouldShowArticles = true; // Top 5 most recent
+  // Auto-download effect
+  React.useEffect(() => {
+    if (isOpen && autoDownload) {
+      // Small delay to ensure render
+      const timer = setTimeout(() => {
+        handleDownloadPDF();
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen, autoDownload]);
+
+  if (!isOpen || !data) {
+    return null;
+  }
 
   return (
     <UniversalModal
@@ -133,13 +147,16 @@ const ResumeModal: React.FC<ResumeModalProps> = ({
       description="Professional ATS-friendly resume with modern formatting"
       iframeUrl=""
       externalUrl=""
-      contentClassName="print:static print:left-0 print:top-0 print:m-0 print:translate-x-0 print:translate-y-0 print:w-full print:max-w-none print:h-auto print:max-h-none print:shadow-none print:border-none print:p-0 print:overflow-visible"
+      contentClassName="print:static print:left-0 print:top-0 print:m-0 print:translate-x-0 print:translate-y-0 print:w-full print:max-w-none print:h-auto print:max-h-none print:shadow-none print:border-none print:p-0 print:overflow-visible print:bg-white"
       footerButtons={
         <>
-          <Button variant="outline" onClick={handleDownloadPDF}>
+          <Button variant="outline" onClick={() => setShowSettings(!showSettings)} className="w-full sm:w-auto min-h-[44px]">
+            <i className={`fas fa-cog mr-2 ${showSettings ? "text-accent" : ""}`} aria-hidden="true"></i>Customize
+          </Button>
+          <Button variant="outline" onClick={handleDownloadPDF} className="w-full sm:w-auto min-h-[44px]">
             <i className="fas fa-download mr-2" aria-hidden="true"></i>Download PDF
           </Button>
-          <Button onClick={handlePrint}>
+          <Button onClick={handlePrint} className="w-full sm:w-auto min-h-[44px]">
             <i className="fas fa-print mr-2" aria-hidden="true"></i>Print Resume
           </Button>
         </>
@@ -155,6 +172,41 @@ const ResumeModal: React.FC<ResumeModalProps> = ({
             minHeight: 'fit-content',
           }}
         >
+          {showSettings && (
+            <div className="mb-6 p-4 bg-gray-100 rounded-lg border border-gray-200 print:hidden">
+              <h4 className="font-bold mb-3 text-gray-700">Customize Sections</h4>
+              <div className="flex flex-wrap gap-4">
+                <label className="flex items-center gap-2 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={showCertifications}
+                    onChange={(e) => setShowCertifications(e.target.checked)}
+                    className="w-4 h-4 text-accent rounded focus:ring-accent"
+                  />
+                  <span>Certifications</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={showProjects}
+                    onChange={(e) => setShowProjects(e.target.checked)}
+                    className="w-4 h-4 text-accent rounded focus:ring-accent"
+                  />
+                  <span>Projects</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={showArticles}
+                    onChange={(e) => setShowArticles(e.target.checked)}
+                    className="w-4 h-4 text-accent rounded focus:ring-accent"
+                  />
+                  <span>Articles</span>
+                </label>
+              </div>
+            </div>
+          )}
+
           <ResumeHeader data={data} />
           <ResumeSummary data={data} />
           <ResumeExperience data={data} />
@@ -164,9 +216,9 @@ const ResumeModal: React.FC<ResumeModalProps> = ({
           <ResumeEducation data={data} />
 
           {/* Smart optional sections */}
-          {shouldShowCertifications && <ResumeCertifications data={data} />}
-          {shouldShowProjects && <ResumeProjects data={data} limit={6} />}
-          {shouldShowArticles && <ResumeArticles data={data} limit={5} />}
+          {showCertifications && <ResumeCertifications data={data} />}
+          {showProjects && <ResumeProjects data={data} limit={6} />}
+          {showArticles && <ResumeArticles data={data} limit={5} />}
         </div>
       </ScrollArea>
     </UniversalModal>

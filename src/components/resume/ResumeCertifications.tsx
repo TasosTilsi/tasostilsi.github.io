@@ -15,19 +15,32 @@ interface ResumeCertificationsProps {
 
 const ResumeCertifications: React.FC<ResumeCertificationsProps> = ({ data }) => {
   const parseCertDate = (dateString: string): Date | null => {
-    let parsedDate = parseDateFns(dateString, "MMMM yyyy", new Date());
-    if (isValidDate(parsedDate)) return parsedDate;
+    try {
+      if (!dateString) return null;
 
-    parsedDate = parseDateFns(dateString, "MMM yyyy", new Date());
-    if (isValidDate(parsedDate)) return parsedDate;
+      let parsedDate = parseDateFns(dateString, "MMMM yyyy", new Date());
+      if (isValidDate(parsedDate)) return parsedDate;
 
-    parsedDate = parseDateFns(dateString, "yyyy", new Date());
-    if (isValidDate(parsedDate)) return parsedDate;
+      parsedDate = parseDateFns(dateString, "MMM yyyy", new Date());
+      if (isValidDate(parsedDate)) return parsedDate;
 
-    return null;
+      parsedDate = parseDateFns(dateString, "yyyy", new Date());
+      if (isValidDate(parsedDate)) return parsedDate;
+
+      return null;
+    } catch (e) {
+      console.warn("Error parsing date:", dateString, e);
+      return null;
+    }
   };
 
   const now = new Date();
+
+  // Safety check for data
+  if (!data || !data.certifications || !Array.isArray(data.certifications)) {
+    return null;
+  }
+
   const filteredCertsForResume = (data.certifications as Certification[])
     .map((cert) => ({
       ...cert,

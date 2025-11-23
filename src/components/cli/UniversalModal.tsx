@@ -38,6 +38,21 @@ const UniversalModal: React.FC<UniversalModalProps & { children?: React.ReactNod
         return null;
     }
 
+    // Focus management
+    React.useEffect(() => {
+        if (isOpen) {
+            // Store currently focused element
+            const previousActiveElement = document.activeElement as HTMLElement;
+
+            return () => {
+                // Restore focus on close
+                if (previousActiveElement && previousActiveElement.focus) {
+                    previousActiveElement.focus();
+                }
+            };
+        }
+    }, [isOpen]);
+
     const handleOpenExternal = () => {
         if (externalUrl) {
             window.open(externalUrl, "_blank", "noopener,noreferrer");
@@ -75,26 +90,26 @@ const UniversalModal: React.FC<UniversalModalProps & { children?: React.ReactNod
                     )}
                 </div>
 
-                <DialogFooter className="p-6 pt-2 border-t print-hidden">
+                <DialogFooter className="p-4 md:p-6 pt-2 border-t print-hidden flex-col sm:flex-row gap-2 sm:gap-0">
                     {footerButtons ? (
                         <>
-                            <Button variant="outline" onClick={onClose}>
+                            <Button variant="outline" onClick={onClose} className="w-full sm:w-auto min-h-[44px]">
                                 Close
                             </Button>
                             {footerButtons}
                         </>
                     ) : (
                         <>
-                            <Button variant="outline" onClick={onClose}>
+                            <Button variant="outline" onClick={onClose} className="w-full sm:w-auto min-h-[44px]">
                                 Close
                             </Button>
                             {sourceUrl && (
-                                <Button variant="outline" onClick={handleOpenSource}>
+                                <Button variant="outline" onClick={handleOpenSource} className="w-full sm:w-auto min-h-[44px]">
                                     <i className="fab fa-github mr-2" aria-hidden="true"></i>Source
                                 </Button>
                             )}
                             {externalUrl && (
-                                <Button onClick={handleOpenExternal}>
+                                <Button onClick={handleOpenExternal} className="w-full sm:w-auto min-h-[44px]">
                                     <i className="fas fa-external-link-alt mr-2" aria-hidden="true"></i>Open Full Screen
                                 </Button>
                             )}
