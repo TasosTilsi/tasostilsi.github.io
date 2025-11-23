@@ -2,9 +2,10 @@
 
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { supermario } from "@/data/ascii-art-strings";
-import type { PortfolioData } from "@/data/portfolio-main-data";
+import type { PortfolioData, Presentation, Project } from "@/data/portfolio-main-data";
 import portfolioDataJson from "@/data/portfolio-main-data.json";
 import React, { KeyboardEvent, useEffect, useRef, useState } from "react";
+import UniversalModal from "./UniversalModal";
 import ResumeModal from "./ResumeModal";
 import {
   HOSTNAME,
@@ -25,6 +26,7 @@ import { ExperienceOutput } from "./outputs/ExperienceOutput";
 import { FavoriteGamesOutput } from "./outputs/FavoriteGamesOutput";
 import { HelpOutput } from "./outputs/HelpOutput";
 import { InterestsOutput } from "./outputs/InterestsOutput";
+import { PresentationsOutput } from "./outputs/PresentationsOutput";
 import { ProjectsOutput } from "./outputs/ProjectsOutput";
 import { RevelioOutput } from "./outputs/RevelioOutput";
 import { SkillsOutput } from "./outputs/SkillsOutput";
@@ -55,6 +57,8 @@ export default function TerminalInterface() {
   const [commandHistory, setCommandHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState<number>(-1);
   const [isResumeModalOpen, setIsResumeModalOpen] = useState(false);
+  const [modalItem, setModalItem] = useState<Presentation | Project | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   // Resume sections are now handled by smart defaults
 
   useEffect(() => {
@@ -91,7 +95,7 @@ export default function TerminalInterface() {
   const processCommand = async (
     command: string
   ): Promise<
-    React.ReactNode | { openModal: "resume" }
+    React.ReactNode | { openModal: "resume" } | { openModal: "presentation"; presentation: Presentation }
   > => {
     const [cmd, ...args] = command.toLowerCase().trim().split(" ");
     const allFlag = args.includes("-a") || args.includes("--all");
@@ -126,9 +130,13 @@ export default function TerminalInterface() {
         if (allFlag) {
           triggerEasterEgg(EASTER_EGG_IDS.PROJECTS_ALL);
         }
-        return <ProjectsOutput mode={allFlag ? "recent" : "recent"} />;
+        return <ProjectsOutput mode={allFlag ? "recent" : "recent"} onViewProject={handleViewProject} />;
       case "articles":
         return <ArticlesOutput />;
+      case "presentations":
+      case "talks":
+      case "slides":
+        return <PresentationsOutput onViewPresentation={handleViewPresentation} />;
       case "interests":
       case "hobbies":
         return <InterestsOutput />;
@@ -304,9 +312,19 @@ export default function TerminalInterface() {
   };
 
   const handleContainerClick = () => {
-    if (!isResumeModalOpen) {
+    if (!isResumeModalOpen && !isModalOpen) {
       hiddenInputRef.current?.focus();
     }
+  };
+
+  const handleViewPresentation = (presentation: Presentation) => {
+    setModalItem(presentation);
+    setIsModalOpen(true);
+  };
+
+  const handleViewProject = (project: Project) => {
+    setModalItem(project);
+    setIsModalOpen(true);
   };
 
   return (
@@ -320,15 +338,14 @@ export default function TerminalInterface() {
             {history.map((line) => (
               <div
                 key={line.id}
-                className={`text-sm md:text-base mb-1 ${
-                  line.type === "input"
-                    ? "text-primary"
-                    : line.type === "error"
+                className={`text-sm md:text-base mb-1 ${line.type === "input"
+                  ? "text-primary"
+                  : line.type === "error"
                     ? "text-destructive"
                     : line.type === "system"
-                    ? "text-muted-foreground"
-                    : "text-foreground"
-                }`}
+                      ? "text-muted-foreground"
+                      : "text-foreground"
+                  }`}
               >
                 {typeof line.content === "string" ? (
                   <pre className="whitespace-pre-wrap">{line.content}</pre>
@@ -361,7 +378,7 @@ export default function TerminalInterface() {
               value={inputValue}
               onChange={handleInputChange}
               onKeyDown={handleKeyDown}
-              className="absolute opacity-0 w-0 h-0 p-0 m-0 border-0"
+              className="absolute inset-0 w-full h-full opacity-0 p-0 m-0 border-0 cursor-text"
               autoFocus={!isResumeModalOpen}
               spellCheck="false"
               autoComplete="off"
@@ -374,6 +391,28 @@ export default function TerminalInterface() {
         isOpen={isResumeModalOpen}
         onClose={() => setIsResumeModalOpen(false)}
         data={portfolioData}
+      />
+      <UniversalModal
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setModalItem(null);
+        }}
+        title={modalItem?.name || ""}
+        description={
+          modalItem
+            ? "description" in modalItem
+              ? modalItem.description || ""
+              : ""
+            : ""
+        }
+        iframeUrl={
+          modalItem && "name" in modalItem && modalItem.name === "Uom Track"
+            ? "https://tasostilsi.github.io/WebnMobileDevelopmentUOM/"
+            : modalItem?.link || ""
+        }
+        sourceUrl={modalItem?.sourceUrl}
+        externalUrl={modalItem?.link || ""}
       />
     </>
   );

@@ -22,3 +22,5 @@ yarn.lock
 
 # Allow package-lock.json to be tracked
 !package-lock.json
+
+.claude/

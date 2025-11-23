@@ -28,7 +28,7 @@ const ResumeProjects: React.FC<ResumeProjectsProps> = ({ data, limit = 6 }) => {
       <h3 className="text-lg font-semibold text-gray-900 mb-3 pb-1 border-b border-gray-200 print:text-base print:mb-2">
         KEY PROJECTS
       </h3>
-      <div className="space-y-4 print:space-y-3">
+      <div className="space-y-2 print:space-y-2">
         {selectedProjects.map((project, index) => (
           <div
             key={index}
@@ -37,13 +37,10 @@ const ResumeProjects: React.FC<ResumeProjectsProps> = ({ data, limit = 6 }) => {
           >
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-1">
               <div className="flex-1">
-                <h4 className="text-base font-semibold text-gray-900 print:text-sm">
-                  {project.name}
-                </h4>
-                <p className="text-sm text-gray-700 mt-1 leading-relaxed print:text-xs print:leading-normal">
-                  {project.description}
-                </p>
-                <div className="flex gap-4 mt-2">
+                <div className="flex items-baseline gap-2 flex-wrap">
+                  <h4 className="text-base font-semibold text-gray-900 print:text-sm">
+                    {project.name}
+                  </h4>
                   {isValidUrl(project.link) && (
                     <a
                       href={project.link}
@@ -51,7 +48,7 @@ const ResumeProjects: React.FC<ResumeProjectsProps> = ({ data, limit = 6 }) => {
                       rel="noopener noreferrer"
                       className="text-xs text-blue-600 hover:underline print:text-blue-700"
                     >
-                      View Project
+                      [View Project]
                     </a>
                   )}
                   {isValidUrl(project.sourceUrl) && (
@@ -61,10 +58,13 @@ const ResumeProjects: React.FC<ResumeProjectsProps> = ({ data, limit = 6 }) => {
                       rel="noopener noreferrer"
                       className="text-xs text-blue-600 hover:underline print:text-blue-700"
                     >
-                      Source Code
+                      [Source Code]
                     </a>
                   )}
                 </div>
+                <p className="text-sm text-gray-700 mt-1 leading-relaxed print:text-xs print:leading-normal">
+                  {project.description}
+                </p>
               </div>
               {project.date && (
                 <div className="text-sm text-gray-600 mt-1 sm:mt-0 print:text-xs">

@@ -254,41 +254,72 @@
     {"name": "Upper Intermediate Communication (London Tests of English Level 3)", "link": null, "date": "May 2008"},
     {"name": "Entry Level Certificate in English (ESOL) - Entry 3", "link": null, "date": "May 2007"}
   ],
+  "presentations": [
+    {
+      "name": "Boosting Your Team's Clarity with Allure Reporting",
+      "description": "How to improve test result visibility and debugging efficiency using Allure Report",
+      "framework": "Slidev",
+      "link": "https://tasostilsi.github.io/presentations/allure-reporting/",
+      "sourceUrl": "https://github.com/TasosTilsi/presentations",
+      "date": "November 2025"
+    }
+  ],
   "articles": [
     {
-      "name": "Unpopular Opinion (or Maybe Not): ISTQB Shouldn’t Be for Testers — It Should Be for Everyone Else",
+      "name": "Why Your Best Engineering Happens Outside Work Hours",
+      "platform": "Medium",
+      "link": "https://medium.com/@tasostilsi/9eeabfd312f1?sk=7baf5fa6693bb759b000eb5f01119427",
+      "summary": "Why the same work energizes you at 11 PM but drains you at 9 AM",
+      "date": "Oct 13, 2025"
+    },
+    {
+      "name": "Core Design Patterns for Test Automation: From Chaos to Maintainable Frameworks",
+      "platform": "Medium",
+      "link": "https://medium.com/@tasostilsi/a85a11c2c932?sk=e87168a4ec0c3094ce75b01d64077727",
+      "summary": "In software engineering, test automation is often compared to an assembly line in a factory. Each test is a \"product\" that must meet quality standards. But without proper structure, that assembly line quickly collapses into chaos: flaky tests, duplicated code, and runaway technical debt.",
+      "date": "Sep 17, 2025"
+    },
+    {
+      "name": "Flaky Tests Driving You Crazy? Here's How to Fix and Prevent Them!",
+      "platform": "Medium",
+      "link": "https://medium.com/@tasostilsi/flaky-tests-driving-you-crazy-heres-how-to-fix-and-prevent-them-6fb46b041a4e?sk=97060c585875028e57a253696f284eef",
+      "summary": "Discover proven strategies to identify, prevent, and fix flaky tests in your CI/CD pipeline — complete with real‑world insights and code examples.",
+      "date": "Jun 28, 2025"
+    },
+    {
+      "name": "Unpopular Opinion (or Maybe Not): ISTQB Shouldn't Be for Testers — It Should Be for Everyone Else",
       "platform": "Medium",
       "link": "https://medium.com/@tasostilsi/unpopular-opinion-or-maybe-not-istqb-shouldnt-be-for-testers-it-should-be-for-everyone-else-6ec3e57fcdba",
       "summary": "This isn’t just another article about testing. It’s about respect — for the work, for the people who do it, and for the role it plays in delivering quality software.",
-      "date": "May 9, 2024"
+      "date": "May 9, 2025"
     },
     {
       "name": "Unlock Effortless Updates: Mastering Maintainable Test Automation Frameworks",
       "platform": "Medium",
       "link": "https://medium.com/@tasostilsi/unlock-effortless-updates-mastering-maintainable-test-automation-frameworks-98667ad03016",
       "summary": "A guide to building test automation frameworks that are easy to update and scale, ensuring long-term viability and efficiency.",
-      "date": "May 2, 2024"
+      "date": "May 2, 2025"
     },
     {
       "name": "More than a Year with Allure Reporting: From Reporting Tool to Team Catalyst",
       "platform": "Medium",
       "link": "https://medium.com/@tasostilsi/more-than-a-year-with-allure-reporting-from-reporting-tool-to-team-catalyst-2558e42b75f0",
       "summary": "Leveraging Allure Reporting to Bridge Gaps Between Test Execution, CI/CD, and Team Collaboration.",
-      "date": "Apr 23, 2024"
+      "date": "Apr 23, 2025"
     },
     {
       "name": "Manual Testing: The Foundation That Makes Test Automation Truly Work",
       "platform": "Medium",
       "link": "https://medium.com/@tasostilsi/manual-testing-the-foundation-that-makes-test-automation-truly-work-0bdfe484a2d7",
       "summary": "Before we automate, we need to understand. Why manual testing and test analysis remain essential in building robust, meaningful automation.",
-      "date": "Apr 16, 2024"
+      "date": "Apr 16, 2025"
     },
     {
       "name": "Assembly Lines & Algorithms: The Realities of Modern Engineering",
       "platform": "Medium",
       "link": "https://medium.com/@tasostilsi/assembly-lines-algorithms-the-realities-of-modern-engineering-e4d3c7117c7e",
       "summary": "A deep dive into how software engineering mirrors industrial production — exploring shared workflows, metrics, and a path forward beyond the digital factory.",
-      "date": "Apr 8, 2024"
+      "date": "Apr 8, 2025"
     }
   ]
 }

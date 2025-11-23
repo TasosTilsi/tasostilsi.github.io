@@ -2,29 +2,24 @@
 
 import dynamic from 'next/dynamic';
 import { Suspense } from 'react';
-
-const loadingFallback = (
-  <div className="h-screen w-screen flex items-center justify-center bg-background text-foreground">
-    <div className="text-lg">Loading terminal interface...</div>
-  </div>
-);
+import { TerminalLoader } from '@/components/cli/TerminalLoader';
 
 // Dynamically import TerminalInterface with no SSR
 const TerminalInterface = dynamic(
-  () => import('@/components/cli/TerminalInterface'), { 
-    ssr: false,
-    loading:()=>{
-      return loadingFallback;
-    } 
+  () => import('@/components/cli/TerminalInterface'), {
+  ssr: false,
+  loading: () => {
+    return <TerminalLoader />;
   }
+}
 );
 
 export default function HomePage() {
   return (
     <main className="h-full w-full bg-background"> {/* Changed min-h-screen to h-full */}
-      <Suspense fallback={loadingFallback}><TerminalInterface /></Suspense>
+      <Suspense fallback={<TerminalLoader />}><TerminalInterface /></Suspense>
     </main>
   );
 }
 
-    
+

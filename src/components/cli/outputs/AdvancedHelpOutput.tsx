@@ -16,6 +16,7 @@ export const AdvancedHelpOutput = () => {
       <ul className="list-none pl-2 space-y-1">
         <li><span className="text-primary w-32 inline-block">projects</span>               - Browse personal projects</li>
         <li><span className="text-primary w-32 inline-block">articles</span>               - View written articles</li>
+        <li><span className="text-primary w-32 inline-block">presentations</span>          - View presentations & talks</li>
         <li><span className="text-primary w-32 inline-block">certifications</span>         - View certifications</li>
         <li><span className="text-primary w-32 inline-block">interests</span>              - Learn about personal interests</li>
         <li><span className="text-primary w-32 inline-block">resume</span>               - View/download professional resume</li>

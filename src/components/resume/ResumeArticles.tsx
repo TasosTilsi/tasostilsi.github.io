@@ -20,7 +20,7 @@ const ResumeArticles: React.FC<ResumeArticlesProps> = ({ data, limit = 5 }) => {
       <h3 className="text-lg font-semibold text-gray-900 mb-3 pb-1 border-b border-gray-200 print:text-base print:mb-2">
         PUBLISHED ARTICLES
       </h3>
-      <div className="space-y-3 print:space-y-2">
+      <div className="space-y-2 print:space-y-2">
         {selectedArticles.map((article: Article, index: number) => (
           <div
             key={(article.name?.toString() || "article") + index}
@@ -34,21 +34,24 @@ const ResumeArticles: React.FC<ResumeArticlesProps> = ({ data, limit = 5 }) => {
                 </h4>
                 <p className="text-xs text-gray-600 print:text-xs">
                   {article.platform} • {article.date}
+                  {isValidUrl(article.link) && (
+                    <>
+                      {" • "}
+                      <a
+                        href={article.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:underline print:text-blue-700"
+                      >
+                        Read Article
+                      </a>
+                    </>
+                  )}
                 </p>
                 {article.summary && (
                   <p className="text-sm text-gray-700 mt-1 leading-relaxed print:text-xs print:leading-normal">
                     {article.summary}
                   </p>
-                )}
-                {isValidUrl(article.link) && (
-                  <a
-                    href={article.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs text-blue-600 hover:underline mt-1 inline-block print:text-blue-700"
-                  >
-                    Read Article
-                  </a>
                 )}
               </div>
             </div>

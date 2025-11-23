@@ -6,10 +6,13 @@ export const AliasOutput = () => {
     { command: "contact", aliases: ["socials", "links"] },
     { command: "experience", aliases: ["xp"] },
     { command: "education", aliases: ["edu"] },
-    { command: "skills", aliases: [] }, 
+    { command: "skills", aliases: [] },
     { command: "projects", aliases: ["portfolio"] },
     { command: "certifications", aliases: ["certs"] },
+    { command: "presentations", aliases: ["talks", "slides"] },
+    { command: "articles", aliases: [] },
     { command: "interests", aliases: ["hobbies"] },
+    { command: "gaming", aliases: ["games", "videoGames"] },
     { command: "resume", aliases: ["pdf", "cv"] },
   ].filter(item => item.aliases.length > 0);
 

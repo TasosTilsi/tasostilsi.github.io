@@ -29,13 +29,8 @@ const ResumeExperience: React.FC<ResumeExperienceProps> = ({ data }) => {
                   {exp.title}
                 </h4>
                 <p className="text-sm font-medium text-gray-700 print:text-xs">
-                  {exp.company}
+                  {exp.company}{exp.location && `, ${exp.location}`}
                 </p>
-                {exp.location && (
-                  <p className="text-xs text-gray-600 print:text-xs">
-                    {exp.location}
-                  </p>
-                )}
               </div>
               <div className="text-sm text-gray-600 mt-1 sm:mt-0 sm:text-right print:text-xs">
                 {exp.duration}

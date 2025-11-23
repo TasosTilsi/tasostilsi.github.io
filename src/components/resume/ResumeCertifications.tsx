@@ -52,7 +52,7 @@ const ResumeCertifications: React.FC<ResumeCertificationsProps> = ({ data }) => 
       <h3 className="text-lg font-semibold text-gray-900 mb-3 pb-1 border-b border-gray-200 print:text-base print:mb-2">
         CERTIFICATIONS
       </h3>
-      <div className="space-y-2 print:space-y-1">
+      <div className="space-y-1 print:space-y-1">
         {filteredCertsForResume.map((cert, index) => (
           <div
             key={index}

@@ -38,6 +38,15 @@ export interface Article {
   date: string;
 }
 
+export interface Presentation {
+  name: string;
+  description: string;
+  framework: string;
+  link: string;
+  sourceUrl?: string;
+  date: string;
+}
+
 export interface PortfolioData {
   meta: {
     charset: string;
@@ -83,5 +92,6 @@ export interface PortfolioData {
   };
   projects: Project[];
   certifications: Certification[];
+  presentations: Presentation[];
   articles: Article[];
 }
