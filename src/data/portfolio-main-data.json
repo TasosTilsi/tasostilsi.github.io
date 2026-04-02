@@ -13,7 +13,7 @@
     "location": "Thessaloniki, Greece",
     "dob": "12 Oct 1994",
     "email": "tilsizoglou@protonmail.com",
-    "description": "I am a dedicated Quality Assurance Automation Engineer with a strong passion for cybersecurity. My foundation in software and web development is complemented by extensive expertise in diverse automation tools and frameworks, alongside proficiency in multiple programming languages. I thrive on continuous learning and actively seek new challenges. Valued for my organizational skills, strategic mindset, and collaborative nature, I aim to elevate software quality through robust QA practices. I hold a Master's degree in Applied Informatics, specializing in Software Quality Assurance Engineering, and am a certified tester by the ISTQB Organization.",
+    "description": "Aspiring Test Solutions Architect and \"Bridge Builder\" with a Master’s in Applied Informatics. Expert in architecting scalable automation frameworks, streamlining enterprise QA processes, and integrating AI-driven protocols (MCP). Committed to translating technical rigor into business value.",
     "contact": {
       "email":"tilsizoglou@protonmail.com",
       "linkedin": "http://www.linkedin.com/in/tasostilsi",
@@ -22,7 +22,8 @@
       "facebook": "http://facebook.com/tasostilsi",
       "instagram": "http://instagram.com/tasostilsi",
       "twitter": "http://twitter.com/tasostilsi",
-      "twitch": "http://twitch.tv/tasostilsi"
+      "twitch": "http://twitch.tv/tasostilsi",
+      "portfolio": "https://tasostilsi.github.io/"
     },
     "profileImageUrl":"https://tinyurl.com/5cfm72u7"
   },
@@ -31,67 +32,38 @@
       "title": "Senior Software Engineer in Test",
       "company": "Chubb",
       "location": "Leof. Georgikis Scholis 27, Thermi, 57001 Thessaloniki (Greece)",
-      "duration": "September 2023 - Present",
+      "duration": "Sept 2023 — Present",
       "isTechRelated": true,
       "responsibilities": [
-        "Collaborated with progressive engineers to develop and optimize workflows for software development.",
-        "Ensured high-quality standards and compliance with requirements throughout the software delivery cycle.",
-        "Designed and executed both manual and automated tests based on project needs.",
-        "Generated regular and comprehensive test reports highlighting testing progress, issues, and risks.",
-        "Successfully resolved quality issues by adapting and enhancing test procedures.",
-        "Conducted thorough reviews of existing system designs and engineering processes, recommending improvements where necessary.",
-        "Developed detailed test artifacts, including test plans, traceability matrix, and test cases with expected outcomes, utilizing Jira.",
-        "Maintained and updated the existing automation framework and created automation scripts using tools like Selenium, Rest Assured, Playwright.",
-        "Effectively communicated testing outcomes to project team members and relevant stakeholders.",
-        "Maintained Git repositories.",
-        "Created and Maintained CI/CD jobs.",
-        "Assisted colleagues, risk analysis and reporting among the team.",
-        "Discussed ideas for improving the way the team works.",
-        "Analyzed release notes for turnover to testing."
+        "Architected centralized infrastructure by transitioning from forked projects to a modular NPM node dependency model, standardizing automation across all organizational teams.",
+        "Designed custom quality dashboards with real-time data visualization, providing stakeholders with critical visibility for data-driven task prioritization.",
+        "Spearheaded AI innovation by deploying Model Context Protocols (MCPs) and AI skills to optimize technical context retrieval across engineering.",
+        "Engineered cost-efficient CI/CD pipelines using open-source frameworks, eliminating expensive licensing while maintaining high-velocity delivery.",
+        "Developed Jira synchronization scripts to instantly inform teams of CI/CD progress, bridging the gap between execution and status reporting."
       ]
     },
     {
       "title": "Software Engineer in Test",
       "company": "Upstream Systems",
       "location": "Kastorias 4, Gerakas, 15344 Athens (Greece)",
-      "duration": "September 2022 - August 2023",
+      "duration": "Sept 2022 — Aug 2023",
       "isTechRelated": true,
       "responsibilities": [
-        "Created QA reports and filed bug tickets based on the outcome of QA test cycles.",
-        "Provided feedback to developers around UX based on test outcomes.",
-        "Performed Front-end (UI) testing.",
-        "Performed Back-end (API) testing.",
-        "Performed and Maintained smoke, functional, compatibility, regression testing.",
-        "Created test plans, requirements, scenarios and test data for use during testing.",
-        "Maintained Git repositories.",
-        "Created and Maintained CI/CD jobs.",
-        "Assisted colleagues, risk analysis and reporting among the team.",
-        "Discussed ideas for improving the way the team works.",
-        "Analyzed release notes for turnover to testing.",
-        "Supported continuous improvement by investigating alternatives and technologies.",
-        "Contributed to extending automation to cover new products and modules.",
-        "Designed and implemented tools for executing automated tests.",
-        "Ensured designs were in compliance with specifications.",
-        "Provided feedback on design documentation and created test plans."
+        "Integrated automated smoke and regression suites into daily CI/CD delivery cycles.",
+        "Designed custom tools for test execution, reducing manual overhead and expanding coverage to new product modules.",
+        "Influenced \"Shift-Left\" strategy by providing UX and performance feedback during early design phases."
       ]
     },
     {
       "title": "Software Engineer in Test",
       "company": "Netcompany-Intrasoft",
       "location": "Agiou Georgiou 5, Pylaia, 57001 Thessaloniki (Greece)",
-      "duration": "June 2019 - September 2022",
+      "duration": "June 2019 — Sept 2022",
       "isTechRelated": true,
       "responsibilities": [
-        "Involved in numerous projects under CUST-DEV3 contract.",
-        "Created QA reports and file bug tickets based on the outcome of QA test cycles.",
-        "Provided feedback to developers around UX based on test outcomes.",
-        "Performed Front-end (UI) testing of website applications using Selenium.",
-        "Performed Back-end (API) testing of website applications using SoapUI.",
-        "Performed Performance testing of website applications using LoadUI and custom scripts using Java.",
-        "Performed and Maintained smoke, functional, compatibility, regression and GUI testing.",
-        "Created test plans, requirements, scenarios and test data for use during testing.",
-        "Maintained Git repositories, participated in code reviews as a reviewer.",
-        "Assisted colleagues, risk analysis and reporting among the team, discussing ideas for improving the way the team works."
+        "Executed Performance & Load Testing using LoadUI and Java scripts to resolve system bottlenecks.",
+        "Led code reviews as Primary Reviewer, ensuring automation scripts met strict architectural standards.",
+        "Authored comprehensive test artifacts and traceability matrices to ensure 100% requirement coverage."
       ]
     },
     {
@@ -172,12 +144,10 @@
   "skills": {
     "soft_skills": ["Analytical Skills", "Teamwork", "Creative Problem Solving", "Organizational Skills", "Time Management","Attention to Detail"],
     "hard_skills": {
-      "Programming Languages": ["Java", "JavaScript", "ReactJS", "Spring Boot Framework", "electron.JS", "C", "C++", "PHP", "SQL", "Python", "TypeScript"],
-      "Testing Tools & Frameworks": ["Selenium", "Playwright", "Rest Assured", "ReadyAPI (SoapUI)", "ReadyAPI (LoadUI)", "Postman"],
-      "Web Technologies & Markup": ["HTML5", "CSS3", "Markdown", "Bootstrap", "MaterializeCSS", "XML", "JSON"],
-      "Simulation Software": ["Matlab", "Simulink", "Lindo"],
-      "Operating Systems": ["Linux", "Windows", "Android", "macOS"],
-      "DevOps & Other Tools": ["Docker", "Git", "Jira", "Jenkins", "Confluence", "GitHub", "GitLab", "Bitbucket", "Office Suites (Microsoft, Libre, Open)" ]
+      "Languages": ["Java", "JS", "TS", "ReactJS", "Spring Boot", "Python", "SQL", "C++", "PHP"],
+      "Testing": ["Playwright", "Selenium", "Rest Assured", "ReadyAPI", "Postman", "Allure"],
+      "Infrastructure": ["NPM Module Dev", "CI/CD", "Docker", "Jenkins", "Bitbucket", "Jira"],
+      "Innovation": ["Prompt Engineering", "MCP", "AI-driven SDLC"]
     },
     "languages": ["Greek (Native)", "English (Fluent)"]
   },
@@ -219,7 +189,7 @@
     {"name": "Introduction to Prompt Engineering for Generative AI", "link": "https://tinyurl.com/ut2b4zx5", "date": "June 2025"},
     {"name": "What Is Generative AI", "link": "https://tinyurl.com/3zeks6xj", "date": "June 2025"},
     {"name": "JavaScript Essential Training", "link": "https://tinyurl.com/ms4m3z97", "date": "May 2025"},
-    {"name": "ISTQB® Foundation Level", "link": "Credential ID GRTB-24-1S20-CTFL", "date": "July 2024"},
+    {"name": "ISTQB® Foundation Level (CTFL)", "link": "ID: GRTB-24-1S20-CTFL", "date": "July 2024"},
     {"name": "Test Automation in DevOps", "link": "https://tinyurl.com/crd4cp43", "date": "October 2023"},
     {"name": "Advanced Playwright", "link": "https://tinyurl.com/2s9fsukf", "date": "September 2023"},
     {"name": "Introduction to Playwright", "link": "https://tinyurl.com/5n6n2684", "date": "July 2023"},
@@ -265,6 +235,34 @@
     }
   ],
   "articles": [
+    {
+      "name": "Local Knowledge Graphs for AI",
+      "platform": "Medium",
+      "link": "https://medium.com/@tasostilsi",
+      "summary": "Building personalized intelligence systems using local graph databases.",
+      "date": "Feb 2026"
+    },
+    {
+      "name": "Testing Geo-Specific Features",
+      "platform": "Medium",
+      "link": "https://medium.com/@tasostilsi",
+      "summary": "Strategies for validating location-aware functionalities at scale.",
+      "date": "Jan 2026"
+    },
+    {
+      "name": "The €10,000 Contract Mistake",
+      "platform": "Medium",
+      "link": "https://medium.com/@tasostilsi",
+      "summary": "A real-world case study on the importance of automated contract verification.",
+      "date": "Mar 2026"
+    },
+    {
+      "name": "Automation Design Patterns",
+      "platform": "Medium",
+      "link": "https://medium.com/@tasostilsi",
+      "summary": "Essential structural patterns for scalable test frameworks.",
+      "date": "Sep 2025"
+    },
     {
       "name": "Why Your Best Engineering Happens Outside Work Hours",
       "platform": "Medium",

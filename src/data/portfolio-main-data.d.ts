@@ -67,10 +67,11 @@ export interface PortfolioData {
       linkedin: string;
       github: string;
       medium: string;
-      facebook: string;
-      instagram: string;
-      twitter: string;
-      twitch: string;
+      portfolio?: string;
+      facebook?: string;
+      instagram?: string;
+      twitter?: string;
+      twitch?: string;
     };
     profileImageUrl: string;
   };

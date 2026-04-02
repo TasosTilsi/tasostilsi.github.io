@@ -67,7 +67,7 @@ const UniversalModal: React.FC<UniversalModalProps & { children?: React.ReactNod
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className={`max-w-6xl w-full h-[90vh] flex flex-col p-0 ${contentClassName || ""}`}>
+            <DialogContent className={`max-w-6xl w-full h-[90vh] print:h-auto print:max-h-none print:overflow-visible flex flex-col p-0 ${contentClassName || ""}`}>
                 <DialogHeader className="p-6 pb-2 print-hidden">
                     <DialogTitle className="text-2xl">{title}</DialogTitle>
                     <DialogDescription>
@@ -90,7 +90,7 @@ const UniversalModal: React.FC<UniversalModalProps & { children?: React.ReactNod
                     )}
                 </div>
 
-                <DialogFooter className="p-4 md:p-6 pt-2 border-t print-hidden flex-col sm:flex-row gap-2 sm:gap-0">
+                <DialogFooter className="p-4 md:p-6 pt-2 border-t print:hidden flex-col sm:flex-row gap-2 sm:gap-0">
                     {footerButtons ? (
                         <>
                             <Button variant="outline" onClick={onClose} className="w-full sm:w-auto min-h-[44px]">

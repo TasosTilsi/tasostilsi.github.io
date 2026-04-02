@@ -497,7 +497,7 @@ export const TerminalInterface = () => {
   return (
     <>
       <div
-        className="flex flex-col h-full p-2 md:p-4 bg-background text-sm md:text-base"
+        className="flex flex-col h-full p-2 md:p-4 bg-background text-sm md:text-base print:hidden"
         onClick={handleContainerClick}
       >
         {/* ARIA Live Region for Screen Readers */}
@@ -574,7 +574,6 @@ export const TerminalInterface = () => {
           setIsAutoDownload(false);
         }}
         data={portfolioData}
-        autoDownload={isAutoDownload}
       />
       <AchievementsModal
         isOpen={isAchievementsModalOpen}

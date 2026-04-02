@@ -3,222 +3,124 @@
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { PortfolioData } from "@/data/portfolio-main-data";
-import React, { useRef } from "react";
-import ResumeHeader from "@/components/resume/ResumeHeader";
-import ResumeSummary from "@/components/resume/ResumeSummary";
-import ResumeExperience from "@/components/resume/ResumeExperience";
-import ResumeSkills from "@/components/resume/ResumeSkills";
-import ResumeEducation from "@/components/resume/ResumeEducation";
-import ResumeCertifications from "@/components/resume/ResumeCertifications";
-import ResumeProjects from "@/components/resume/ResumeProjects";
-import ResumeArticles from "@/components/resume/ResumeArticles";
+import React from "react";
 import UniversalModal from "./UniversalModal";
+import ResumeView from "@/components/resume/ResumeView";
 
 interface ResumeModalProps {
   isOpen: boolean;
   onClose: () => void;
   data: PortfolioData;
-  autoDownload?: boolean;
 }
-
-// Smart defaults: always show core sections + intelligent optional sections
 
 const ResumeModal: React.FC<ResumeModalProps> = ({
   isOpen,
   onClose,
   data,
-  autoDownload = false,
 }) => {
-  // Smart defaults: always show these sections initially
   const [showCertifications, setShowCertifications] = React.useState(true);
   const [showProjects, setShowProjects] = React.useState(true);
   const [showArticles, setShowArticles] = React.useState(true);
   const [showSettings, setShowSettings] = React.useState(false);
+  const [isDarkMode, setIsDarkMode] = React.useState(true);
 
-  const resumeRef = useRef<HTMLDivElement>(null);
+  if (!isOpen || !data) return null;
 
-  const handlePrint = () => {
-    console.log("Print button clicked, attempting to call window.print()");
-    setTimeout(() => {
-      try {
-        window.print();
-      } catch (e) {
-        console.error("Error during window.print():", e);
-      }
-    }, 100);
+  const handleOpenPrintView = () => {
+    // Open the static, high-fidelity standalone HTML page in a new tab
+    // This bypasses React/Next.js for perfect A4 print fidelity
+    const url = `/resume-export.html`;
+    window.open(url, "_blank", "noopener,noreferrer");
   };
-
-  const handleDownloadPDF = async () => {
-    try {
-      const jspdfModule = await import('jspdf');
-      const jsPDF = jspdfModule.default || (jspdfModule as any).jsPDF;
-      const html2canvas = (await import('html2canvas')).default;
-
-      if (!jsPDF) {
-        throw new Error("Failed to load jsPDF library");
-      }
-
-      if (!resumeRef.current) return;
-
-      // Clone the element to avoid messing with the visible one and to capture full height
-      const element = resumeRef.current;
-      const clone = element.cloneNode(true) as HTMLElement;
-
-      // Style the clone to ensure it captures everything
-      // Use fixed position to ensure it's rendered by the browser but off-screen
-      clone.style.position = 'fixed';
-      clone.style.left = '-10000px';
-      clone.style.top = '0';
-      clone.style.width = '1000px'; // Fixed width for consistent PDF
-      clone.style.height = 'auto';
-      clone.style.overflow = 'visible';
-      clone.style.zIndex = '-1000';
-      clone.style.backgroundColor = '#ffffff'; // Ensure background is white
-
-      document.body.appendChild(clone);
-
-      // Wait for content to render in the clone
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Increased wait time
-
-      const canvas = await html2canvas(clone, {
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: '#ffffff',
-        scale: 2, // Better quality
-        logging: false,
-      } as any);
-
-      // Remove clone
-      document.body.removeChild(clone);
-
-      if (canvas.width === 0 || canvas.height === 0) {
-        throw new Error("Canvas capture failed (empty canvas)");
-      }
-
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = pdf.internal.pageSize.getHeight();
-      const imgWidth = pdfWidth;
-      const imgHeight = (canvas.height * pdfWidth) / canvas.width;
-
-      let heightLeft = imgHeight;
-      let position = 0;
-
-      // First page
-      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-      heightLeft -= pdfHeight;
-
-      // Additional pages if needed
-      while (heightLeft >= 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-        heightLeft -= pdfHeight;
-      }
-
-      pdf.save(`${data.about.name.replace(/\s+/g, '_')}_Resume.pdf`);
-    } catch (error) {
-      console.error('Error generating PDF:', error);
-      alert('Error generating PDF. Please try the print option instead.');
-    }
-  };
-
-  // Auto-download effect
-  React.useEffect(() => {
-    if (isOpen && autoDownload) {
-      // Small delay to ensure render
-      const timer = setTimeout(() => {
-        handleDownloadPDF();
-      }, 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [isOpen, autoDownload]);
-
-  if (!isOpen || !data) {
-    return null;
-  }
 
   return (
     <UniversalModal
       isOpen={isOpen}
       onClose={onClose}
       title={`${data.about.name} - Resume`}
-      description="Professional ATS-friendly resume with modern formatting"
+      description="Personal Intelligent Archive Portfolio - Digital Curator Aesthetic"
       iframeUrl=""
       externalUrl=""
-      contentClassName="print:static print:left-0 print:top-0 print:m-0 print:translate-x-0 print:translate-y-0 print:w-full print:max-w-none print:h-auto print:max-h-none print:shadow-none print:border-none print:p-0 print:overflow-visible print:bg-white"
+      contentClassName="print:hidden" // We hide the modal during print and use the standalone page
       footerButtons={
         <>
           <Button variant="outline" onClick={() => setShowSettings(!showSettings)} className="w-full sm:w-auto min-h-[44px]">
             <i className={`fas fa-cog mr-2 ${showSettings ? "text-accent" : ""}`} aria-hidden="true"></i>Customize
           </Button>
-          <Button variant="outline" onClick={handleDownloadPDF} className="w-full sm:w-auto min-h-[44px]">
-            <i className="fas fa-download mr-2" aria-hidden="true"></i>Download PDF
-          </Button>
-          <Button onClick={handlePrint} className="w-full sm:w-auto min-h-[44px]">
-            <i className="fas fa-print mr-2" aria-hidden="true"></i>Print Resume
+          <Button onClick={handleOpenPrintView} className="w-full sm:w-auto min-h-[44px] bg-blue-600 hover:bg-blue-700 text-white">
+            <i className="fas fa-print mr-2" aria-hidden="true"></i>Print / Save PDF (Clickable Links)
           </Button>
         </>
       }
     >
-      <ScrollArea className="flex-grow overflow-y-auto print:overflow-visible print:h-auto">
-        <div
-          ref={resumeRef}
-          className="bg-white text-gray-900 max-w-4xl mx-auto p-8 print:p-6 print:max-w-none print:mx-0 print:bg-white min-h-full"
-          style={{
-            fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-            lineHeight: '1.5',
-            minHeight: 'fit-content',
-          }}
-        >
+      <ScrollArea className="flex-grow overflow-y-auto">
+        <div className="min-h-full transition-colors duration-300">
           {showSettings && (
-            <div className="mb-6 p-4 bg-gray-100 rounded-lg border border-gray-200 print:hidden">
-              <h4 className="font-bold mb-3 text-gray-700">Customize Sections</h4>
-              <div className="flex flex-wrap gap-4">
-                <label className="flex items-center gap-2 cursor-pointer select-none">
-                  <input
-                    type="checkbox"
-                    checked={showCertifications}
-                    onChange={(e) => setShowCertifications(e.target.checked)}
-                    className="w-4 h-4 text-accent rounded focus:ring-accent"
-                  />
-                  <span>Certifications</span>
-                </label>
-                <label className="flex items-center gap-2 cursor-pointer select-none">
-                  <input
-                    type="checkbox"
-                    checked={showProjects}
-                    onChange={(e) => setShowProjects(e.target.checked)}
-                    className="w-4 h-4 text-accent rounded focus:ring-accent"
-                  />
-                  <span>Projects</span>
-                </label>
-                <label className="flex items-center gap-2 cursor-pointer select-none">
-                  <input
-                    type="checkbox"
-                    checked={showArticles}
-                    onChange={(e) => setShowArticles(e.target.checked)}
-                    className="w-4 h-4 text-accent rounded focus:ring-accent"
-                  />
-                  <span>Articles</span>
-                </label>
+            <div className={`p-6 border-b ${isDarkMode ? "bg-[#131b2e] border-[#2d3449]" : "bg-gray-100 border-gray-200"}`}>
+              <h4 className="font-bold mb-4 flex items-center">
+                <i className="fas fa-sliders-h mr-2 opacity-70"></i>
+                SYSTEM CONFIGURATION
+              </h4>
+              <div className="flex flex-wrap gap-6">
+                <div className="flex items-center gap-3">
+                   <span className="text-xs font-bold opacity-70 uppercase tracking-wider">Visual Protocol:</span>
+                   <div className="flex bg-black/20 p-1 rounded-md">
+                      <button 
+                        onClick={() => setIsDarkMode(true)}
+                        className={`px-3 py-1 text-xs rounded transition-all ${isDarkMode ? "bg-[#8fdb00] text-black font-bold" : "hover:text-white"}`}
+                      >
+                        OBSIDIAN
+                      </button>
+                      <button 
+                        onClick={() => setIsDarkMode(false)}
+                        className={`px-3 py-1 text-xs rounded transition-all ${!isDarkMode ? "bg-blue-600 text-white font-bold" : "hover:text-white"}`}
+                      >
+                        PRINTER
+                      </button>
+                   </div>
+                </div>
+                
+                <div className="flex flex-wrap gap-4 items-center">
+                  <span className="text-xs font-bold opacity-70 uppercase tracking-wider">Module Display:</span>
+                  <label className="flex items-center gap-2 cursor-pointer select-none text-xs">
+                    <input
+                      type="checkbox"
+                      checked={showCertifications}
+                      onChange={(e) => setShowCertifications(e.target.checked)}
+                      className="w-4 h-4 text-accent rounded focus:ring-accent"
+                    />
+                    <span>CERTIFICATIONS</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer select-none text-xs">
+                    <input
+                      type="checkbox"
+                      checked={showProjects}
+                      onChange={(e) => setShowProjects(e.target.checked)}
+                      className="w-4 h-4 text-accent rounded focus:ring-accent"
+                    />
+                    <span>PROJECTS</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer select-none text-xs">
+                    <input
+                      type="checkbox"
+                      checked={showArticles}
+                      onChange={(e) => setShowArticles(e.target.checked)}
+                      className="w-4 h-4 text-accent rounded focus:ring-accent"
+                    />
+                    <span>PUBLICATIONS</span>
+                  </label>
+                </div>
               </div>
             </div>
           )}
 
-          <ResumeHeader data={data} />
-          <ResumeSummary data={data} />
-          <ResumeExperience data={data} />
-
-          {/* Always show core sections */}
-          <ResumeSkills data={data} />
-          <ResumeEducation data={data} />
-
-          {/* Smart optional sections */}
-          {showCertifications && <ResumeCertifications data={data} />}
-          {showProjects && <ResumeProjects data={data} limit={6} />}
-          {showArticles && <ResumeArticles data={data} limit={5} />}
+          <ResumeView 
+            data={data}
+            isDarkMode={isDarkMode}
+            showCertifications={showCertifications}
+            showProjects={showProjects}
+            showArticles={showArticles}
+          />
         </div>
       </ScrollArea>
     </UniversalModal>

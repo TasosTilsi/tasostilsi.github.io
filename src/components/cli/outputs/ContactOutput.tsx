@@ -49,7 +49,7 @@ export const ContactOutput = () => {
                 </a>
               ) : (
                 <a href={contact.url} target="_blank" rel="noopener noreferrer" className="text-accent hover:underline break-all">
-                  {formatHandle(contact.url)}
+                  {contact.url}
                 </a>
               )}
             </div>
@@ -70,7 +70,7 @@ export const ContactOutput = () => {
                 </span>
                 <span className="text-muted-foreground">→</span>
                 <a href={contact.url} target="_blank" rel="noopener noreferrer" className="text-accent hover:underline break-all">
-                  {formatHandle(contact.url)}
+                  {contact.url}
                 </a>
               </div>
             ))}
