@@ -3,8 +3,8 @@
   "meta": {
     "charset": "utf-8",
     "viewport": "width=device-width, initial-scale=1, shrink-to-fit=no",
-    "description": "Tilsizoglou Anastasios personal Web Page, a summary of my working experience and skills. Explore my interactive CLI-style portfolio.",
-    "keywords": "TasosTilsi, resume, cv, skills, experience, Software, developer, engineer, QA, Tester, Web, android, java, html, css, JavaScript, Anastasios Tilsizoglou, Senior Software Engineer in Test, Portfolio, CLI, Command Line, Next.js, React, Cyber Security Enthusiast",
+    "description": "Interactive CLI portfolio of Anastasios Tilsizoglou — Senior Software Engineer in Test and part-time freelance consultant (TAaS). Test automation, Playwright, CI/CD, and full-stack engineering for startups.",
+    "keywords": "TasosTilsi, resume, cv, skills, experience, Software, developer, engineer, QA, Tester, Web, android, java, html, css, JavaScript, Anastasios Tilsizoglou, Senior Software Engineer in Test, Portfolio, CLI, Command Line, Next.js, React, Cyber Security Enthusiast, freelance, test automation consultant, TAaS, Playwright, CI/CD consultant, part-time engineer, QA automation architect",
     "author": "Anastasios Tilsizoglou"
   },
   "about": {

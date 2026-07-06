@@ -25,7 +25,7 @@ export const metadata: Metadata = {
   authors: [{ name: portfolioData.meta.author, url: portfolioData.about.contact.linkedin }],
   openGraph: {
     title: `${portfolioData.about.name} | Interactive CLI Portfolio`,
-    description: `Interactive command-line portfolio of ${portfolioData.about.name}.`,
+    description: portfolioData.meta.description,
     url: 'https://tasostilsi.github.io/', // IMPORTANT: Update this to your actual deployed domain
     siteName: `${portfolioData.about.name}'s Portfolio`,
     images: [
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary',
     title: `${portfolioData.about.name} | Interactive CLI Portfolio`,
-    description: `Explore ${portfolioData.about.name}'s interactive CLI-style portfolio.`,
+    description: portfolioData.meta.description,
     // images: [portfolioData.about.profileImageUrl], // Add your Twitter card image URL here
   },
 };

@@ -53,7 +53,7 @@ export const EASTER_EGG_NAMES: Record<string, string> = {
 
 export const TOTAL_EASTER_EGGS = Object.keys(EASTER_EGG_IDS).length;
 export const AVAILABLE_COMMANDS = [
-  "help", "advanced", "about", "contact", "socials", "links",
+  "help", "advanced", "about", "taas", "freelance", "contact", "socials", "links",
   "experience", "xp", "education", "edu", "skills", "projects",
   "portfolio", "articles", "presentations", "talks", "slides",
   "interests", "hobbies", "certifications", "certs", "gaming",

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Terminal, User, Briefcase, GraduationCap, Code, FileText, Mail, Gamepad2, Menu, Sparkles, Eraser, Award, BookOpen, Presentation, Palette, Keyboard, ListTree, ArrowLeft } from "lucide-react";
+import { Terminal, User, Briefcase, GraduationCap, Code, FileText, Mail, Gamepad2, Menu, Sparkles, Eraser, Award, BookOpen, Presentation, Palette, Keyboard, ListTree, ArrowLeft, Rocket } from "lucide-react";
 import { useCliTheme } from '@/components/cli/hooks/useCliTheme';
 
 interface MobileCommandPaletteProps {
@@ -23,6 +23,7 @@ export const MobileCommandPalette: React.FC<MobileCommandPaletteProps> = ({ onEx
 
     const basicCommands: CommandItem[] = [
         { cmd: "about", icon: <User className="w-4 h-4" />, label: "About" },
+        { cmd: "taas", icon: <Rocket className="w-4 h-4" />, label: "Freelance / TAaS" },
         { cmd: "contact", icon: <Mail className="w-4 h-4" />, label: "Contact" },
         { cmd: "experience", icon: <Briefcase className="w-4 h-4" />, label: "Experience" },
         { cmd: "education", icon: <GraduationCap className="w-4 h-4" />, label: "Education" },

@@ -3,6 +3,7 @@ import React from 'react';
 
 export const AliasOutput = () => {
   const commandAliasList = [
+    { command: "taas", aliases: ["freelance"] },
     { command: "contact", aliases: ["socials", "links"] },
     { command: "experience", aliases: ["xp"] },
     { command: "education", aliases: ["edu"] },

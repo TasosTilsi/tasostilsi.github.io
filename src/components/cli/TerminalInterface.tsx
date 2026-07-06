@@ -38,6 +38,7 @@ import { PresentationsOutput } from "./outputs/PresentationsOutput";
 import { ProjectsOutput } from "./outputs/ProjectsOutput";
 import { RevelioOutput } from "./outputs/RevelioOutput";
 import { SkillsOutput } from "./outputs/SkillsOutput";
+import { TaasOutput } from "./outputs/TaasOutput";
 import { WelcomeMessage } from "./outputs/WelcomeMessage";
 import { AchievementsModal } from "./AchievementsModal";
 
@@ -140,6 +141,16 @@ export const TerminalInterface = () => {
         return <AdvancedHelpOutput />;
       case "about":
         return <AboutOutput />;
+      case "taas":
+      case "freelance":
+        if (cmd === "taas") {
+          setHistory(prev => [...prev, {
+            id: Date.now().toString() + "-tip",
+            type: "system",
+            content: <span className="text-muted-foreground text-xs italic">Tip: You can also use &apos;freelance&apos;</span>
+          }]);
+        }
+        return <TaasOutput />;
       case "contact":
       case "socials":
       case "links":
