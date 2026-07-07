@@ -23,7 +23,7 @@ export const MobileCommandPalette: React.FC<MobileCommandPaletteProps> = ({ onEx
 
     const basicCommands: CommandItem[] = [
         { cmd: "about", icon: <User className="w-4 h-4" />, label: "About" },
-        { cmd: "taas", icon: <Rocket className="w-4 h-4" />, label: "Freelance / TAaS" },
+        { cmd: "taas", icon: <Rocket className="w-4 h-4" />, label: "Engagements" },
         { cmd: "contact", icon: <Mail className="w-4 h-4" />, label: "Contact" },
         { cmd: "experience", icon: <Briefcase className="w-4 h-4" />, label: "Experience" },
         { cmd: "education", icon: <GraduationCap className="w-4 h-4" />, label: "Education" },

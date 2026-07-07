@@ -11,64 +11,70 @@ export const TaasOutput = () => {
 
   return (
     <div className="flex flex-col gap-3 my-2 font-mono text-sm">
-      <p className="text-accent font-bold">🚀 INTRODUCING TAaS: Tasos as a Service</p>
+      <p className="text-accent font-bold">PART-TIME ENGAGEMENTS (TAaS)</p>
       <div className="border-b border-accent/30" />
 
-      <p className="leading-relaxed text-muted-foreground">
-        A premium, on-demand engineering resource for tech startups and scale-ups.
-        Subscribe to top-tier development and automation infrastructure without
-        the overhead, equity, or management friction of a full-time hire.
+      <p className="leading-relaxed">
+        I work full-time as a {portfolioData.about.title} and take a small number of
+        async, scoped projects on evenings and weekends (EET/EEST).
+      </p>
+
+      <p className="text-muted-foreground text-xs italic">
+        TAaS = Tasos as a Service — my label for these focused engagements, not an agency.
       </p>
 
       <div>
-        <p className="text-accent font-bold mb-2">📊 THE TAaS SERVICE MENU:</p>
+        <p className="text-accent font-semibold mb-2">Typical engagements:</p>
         <div className="border-b border-accent/30 mb-2" />
-        <div className="space-y-3">
-          <div>
-            <p className="text-primary">[pkg_01] Framework-as-a-Service (FaaS)</p>
-            <p className="pl-4 text-muted-foreground">- End-to-end implementation of a modern Playwright/TS suite.</p>
-            <p className="pl-4 text-muted-foreground">- Best for: Teams shipping fast with zero test coverage.</p>
-          </div>
-          <div>
-            <p className="text-primary">[pkg_02] Full-Stack-as-a-Service (FSaaS)</p>
-            <p className="pl-4 text-muted-foreground">- On-demand feature development (Node.js, React, TypeScript).</p>
-            <p className="pl-4 text-muted-foreground">- Best for: Clearing backlog bottlenecks and building MVPs.</p>
-          </div>
-          <div>
-            <p className="text-primary">[pkg_03] Pipeline-as-a-Service (PaaS)</p>
-            <p className="pl-4 text-muted-foreground">- Dockerizing test environments and integrating GitHub Actions.</p>
-            <p className="pl-4 text-muted-foreground">- Best for: Teams suffering from long deployment times.</p>
-          </div>
-        </div>
-      </div>
-
-      <div>
-        <p className="text-accent font-bold mb-2">⚙️ SERVICE SLA (Service Level Agreement):</p>
-        <div className="border-b border-accent/30 mb-2" />
-        <ul className="space-y-1">
-          <li><span className="text-primary">• Capacity</span><span className="text-muted-foreground">     : 10-15 highly focused engineering hours per week.</span></li>
-          <li><span className="text-primary">• Delivery</span><span className="text-muted-foreground">     : Weekly sprint milestones via async PRs and Loom videos.</span></li>
-          <li><span className="text-primary">• Uptime</span><span className="text-muted-foreground">       : Active on evenings &amp; weekends (EET/EEST).</span></li>
+        <ul className="space-y-2">
+          <li>
+            <span className="text-primary">Framework work (FaaS)</span>
+            <p className="pl-4 text-muted-foreground">Playwright/TypeScript suite from zero through CI integration.</p>
+            <p className="pl-4 text-muted-foreground text-xs">Best when: shipping fast with little or no test coverage.</p>
+          </li>
+          <li>
+            <span className="text-primary">Pipeline work (PaaS)</span>
+            <p className="pl-4 text-muted-foreground">Dockerized test environments, GitHub Actions, faster deploy cycles.</p>
+            <p className="pl-4 text-muted-foreground text-xs">Best when: CI/CD or test infra is the bottleneck.</p>
+          </li>
+          <li>
+            <span className="text-primary">Full-stack work (FSaaS)</span>
+            <p className="pl-4 text-muted-foreground">Scoped feature work in Node.js, React, and TypeScript.</p>
+            <p className="pl-4 text-muted-foreground text-xs">Best when: backlog or MVP delivery needs an extra pair of hands.</p>
+          </li>
         </ul>
       </div>
 
       <div>
-        <p className="text-accent font-bold mb-2">🚀 READY TO SCALE YOUR ENGINEERING?</p>
+        <p className="text-accent font-semibold mb-2">How I work:</p>
         <div className="border-b border-accent/30 mb-2" />
-        <p className="mb-2 text-muted-foreground">
-          Let&apos;s discuss your project scope, architecture bottleneck, or MVP roadmap.
-        </p>
+        <ul className="space-y-1">
+          <li><span className="text-primary">Capacity</span><span className="text-muted-foreground">  : ~10–15 focused hours per week</span></li>
+          <li><span className="text-primary">Delivery</span><span className="text-muted-foreground">  : weekly PRs + short Loom walkthroughs</span></li>
+          <li><span className="text-primary">Model</span><span className="text-muted-foreground">    : async, milestone-based — no hourly babysitting</span></li>
+        </ul>
+      </div>
+
+      <p className="text-muted-foreground text-sm">
+        The kind of frameworks and pipelines described in{' '}
+        <span className="text-accent">experience</span> and{' '}
+        <span className="text-accent">projects</span> — available in scoped engagements.
+      </p>
+
+      <div>
+        <p className="text-accent font-semibold mb-2">If something here matches a bottleneck you&apos;re hitting:</p>
+        <div className="border-b border-accent/30 mb-2" />
         <div className="space-y-1">
           <p>
-            <span className="text-primary">👉 </span>
-            Click the <span className="text-accent">&apos;Contact&apos;</span> button or email directly:{' '}
+            <span className="text-primary">contact</span>
+            <span className="text-muted-foreground"> → </span>
             <a href={`mailto:${email}`} className="text-accent hover:underline break-all">
               {email}
             </a>
           </p>
           <p>
-            <span className="text-primary">👉 </span>
-            Let&apos;s connect on LinkedIn:{' '}
+            <span className="text-primary">LinkedIn</span>
+            <span className="text-muted-foreground"> → </span>
             <a href={linkedin} target="_blank" rel="noopener noreferrer" className="text-accent hover:underline break-all">
               {linkedin}
             </a>

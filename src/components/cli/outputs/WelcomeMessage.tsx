@@ -29,7 +29,7 @@ export const WelcomeMessage = () => {
  * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
  * ANASTASIOS TILSIZOGLOU
  * Senior Software Engineer in Test
- * Also available for part-time freelance (TAaS)
+ * Open to selective part-time work
  * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
  */`}
       </pre>
@@ -38,7 +38,7 @@ export const WelcomeMessage = () => {
       <div className="sm:hidden text-accent font-bold text-sm border-b border-accent/30 pb-2 mb-2">
         <div>ANASTASIOS TILSIZOGLOU</div>
         <div className="text-xs font-normal text-muted-foreground">Senior Software Engineer in Test</div>
-        <div className="text-xs font-normal text-muted-foreground/80 italic mt-1">Also available for part-time freelance (TAaS)</div>
+        <div className="text-xs font-normal text-muted-foreground/80 italic mt-1">Open to selective part-time work</div>
       </div>
 
       {/* Typing animation for welcome text */}
@@ -46,7 +46,6 @@ export const WelcomeMessage = () => {
         <>
           <TypingEffect text="> System initialized..." speed={30} />
           <TypingEffect text="> Type 'help' to explore my work" speed={30} delay={800} />
-          <TypingEffect text="> Type 'taas' or click Freelance to view engineering services" speed={30} delay={1600} />
         </>
       )}
 
@@ -58,7 +57,6 @@ export const WelcomeMessage = () => {
             <li>Press <span className="text-accent">Tab</span> to autocomplete commands</li>
             <li>Use <span className="text-accent">↑/↓</span> arrows to navigate history</li>
             <li>Type <span className="text-accent">about</span> to learn more about me</li>
-            <li>Type <span className="text-accent">taas</span> or click <span className="text-accent">Freelance</span> for part-time engineering services</li>
           </ul>
         </div>
       )}

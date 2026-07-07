@@ -36,6 +36,10 @@ export const AboutOutput = () => {
 
       {/* Description */}
       <p className="whitespace-pre-wrap leading-relaxed">{portfolioData.about.description}</p>
+      <p className="text-muted-foreground text-sm leading-relaxed">
+        Also open to selective part-time consulting in test automation and CI/CD — type{' '}
+        <span className="text-accent">taas</span> for details.
+      </p>
 
       {/* Quick Stats */}
       <div className="mt-2">
