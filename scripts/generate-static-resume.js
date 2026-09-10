@@ -367,7 +367,7 @@ const html = `
                 </ul>
             </header>
 
-            <div style="margin-top: 20px;">
+            <div style="margin-top: 10px;">
                 <h3 class="section-title"><span>//</span> SKILLS.SYS</h3>
 
                 <div class="skill-group">
@@ -385,7 +385,7 @@ const html = `
                 </div>
             </div>
 
-            <div style="margin-top: 20px;">
+            <div style="margin-top: 10px;">
                 <h3 class="section-title"><span>//</span> EDUCATION.BIN</h3>
                 ${education.filter(edu => edu.degree.toLowerCase().includes('science') || edu.degree.toLowerCase().includes('master') || edu.degree.toLowerCase().includes('bachelor')).map(edu => `
                     <div class="sidebar-item">
@@ -395,7 +395,7 @@ const html = `
                 `).join('')}
             </div>
 
-            <div style="margin-top: 20px;">
+            <div style="margin-top: 10px;">
                 <h3 class="section-title"><span>//</span> ARTICLES.LOG</h3>
                 ${articles.slice(0, 3).map(a => `
                     <div class="sidebar-item">
@@ -407,7 +407,7 @@ const html = `
                 `).join('')}
             </div>
             
-            <div style="margin-top: 20px;">
+            <div style="margin-top: 10px;">
                 <h3 class="section-title"><span>//</span> CERTS.KEY</h3>
                 <div class="sidebar-item">
                     <span class="sidebar-item-name">ISTQB® Foundation Level (CTFL)</span>
