@@ -66,7 +66,16 @@ const requiredInExport = [
 const forbiddenInExport = [
   'Spearheaded AI innovation',
   'Jira synchronization',
+  // Single-page A4 pressure valve: only the two AI flagship projects render
+  // on the PDF (older projects remain on the site + in-app resume).
+  'SDK4ED-TD',
 ];
+
+// Projects section must sit above Education so print overflow (if any)
+// clips low-value trailing margin, not the AI project entries.
+const projectsBeforeEducation =
+  html.indexOf('PROJECTS.BIN') !== -1 &&
+  html.indexOf('PROJECTS.BIN') < html.indexOf('EDUCATION.BIN');
 
 // --- report ---
 for (const [label, ok] of Object.entries(dataChecks)) {
@@ -83,6 +92,8 @@ for (const marker of forbiddenInExport) {
   console.log(`${ok ? 'PASS' : 'FAIL'}  export no longer contains "${marker}"`);
   if (!ok) failures.push(`export still contains "${marker}"`);
 }
+console.log(`${projectsBeforeEducation ? 'PASS' : 'FAIL'}  export renders PROJECTS.BIN above EDUCATION.BIN`);
+if (!projectsBeforeEducation) failures.push('export renders PROJECTS.BIN above EDUCATION.BIN');
 
 if (failures.length > 0) {
   console.error(`\n${failures.length} check(s) failed.`);

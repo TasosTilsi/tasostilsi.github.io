@@ -414,22 +414,9 @@ const html = `
                 `).join('')}
             </div>
 
-            <h3 class="section-title" style="margin-top: 25px;"><span>//</span> EDUCATION.BIN</h3>
-            <div class="education-list">
-                ${education.filter(edu => edu.degree.toLowerCase().includes('science') || edu.degree.toLowerCase().includes('master') || edu.degree.toLowerCase().includes('bachelor')).map(edu => `
-                    <div class="education-item">
-                        <div class="item-header">
-                            <h4 class="item-title">${edu.degree}</h4>
-                            <span class="item-date">${edu.duration}</span>
-                        </div>
-                        <div class="item-company">${edu.institution}</div>
-                    </div>
-                `).join('')}
-            </div>
-
             <h3 class="section-title" style="margin-top: 25px;"><span>//</span> PROJECTS.BIN</h3>
             <div class="experience-list">
-                ${projects.slice(0, 4).map(project => `
+                ${projects.slice(0, 2).map(project => `
                     <div class="experience-item">
                         <div class="item-header">
                             <h4 class="item-title">${project.name}</h4>
@@ -440,6 +427,19 @@ const html = `
                             ${project.link ? `<li><a href="${project.link}" target="_blank">${project.link.replace(/^https?:\/\/(www\.)?/, '')}</a></li>` : ''}
                             ${project.sourceUrl ? `<li><a href="${project.sourceUrl}" target="_blank">${project.sourceUrl.replace(/^https?:\/\/(www\.)?/, '')}</a></li>` : ''}
                         </ul>
+                    </div>
+                `).join('')}
+            </div>
+
+            <h3 class="section-title" style="margin-top: 25px;"><span>//</span> EDUCATION.BIN</h3>
+            <div class="education-list">
+                ${education.filter(edu => edu.degree.toLowerCase().includes('science') || edu.degree.toLowerCase().includes('master') || edu.degree.toLowerCase().includes('bachelor')).map(edu => `
+                    <div class="education-item">
+                        <div class="item-header">
+                            <h4 class="item-title">${edu.degree}</h4>
+                            <span class="item-date">${edu.duration}</span>
+                        </div>
+                        <div class="item-company">${edu.institution}</div>
                     </div>
                 `).join('')}
             </div>
