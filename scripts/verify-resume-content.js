@@ -71,11 +71,14 @@ const forbiddenInExport = [
   'SDK4ED-TD',
 ];
 
-// Projects section must sit above Education so print overflow (if any)
-// clips low-value trailing margin, not the AI project entries.
-const projectsBeforeEducation =
-  html.indexOf('PROJECTS.BIN') !== -1 &&
-  html.indexOf('PROJECTS.BIN') < html.indexOf('EDUCATION.BIN');
+// Redesigned PDF layout (user-approved): education lives in the sidebar,
+// skills render as 2 merged groups, projects render as 2-column cards.
+const educationInSidebar =
+  html.indexOf('EDUCATION.BIN') !== -1 &&
+  html.indexOf('EDUCATION.BIN') < html.indexOf('SUMMARY.EXE');
+const projectsAsCards = html.includes('project-grid');
+const skillsMerged = html.includes('class="skill-group-title">Engineering') &&
+  !html.includes('class="skill-group-title">Languages');
 
 // --- report ---
 for (const [label, ok] of Object.entries(dataChecks)) {
@@ -92,8 +95,12 @@ for (const marker of forbiddenInExport) {
   console.log(`${ok ? 'PASS' : 'FAIL'}  export no longer contains "${marker}"`);
   if (!ok) failures.push(`export still contains "${marker}"`);
 }
-console.log(`${projectsBeforeEducation ? 'PASS' : 'FAIL'}  export renders PROJECTS.BIN above EDUCATION.BIN`);
-if (!projectsBeforeEducation) failures.push('export renders PROJECTS.BIN above EDUCATION.BIN');
+console.log(`${educationInSidebar ? 'PASS' : 'FAIL'}  export renders EDUCATION.BIN in the sidebar`);
+if (!educationInSidebar) failures.push('export renders EDUCATION.BIN in the sidebar');
+console.log(`${projectsAsCards ? 'PASS' : 'FAIL'}  export renders projects as 2-column cards`);
+if (!projectsAsCards) failures.push('export renders projects as 2-column cards');
+console.log(`${skillsMerged ? 'PASS' : 'FAIL'}  export skills merged to 2 groups (Engineering + AI & Innovation)`);
+if (!skillsMerged) failures.push('export skills merged to 2 groups');
 
 if (failures.length > 0) {
   console.error(`\n${failures.length} check(s) failed.`);

@@ -180,6 +180,35 @@ const html = `
             border-radius: 3px;
         }
 
+        .project-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .project-card {
+            border: 1px solid var(--border-color);
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 4px;
+            padding: 12px;
+            break-inside: avoid;
+        }
+
+        .project-card .item-title {
+            font-size: 12px;
+        }
+
+        .project-card .item-details li {
+            font-size: 10px;
+        }
+
+        .project-card .item-details li.card-desc {
+            display: -webkit-box;
+            -webkit-line-clamp: 4;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
         .main-summary {
             font-size: 11px;
             line-height: 1.5;
@@ -340,30 +369,16 @@ const html = `
 
             <div style="margin-top: 20px;">
                 <h3 class="section-title"><span>//</span> SKILLS.SYS</h3>
-                
+
                 <div class="skill-group">
-                    <div class="skill-group-title">Languages</div>
+                    <div class="skill-group-title">Engineering</div>
                     <div class="skill-tags">
-                        ${skills.hard_skills.Languages.map(s => `<span class="tag">${s}</span>`).join('')}
+                        ${[...skills.hard_skills.Languages.slice(0, 4), ...skills.hard_skills.Testing.slice(0, 4), ...skills.hard_skills.Infrastructure.slice(0, 3)].map(s => `<span class="tag">${s}</span>`).join('')}
                     </div>
                 </div>
 
                 <div class="skill-group">
-                    <div class="skill-group-title">Testing</div>
-                    <div class="skill-tags">
-                        ${skills.hard_skills.Testing.map(s => `<span class="tag">${s}</span>`).join('')}
-                    </div>
-                </div>
-
-                <div class="skill-group">
-                    <div class="skill-group-title">DevOps</div>
-                    <div class="skill-tags">
-                        ${skills.hard_skills.Infrastructure.map(s => `<span class="tag">${s}</span>`).join('')}
-                    </div>
-                </div>
-
-                <div class="skill-group">
-                    <div class="skill-group-title">Innovation</div>
+                    <div class="skill-group-title">AI &amp; Innovation</div>
                     <div class="skill-tags">
                         ${skills.hard_skills.Innovation.map(s => `<span class="tag">${s}</span>`).join('')}
                     </div>
@@ -371,8 +386,18 @@ const html = `
             </div>
 
             <div style="margin-top: 20px;">
+                <h3 class="section-title"><span>//</span> EDUCATION.BIN</h3>
+                ${education.filter(edu => edu.degree.toLowerCase().includes('science') || edu.degree.toLowerCase().includes('master') || edu.degree.toLowerCase().includes('bachelor')).map(edu => `
+                    <div class="sidebar-item">
+                        <span class="sidebar-item-name">${edu.degree}</span>
+                        <span class="sidebar-item-meta">${edu.institution} — ${edu.duration}</span>
+                    </div>
+                `).join('')}
+            </div>
+
+            <div style="margin-top: 20px;">
                 <h3 class="section-title"><span>//</span> ARTICLES.LOG</h3>
-                ${articles.slice(0, 4).map(a => `
+                ${articles.slice(0, 3).map(a => `
                     <div class="sidebar-item">
                         <span class="sidebar-item-name">
                             <a href="${a.link || '#'}" target="_blank">${a.name}</a>
@@ -415,31 +440,18 @@ const html = `
             </div>
 
             <h3 class="section-title" style="margin-top: 25px;"><span>//</span> PROJECTS.BIN</h3>
-            <div class="experience-list">
+            <div class="project-grid">
                 ${projects.slice(0, 2).map(project => `
-                    <div class="experience-item">
+                    <div class="project-card">
                         <div class="item-header">
                             <h4 class="item-title">${project.name}</h4>
                             <span class="item-date">${project.date}</span>
                         </div>
                         <ul class="item-details">
-                            <li>${project.description}</li>
+                            <li class="card-desc">${project.description}</li>
                             ${project.link ? `<li><a href="${project.link}" target="_blank">${project.link.replace(/^https?:\/\/(www\.)?/, '')}</a></li>` : ''}
                             ${project.sourceUrl ? `<li><a href="${project.sourceUrl}" target="_blank">${project.sourceUrl.replace(/^https?:\/\/(www\.)?/, '')}</a></li>` : ''}
                         </ul>
-                    </div>
-                `).join('')}
-            </div>
-
-            <h3 class="section-title" style="margin-top: 25px;"><span>//</span> EDUCATION.BIN</h3>
-            <div class="education-list">
-                ${education.filter(edu => edu.degree.toLowerCase().includes('science') || edu.degree.toLowerCase().includes('master') || edu.degree.toLowerCase().includes('bachelor')).map(edu => `
-                    <div class="education-item">
-                        <div class="item-header">
-                            <h4 class="item-title">${edu.degree}</h4>
-                            <span class="item-date">${edu.duration}</span>
-                        </div>
-                        <div class="item-company">${edu.institution}</div>
                     </div>
                 `).join('')}
             </div>
