@@ -361,6 +361,13 @@ const html = `
                         ${skills.hard_skills.Infrastructure.map(s => `<span class="tag">${s}</span>`).join('')}
                     </div>
                 </div>
+
+                <div class="skill-group">
+                    <div class="skill-group-title">Innovation</div>
+                    <div class="skill-tags">
+                        ${skills.hard_skills.Innovation.map(s => `<span class="tag">${s}</span>`).join('')}
+                    </div>
+                </div>
             </div>
 
             <div style="margin-top: 20px;">
@@ -416,6 +423,23 @@ const html = `
                             <span class="item-date">${edu.duration}</span>
                         </div>
                         <div class="item-company">${edu.institution}</div>
+                    </div>
+                `).join('')}
+            </div>
+
+            <h3 class="section-title" style="margin-top: 25px;"><span>//</span> PROJECTS.BIN</h3>
+            <div class="experience-list">
+                ${projects.slice(0, 4).map(project => `
+                    <div class="experience-item">
+                        <div class="item-header">
+                            <h4 class="item-title">${project.name}</h4>
+                            <span class="item-date">${project.date}</span>
+                        </div>
+                        <ul class="item-details">
+                            <li>${project.description}</li>
+                            ${project.link ? `<li><a href="${project.link}" target="_blank">${project.link.replace(/^https?:\/\/(www\.)?/, '')}</a></li>` : ''}
+                            ${project.sourceUrl ? `<li><a href="${project.sourceUrl}" target="_blank">${project.sourceUrl.replace(/^https?:\/\/(www\.)?/, '')}</a></li>` : ''}
+                        </ul>
                     </div>
                 `).join('')}
             </div>

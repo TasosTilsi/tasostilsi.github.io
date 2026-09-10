@@ -4,7 +4,7 @@
     "charset": "utf-8",
     "viewport": "width=device-width, initial-scale=1, shrink-to-fit=no",
     "description": "Interactive CLI portfolio of Anastasios Tilsizoglou — Senior Software Engineer in Test and part-time freelance consultant (TAaS). Test automation, Playwright, CI/CD, and full-stack engineering for startups.",
-    "keywords": "TasosTilsi, resume, cv, skills, experience, Software, developer, engineer, QA, Tester, Web, android, java, html, css, JavaScript, Anastasios Tilsizoglou, Senior Software Engineer in Test, Portfolio, CLI, Command Line, Next.js, React, Cyber Security Enthusiast, freelance, test automation consultant, TAaS, Playwright, CI/CD consultant, part-time engineer, QA automation architect",
+    "keywords": "TasosTilsi, resume, cv, skills, experience, Software, developer, engineer, QA, Tester, Web, android, java, html, css, JavaScript, Anastasios Tilsizoglou, Senior Software Engineer in Test, Portfolio, CLI, Command Line, Next.js, React, Cyber Security Enthusiast, freelance, test automation consultant, TAaS, Playwright, CI/CD consultant, part-time engineer, QA automation architect, AI, LLM, MCP, AI agents, context engineering, contract analysis",
     "author": "Anastasios Tilsizoglou"
   },
   "about": {
@@ -13,7 +13,7 @@
     "location": "Thessaloniki, Greece",
     "dob": "12 Oct 1994",
     "email": "tilsizoglou@protonmail.com",
-    "description": "Aspiring Test Solutions Architect and \"Bridge Builder\" with a Master’s in Applied Informatics. Expert in architecting scalable automation frameworks, streamlining enterprise QA processes, and integrating AI-driven protocols (MCP). Committed to translating technical rigor into business value.",
+    "description": "Aspiring Test Solutions Architect and \"Bridge Builder\" with a Master’s in Applied Informatics. Expert in architecting scalable automation frameworks, streamlining enterprise QA processes, and integrating AI across the SDLC — from MCP servers and agentic harnesses at work to shipping my own AI products: Clarif-AI (clarif-ai.net) and the npm-published DeepIndex CLI. Committed to translating technical rigor into business value.",
     "contact": {
       "email":"tilsizoglou@protonmail.com",
       "linkedin": "http://www.linkedin.com/in/tasostilsi",
@@ -35,11 +35,13 @@
       "duration": "Sept 2023 — Present",
       "isTechRelated": true,
       "responsibilities": [
+        "Deployed MCP servers and AI agent skills across engineering teams, making technical context retrievable where the work happens.",
+        "Standardized agentic AI coding harnesses org-wide — rules, hooks, and sub-agent workflows that turn AI assistants into governed engineering tooling.",
+        "Wove AI into the automation pipeline: LLM-assisted test authoring and self-healing selectors that cut creation and maintenance overhead.",
+        "Built RAG pipelines over engineering knowledge bases, giving teams instant, grounded answers instead of documentation archaeology.",
         "Architected centralized infrastructure by transitioning from forked projects to a modular NPM node dependency model, standardizing automation across all organizational teams.",
         "Designed custom quality dashboards with real-time data visualization, providing stakeholders with critical visibility for data-driven task prioritization.",
-        "Spearheaded AI innovation by deploying Model Context Protocols (MCPs) and AI skills to optimize technical context retrieval across engineering.",
-        "Engineered cost-efficient CI/CD pipelines using open-source frameworks, eliminating expensive licensing while maintaining high-velocity delivery.",
-        "Developed Jira synchronization scripts to instantly inform teams of CI/CD progress, bridging the gap between execution and status reporting."
+        "Engineered cost-efficient CI/CD pipelines using open-source frameworks, eliminating expensive licensing while maintaining high-velocity delivery."
       ]
     },
     {
@@ -147,7 +149,7 @@
       "Languages": ["Java", "JS", "TS", "ReactJS", "Spring Boot", "Python", "SQL", "C++", "PHP"],
       "Testing": ["Playwright", "Selenium", "Rest Assured", "ReadyAPI", "Postman", "Allure"],
       "Infrastructure": ["NPM Module Dev", "CI/CD", "Docker", "Jenkins", "Bitbucket", "Jira"],
-      "Innovation": ["Prompt Engineering", "MCP", "AI-driven SDLC"]
+      "Innovation": ["Prompt Engineering", "MCP", "AI Agents", "RAG", "Context Engineering", "Embeddings & Semantic Search", "AI-driven SDLC"]
     },
     "languages": ["Greek (Native)", "English (Fluent)"]
   },
@@ -168,6 +170,8 @@
     "racing_games":["Grand Turismo","Need for Speed","F1"]
   },
   "projects": [
+    {"name": "Clarif-AI", "description": "AI contract analyzer for freelancers — scans any contract in under 2 minutes and surfaces red flags, hidden fees, and unfair terms. Live web app.", "link": "https://clarif-ai.net", "date": "2026"},
+    {"name": "DeepIndex", "description": "Self-healing, token-efficient context-engineering framework for AI coding harnesses — hybrid semantic + entity-graph code search (tree-sitter, SQLite, embeddings) with an MCP server and bundled dashboard. Published on npm.", "link": "https://www.npmjs.com/package/deepindex", "sourceUrl": "https://github.com/TasosTilsi/deepindex", "date": "2026"},
     {"name": "SDK4ED-TD", "description": "Technical Debt management tool for the SDK4ED platform.", "link": "https://github.com/TasosTilsi/sdk4ed-td", "date": "June 2023"},
     {"name": "ServicedMetricsCalculator", "description": "A tool to calculate metrics for services, likely related to software architecture or performance.", "link": "https://github.com/TasosTilsi/ServicedMetricsCalculator", "date": "June 2023"},
     {"name": "Avoid Traffic Extended", "description": "An extended version of a traffic avoidance application, likely for route optimization.", "link": "https://github.com/TasosTilsi/AvoidTrafficExtended", "date": "May 2022"},
