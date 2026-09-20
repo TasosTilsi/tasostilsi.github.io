@@ -54,7 +54,7 @@ All grounding verified. Key facts pinned from inspection: Sheet defaults (left v
 └────────────────────────────────────────────────────────────────┘
 ```
 
-- Shell root: `h-[100dvh]` (fallback `h-screen`), `flex flex-col`, `overflow-x-hidden`, marker class **`explore-shell`** (theme + font scope, §9/§10).
+- Shell root: `h-dvh` exactly (single class — Tailwind ^3.4.1 ships it natively; do **not** stack `h-screen` as a fallback, that depends on stylesheet emit order; pre-2022 browsers without dvh degrade and this is the documented, accepted degradation), `flex flex-col`, `overflow-x-hidden`, marker class **`explore-shell`** (theme + font scope, §9/§10).
 - Header, intro strip, status bar: `shrink-0`. Main: `flex-1 overflow-y-auto` — the only scroll container (mirrors `(main)/layout.tsx` intent but **without** its `overflow-hidden` on the shell; /explore must scroll internally so the status bar never leaves the viewport).
 - /explore is a **sibling route of `(main)/`** — it must not inherit the CLI's `overflow-hidden` terminal shell (verified at `(main)/layout.tsx:16`).
 - No sticky/fixed positioning anywhere inside the shell; the flex column is the positioning model. z-index is only used by the portaled Sheet (`z-50`, built-in).
@@ -88,7 +88,7 @@ All grounding verified. Key facts pinned from inspection: Sheet defaults (left v
 - Content: accent `❯` prefix + `TypingEffect` rendering `{about.name} — {about.title}` — **real data, verified present** (D-07).
 - Timing: `speed=30` (component default), `delay=400`ms; runs **once per mount** (no persistence, no replay on scroll).
 - Cursor behaviour is the component's own: pulsing `_` while typing, **gone after completion** — do not modify `TypingEffect.tsx` (CLI reuse protection). Persistent block cursor after completion: (OPTIONAL — skip-able).
-- **No layout shift:** container reserves height — one text line `≥md`, two lines `<md` (the 57-char string wraps at 375px). Height reserved via `min-h`, never via fixed typing animation.
+- **No layout shift:** container reserves height — one text line `≥md`, two lines `<md` (the 57-char string wraps at 375px). Height pinned as **`min-h-[40px] md:min-h-[20px]`** (px arbitrary values: `text-sm` line-height = 20px/line; px values are immune to the ≤640px `html{font-size:14px}` rem shrink). Never via fixed typing animation.
 - **Accessibility split:** server-rendered `sr-only` `<h1>` holding the full `{name} — {title}`; the visually animated span is `aria-hidden` (char-by-char mutation is noise for screen readers). The `h1` doubles as the static no-JS/reduced-motion text source.
 - **No-JS contract:** the animated span renders **empty in static HTML** and fills client-side. Accepted tradeoff (pinned): no CLS, no flash-of-full-text; screen readers and no-JS users get the sr-only full text. Do not render full text server-side into the visible span (it would flash empty-then-type on hydration).
 - Reduced motion: `TypingEffect` is **not rendered at all**; the static full text shows in its place (client wrapper checks `prefers-reduced-motion` once on mount).
@@ -101,7 +101,7 @@ All grounding verified. Key facts pinned from inspection: Sheet defaults (left v
   1. `SheetTitle`: `~/explore` · `SheetDescription`: `Jump to a section` (Radix a11y warning guard; chrome copy, not portfolio data).
   2. Built-in close `X` (top-right, ships with SheetContent).
   3. 5 nav items — **anchor links** (`<a href="#about">` etc.), one per section, in order: About, Experience, Skills, Projects, Contact (labels locked by SPEC acceptance).
-- **Item anatomy:** `min-h-[44px]`, two columns: index `01…05` in the section's chart accent color (`text-xs tabular-nums`) + label (`text-sm`). Accent per section, fixed order: About=chart-1, Experience=chart-2, Skills=chart-3, Projects=chart-4, Contact=chart-5 (same mapping as panels §6).
+- **Item anatomy:** `min-h-[44px]`, two columns: index `01…05` in the section's chart accent color (`text-xs tabular-nums`, **`aria-hidden`** — decorative: section order is carried by DOM position + label text; pinned W-3 fix, because chart-N digits measure ≈3.1–4.1:1 against `sidebar-background` and would fail the §13 text-contrast claim if treated as meaningful text) + label (`text-sm`). Accent per section, fixed order: About=chart-1, Experience=chart-2, Skills=chart-3, Projects=chart-4, Contact=chart-5 (same mapping as panels §6).
 - **Item states:** default `sidebar-foreground`; hover `bg-sidebar-accent` + `sidebar-accent-foreground`; focus-visible `ring-2 ring-sidebar-ring`; active/pressed = same as hover (no active-section tracking exists until phase 4 — **no "current section" highlight**); no disabled state in phase 1.
 - **Open/close interaction (all viewports — 375, 768, 1440):**
   - Open: header drawer toggle → slide-in-from-left 500ms + overlay fade (Sheet defaults, verified).
@@ -132,6 +132,7 @@ All grounding verified. Key facts pinned from inspection: Sheet defaults (left v
 
 - Left: exact string `guest@tasostilsi:~/explore` — rendered as `guest@tasostilsi` in `accent` + `:~/explore` in `muted-foreground` (contiguous text, colors only).
 - Right: active theme name (`dark` | `light`, lowercase, updates live) + ` · ` + `0/5 sections visited` (counter **static** until phase 4; the `5` is rendered from the sections constant length, the `0` is a literal).
+- **Theme-label hydration contract (pinned W-2):** SSR/first paint renders the label as `dark`; a **one-shot after-mount effect** syncs the label from `documentElement.classList`. A briefly wrong label right after load with persisted `light` is **accepted** (same tradeoff class as §4's typing start). Do **not** lazy-init the label state from `documentElement` during render — that risks a hydration text mismatch.
 - Heights: `h-7` mobile, `h-8 ≥sm`; font: `text-[10px]` mobile, `sm:text-xs` — px math verified: full copy ≈ 318px at 375px viewport → **no truncation at any breakpoint**; do not shorten the breadcrumb (locked copy).
 - Structure: `<footer>`; right group has `aria-live="polite"` so theme switches are announced.
 
@@ -263,23 +264,36 @@ Foreground 16% on 97% ≈ 12:1; muted-foreground 40% ≈ 6.5:1 — AA clean. Cha
 Guard (required in `globals.css` — note the portal escape, §5):
 ```css
 @media (prefers-reduced-motion: reduce) {
-  body:has(.explore-shell) .explore-shell *,
-  body:has(.explore-shell) [data-slot],          /* planner: prefer scoping by the marker class
-  body:has(.explore-shell) .animate-pulse { animation: none !important; transition: none !important; }
+  /* in-flow shell + portaled SheetContent (it carries the marker class, §5) */
+  .explore-shell *,
+  .explore-shell .animate-pulse,
+  /* portaled SheetOverlay + SheetContent: Radix sets data-state on both;
+     body:has() scoping keeps the suppression off CLI pages; sheet.tsx untouched (§17.2) */
+  body:has(.explore-shell) [data-state="open"],
+  body:has(.explore-shell) [data-state="closed"] {
+    animation: none !important;
+    transition: none !important;
+  }
+  /* anchor scroll: overrides the body smooth rule at globals.css:284 (W-1) */
+  body:has(.explore-shell),
+  .explore-shell main {
+    scroll-behavior: auto !important;
+  }
 }
 ```
-Planner note: the portaled SheetContent carries `.explore-shell` itself (§5), so a guard shaped as `.explore-shell *, .explore-shell .animate-pulse { … }` plus the overlay selector covers both the in-flow shell and the portaled drawer. Behavioural requirement: **no animation authored by this phase survives reduced-motion**, including portal content.
+Planner note: the guard above is the **only** motion-suppression mechanism for this phase — it covers the in-flow shell (marker-class descendants), the portaled `SheetContent` (carries `.explore-shell`), the portaled overlay (`data-state` selectors — no `sheet.tsx` edits required), and anchor scroll (`scroll-behavior: auto` on body + the main scroll container). Behavioural requirement: **no animation authored by this phase survives reduced-motion**, including portal content.
 
 ## 13. Accessibility Contract
 
-- **Landmarks:** `<header>` (banner) · intro strip `<h1>` (sr-only full name/title) · `<main aria-label="Portfolio sections">` wrapping the grid · `<footer>` status bar.
+- **Landmarks:** `<header>` (banner) · intro strip `<h1>` (sr-only full name/title) · `<main aria-label="Portfolio sections" tabIndex={0}>` wrapping the grid — the main element is the **only scroll container**, so it is keyboard-focusable (`tabIndex={0}`, pinned W-6: keyboard users get arrow-key scrolling of the container; panels contain no tabbables) · `<footer>` status bar.
 - **Drawer (Radix Dialog semantics, free):** `SheetTrigger` exposes `aria-expanded`/`aria-controls`; focus trapped while open (EXPLORE-01b); ESC + outside click close; focus returns to the trigger on close; `SheetTitle`/`SheetDescription` present (no Radix console warning).
 - **Animated text:** visual typing span `aria-hidden`; sr-only static duplicate always present (§4).
 - **Decorative:** window glyphs, accent chips, skeletons, `❯` prefix — all `aria-hidden`.
 - **Live region:** status-bar right group `aria-live="polite"` (announces theme change).
 - **Touch targets:** drawer toggle + theme toggle = 44×44 **real px** (px-based classes — the ≤640px `html{font-size:14px}` rule shrinks rem sizes ~17%, so rem-based `h-10` would render ~33px at 375px; this is why §3/§5 pin px sizing for every interactive target, including drawer items `min-h-[44px]`).
 - **Focus order:** theme toggle → drawer toggle → (drawer contents while open) → panels contain no tabbables (skip-through) — no keyboard traps; ESC always exits the drawer.
-- **Contrast:** all text ≥4.5:1 in both themes (token tables §9); theme label + counter use `muted-foreground`-class values, verified above.
+- **Contrast:** all **meaningful** text ≥4.5:1 in both themes (token tables §9); theme label + counter use `muted-foreground`-class values, verified above. Drawer index digits are `aria-hidden` decoration (§5) and are **exempt** — ≥3 of the 5 chart-N colors measure below 4.5:1 against `sidebar-background` in one or both themes (W-3 resolution).
+- **Keyboard scrolling:** the main scroll container carries `tabIndex={0}` + `aria-label` (pinned W-6) — arrow-key scroll available to keyboard users; visible focus ring must remain visible (`focus-visible` default ring acceptable).
 - **Zoom/reflow:** no fixed-width children; grid + truncate handle 200% zoom; no horizontal scroll at 375px is a hard acceptance check.
 
 ## 14. Edge Coverage (explicit)
