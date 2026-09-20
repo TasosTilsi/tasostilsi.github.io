@@ -1,0 +1,38 @@
+{
+  "gsd_state_version": "1.0",
+  "workflow": {
+    "discuss_mode": "discuss",
+    "nyquist_validation": true,
+    "pattern_mapper": true,
+    "tdd_mode": false,
+    "mvp_mode": true,
+    "use_worktrees": false,
+    "agent_hint_routing": true,
+    "text_mode": false,
+    "commit_docs": true,
+    "code_review": true,
+    "code_review_depth": "standard",
+    "ui_review": true,
+    "validate_phase": true,
+    "learnings": false,
+    "graphify": false,
+    "assumption_delta": true
+  },
+  "mempalace": {
+    "enabled": false,
+    "memory_mode": "augment",
+    "wing": "",
+    "recall_on_discuss": true,
+    "recall_on_plan": true,
+    "capture_artifacts": true,
+    "mirror_kg": true
+  },
+  "context_window": 200000,
+  "project_code": "EXPLORE",
+  "response_language": null,
+  "jobs": {
+    "timeout": 60,
+    "concurrency": 2,
+    "max_retries": 3
+  }
+}
