@@ -36,3 +36,98 @@ export type ExploreTheme = (typeof EXPLORE_THEME_VALUES)[number];
  */
 export const EXPLORE_STATUS_USER = "guest@tasostilsi";
 export const EXPLORE_STATUS_PATH = ":~/explore";
+
+/**
+ * D-05: tour trigger flag — 'seen' written on any dismissal, 'completed' on
+ * finish; any non-null value suppresses auto-open (UI-SPEC §7). Explore-scoped
+ * and MUST stay disjoint from the CLI keys (src/components/cli/constants.ts
+ * LOCAL_STORAGE_EASTER_EGGS_KEY / LOCAL_STORAGE_THEME_KEY, lines 64-67) and
+ * from the CLI theme key — the shared `portfolio-explore-` prefix plus the
+ * disjointness greps (tests/explore-tour.test.mjs) hold that invariant.
+ */
+export const EXPLORE_TOUR_STORAGE_KEY = "portfolio-explore-tour";
+
+/**
+ * D-06: JSON array of visited section ids (EXPLORE_SECTIONS ids only).
+ * Read parses, filters to valid ids and dedupes preserving first-occurrence
+ * order (tour-placement.ts parseVisitedIds, E-8); writes are append-only.
+ */
+export const EXPLORE_VISITED_STORAGE_KEY = "portfolio-explore-visited";
+
+/**
+ * UI-SPEC §4 chip accent per section, for the tour's heading-row chip.
+ * Duplicated from the module-private ACCENTS in explore-panels.tsx (lines
+ * 37-43) because that file is byte-untouched this phase (D-08).
+ */
+export const EXPLORE_TOUR_ACCENTS: Record<ExploreSectionId, string> = {
+  about: "bg-chart-1",
+  experience: "bg-chart-2",
+  skills: "bg-chart-3",
+  projects: "bg-chart-4",
+  contact: "bg-chart-5",
+};
+
+/**
+ * D-02: one locked wizard step — no-target steps (welcome/finish) carry
+ * sectionId null and their own chrome heading/announce; content steps derive
+ * heading + announce from the matching EXPLORE_SECTIONS entry and target its
+ * panel id.
+ */
+export type TourStep = {
+  id: "welcome" | "about" | "experience" | "skills" | "projects" | "contact" | "finish";
+  sectionId: ExploreSectionId | null;
+  heading: string;
+  announce: string;
+  body: string;
+};
+
+/**
+ * D-04: finish-card constants — the congratulation chrome line plus the ONLY
+ * cross-surface pointer in this phase: an internal link to the CLI at / with
+ * a one-line terminal hint (SPEC EXPLORE-04d).
+ */
+export const EXPLORE_TOUR_FINISH = {
+  congrats: "That's the lap — every section's marked visited on the counter below.",
+  linkLabel: "Open the terminal →",
+  linkHref: "/",
+  hint: "the full story lives in the terminal — start with help",
+} as const;
+
+/** §4 bodies in EXPLORE_SECTIONS order — chrome orientation copy only, zero invented portfolio facts. */
+const EXPLORE_TOUR_STEP_BODIES = [
+  "The short version of who's typing — bio, role, and location.",
+  "Roles in order, with the career-span chart on top for the shape of it.",
+  "Skills by category, then the treemap of what the actual work proves — full inventory below.",
+  "Stat tiles up top, six projects underneath.",
+  "The part where you say hi back — resume export and every channel, exactly as listed.",
+] as const;
+
+/**
+ * D-02: locked 7-step table — welcome → about → experience → skills →
+ * projects → contact → finish. Indices drive the progress dots and the
+ * "Step N of 7" counter (UI-SPEC §3); content steps are generated from
+ * EXPLORE_SECTIONS so headings/announce never duplicate the labels.
+ */
+export const EXPLORE_TOUR_STEPS: readonly TourStep[] = [
+  {
+    id: "welcome",
+    sectionId: null,
+    heading: "explore --tour",
+    announce: "welcome",
+    body: "A 60-second lap of the five sections — Next and Back at your own pace, ESC whenever you're done. No timers.",
+  },
+  ...EXPLORE_SECTIONS.map((section, index) => ({
+    id: section.id,
+    sectionId: section.id,
+    heading: section.label,
+    announce: section.label,
+    body: EXPLORE_TOUR_STEP_BODIES[index],
+  })),
+  {
+    id: "finish",
+    sectionId: null,
+    heading: "tour complete",
+    announce: "tour complete",
+    body: EXPLORE_TOUR_FINISH.congrats,
+  },
+];
