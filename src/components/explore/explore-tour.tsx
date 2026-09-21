@@ -50,7 +50,7 @@ import {
   EXPLORE_TOUR_STEPS,
   ExploreSectionId,
 } from './constants';
-import { placeCard } from './tour-placement';
+import { placeCard, type TourRect } from './tour-placement';
 import { readTourFlag, writeTourFlag } from './use-explore-visited';
 
 /** §4 primary-action label ladder, indexed by stepIndex (0-6). */
@@ -72,6 +72,7 @@ export function ExploreTour({
   onMarkVisited: (id: ExploreSectionId) => void;
 }) {
   const [stepIndex, setStepIndex] = useState(0);
+  const [panelRect, setPanelRect] = useState<TourRect | null>(null);
   const [cardSize, setCardSize] = useState({ width: 0, height: 0 });
   const [viewport, setViewport] = useState(() =>
     typeof window === 'undefined'
@@ -91,10 +92,83 @@ export function ExploreTour({
   const isFinish = step.id === 'finish';
   const headingId = 'explore-tour-heading';
 
-  // Task 1 tracer: content steps render the temporary no-target treatment —
-  // the real spotlight (mark → settle → measure → cut-out) replaces it in
-  // Task 2, which consumes onMarkVisited at step activation (§3 order).
-  void onMarkVisited;
+  // §3 activation order per step: content steps mark visited FIRST (at
+  // activation, not after settle) then settle → measure → render; no-target
+  // steps clear the panel rect so the plain dim + centered/docked card
+  // render (D-02). The programmatic scroll-into-view call lives ONLY here —
+  // the §2/W-3 re-measure below is measure-only, never a re-scroll.
+  useEffect(() => {
+    if (!open) return;
+    const current = EXPLORE_TOUR_STEPS[Math.min(stepIndex, EXPLORE_TOUR_STEPS.length - 1)];
+    if (!current) return;
+    if (current.sectionId === null) {
+      setPanelRect(null); // welcome/finish (or E-6 path): plain dim, no hole
+      return;
+    }
+    onMarkVisited(current.sectionId);
+
+    const main = document.querySelector<HTMLElement>('.explore-shell > main');
+    const target = document.getElementById(current.sectionId);
+    if (!main || !target) {
+      setPanelRect(null); // E-6: missing target → plain dim + docked card
+      return;
+    }
+
+    let cancelled = false;
+    let settled = false;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    let frame = 0;
+
+    const measure = () => {
+      if (cancelled) return;
+      const rect = target.getBoundingClientRect();
+      setPanelRect({ left: rect.left, top: rect.top, width: rect.width, height: rect.height });
+    };
+
+    // W-1: idempotent settle guard — scrollend and the timeout race, the
+    // first one wins; §2's double rAF lands before the measurement.
+    const settle = () => {
+      if (settled) return;
+      settled = true;
+      if (timer !== null) clearTimeout(timer);
+      main.removeEventListener('scrollend', settle);
+      frame = requestAnimationFrame(() => {
+        frame = requestAnimationFrame(measure);
+      });
+    };
+
+    // W-2 already-in-view fast path: scrollend never fires when the scroll
+    // position does not change — zero-scroll steps must not pay the 700ms
+    // timeout, so skip the race and measure after a double rAF.
+    const targetRect = target.getBoundingClientRect();
+    const mainRect = main.getBoundingClientRect();
+    const inView =
+      targetRect.top >= mainRect.top &&
+      targetRect.left >= mainRect.left &&
+      targetRect.bottom <= mainRect.bottom &&
+      targetRect.right <= mainRect.right;
+    if (inView) {
+      frame = requestAnimationFrame(() => {
+        frame = requestAnimationFrame(measure);
+      });
+    } else {
+      // §10: an explicit 'smooth' bypasses the CSS scroll-behavior override,
+      // so branch the behavior at call time (RESEARCH §1.4).
+      const behavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+        ? 'auto'
+        : 'smooth';
+      target.scrollIntoView({ block: 'start', behavior });
+      main.addEventListener('scrollend', settle, { once: true });
+      timer = setTimeout(settle, 700); // fallback: older engines lack scrollend
+    }
+
+    return () => {
+      cancelled = true; // E-5: rapid Next/Back — last click wins
+      if (timer !== null) clearTimeout(timer);
+      cancelAnimationFrame(frame);
+      main.removeEventListener('scrollend', settle);
+    };
+  }, [open, stepIndex, onMarkVisited]);
 
   // D-05/E-10 reset: every open (from closed, or the Tour button clicked
   // while open — the shell bumps reopenEpoch on every Tour click; auto-open
@@ -202,31 +276,97 @@ export function ExploreTour({
     );
   }, [open, stepIndex]);
 
-  // Keep placeCard's viewport honest while the tour is open (the rAF-coalesced
-  // panel re-measure lands in Task 2; the card geometry needs this now).
+  // §2 re-measure (b) + (c): window resize / orientationchange (rAF-coalesced)
+  // and <main> scrollends re-measure — ALL INSTANT, never animated. This
+  // handler is measure-only (W-3): user scrollends re-position the cut-out +
+  // card but NEVER re-scroll to the panel; mid-scroll drift is accepted and
+  // corrected here (E-4/U-2). The programmatic scroll-into-view fires on step
+  // activation only (single call site in the activation effect above).
   useEffect(() => {
     if (!open) return;
-    const syncViewport = () =>
-      setViewport({ width: window.innerWidth, height: window.innerHeight });
-    window.addEventListener('resize', syncViewport);
-    return () => window.removeEventListener('resize', syncViewport);
-  }, [open]);
+    const main = document.querySelector<HTMLElement>('.explore-shell > main');
+    const current = EXPLORE_TOUR_STEPS[Math.min(stepIndex, EXPLORE_TOUR_STEPS.length - 1)];
+    if (!main) return;
+    const sectionId = current?.sectionId ?? null;
+
+    const measurePanel = () => {
+      if (sectionId === null) return;
+      const el = document.getElementById(sectionId);
+      if (!el) return; // E-6
+      const rect = el.getBoundingClientRect();
+      setPanelRect({ left: rect.left, top: rect.top, width: rect.width, height: rect.height });
+      const card = cardRef.current;
+      if (card) {
+        setCardSize((prev) =>
+          prev.width === card.offsetWidth && prev.height === card.offsetHeight
+            ? prev
+            : { width: card.offsetWidth, height: card.offsetHeight },
+        );
+      }
+    };
+
+    const onUserScrollEnd = () => measurePanel();
+
+    let frame = 0;
+    const remeasure = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        setViewport({ width: window.innerWidth, height: window.innerHeight });
+        measurePanel();
+      });
+    };
+
+    main.addEventListener('scrollend', onUserScrollEnd);
+    window.addEventListener('resize', remeasure);
+    window.addEventListener('orientationchange', remeasure);
+    return () => {
+      cancelAnimationFrame(frame);
+      main.removeEventListener('scrollend', onUserScrollEnd);
+      window.removeEventListener('resize', remeasure);
+      window.removeEventListener('orientationchange', remeasure);
+    };
+  }, [open, stepIndex]);
 
   if (!open) return null;
 
-  // Task 1 tracer: every step is treated as no-target — welcome/finish
-  // geometry (docked <640px, centered ≥640px). The card is the wrapper's
-  // LAST child (W-4) so the dim never paints over it.
-  const placement = placeCard({ panelRect: null, cardSize, viewport });
+  // §3 placement: the pure plan-01 module is the single geometry authority —
+  // its R-10 viewport-intersection gate docks the card deterministically for
+  // panels scrolled off-viewport (never off-screen, SPEC acceptance).
+  const placement = placeCard({ panelRect, cardSize, viewport });
+  // §1 dim-painter choice: content steps with a settled target render the
+  // cut-out hole (its box-shadow IS the dim); welcome/finish and E-6
+  // missing-target steps render the plain full dim. The two paint as
+  // SIBLING conditional slots before the card (W-4): within content steps
+  // the hole keeps its element identity across step changes / re-measures
+  // (no remount, no fade replay); swapping dim-painter KINDS mounts a
+  // fresh element, replaying the pinned §10 fade exactly once.
+  const showHole = step.sectionId !== null && panelRect !== null;
 
   return (
     <div data-tour-overlay className="pointer-events-none fixed inset-0 z-40">
       <style>{'@keyframes tour-dim-in { from { opacity: 0; } to { opacity: 1; } }'}</style>
-      <div
-        aria-hidden="true"
-        className="pointer-events-none fixed inset-0"
-        style={{ background: 'rgba(0,0,0,0.7)', animation: 'tour-dim-in 150ms ease-out' }}
-      />
+      {showHole && panelRect ? (
+        <div
+          data-tour-hole
+          aria-hidden="true"
+          className="pointer-events-none absolute rounded-md"
+          style={{
+            left: panelRect.left - 12,
+            top: panelRect.top - 12,
+            width: panelRect.width + 24,
+            height: panelRect.height + 24,
+            boxShadow: '0 0 0 100vmax rgba(0,0,0,0.7)',
+            animation: 'tour-dim-in 150ms ease-out',
+          }}
+        />
+      ) : null}
+      {!showHole && (
+        <div
+          aria-hidden="true"
+          className="pointer-events-none fixed inset-0"
+          style={{ background: 'rgba(0,0,0,0.7)', animation: 'tour-dim-in 150ms ease-out' }}
+        />
+      )}
       <div
         ref={cardRef}
         role="dialog"

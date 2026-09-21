@@ -418,3 +418,63 @@ test('export: Tour button SSRs into out/explore.html, tour overlay does not (§1
     'the overlay is client-mount-only — absent from static HTML (§12.6, R-5)',
   );
 });
+
+// ---------------------------------------------------------------------------
+// Plan 02 Task 2: content-step spotlight — settle, cut-out hole, re-measure
+// (UI-SPEC §1/§2/§3 as amended by R-10, §10, §11 E-4/E-5/E-6, §12 items 5/10)
+// ---------------------------------------------------------------------------
+
+test('spotlight settle: scrollend + 700ms fallback + double-rAF + reduced-motion branch (§2, W-1/W-2)', () => {
+  const src = tourSrc();
+  for (const needle of ['scrollend', '700', 'requestAnimationFrame', 'prefers-reduced-motion', 'matchMedia', 'getBoundingClientRect']) {
+    assert.ok(src.includes(needle), `settle/measurement contract: "${needle}"`);
+  }
+  assert.equal(
+    (src.match(/scrollIntoView/g) || []).length,
+    1,
+    'the programmatic scroll fires on step activation ONLY — W-3 re-measure is measure-only (§2)',
+  );
+});
+
+test('spotlight hole: 12px-inflated cut-out paints the dim via the 100vmax box-shadow (D-01 as amended by R-1)', () => {
+  const src = tourSrc();
+  assert.ok(
+    src.includes("boxShadow: '0 0 0 100vmax rgba(0,0,0,0.7)'"),
+    'the hole paints the dim via box-shadow with the 100vmax spread (R-1)',
+  );
+  assert.ok(!src.includes('100vw'), 'the under-covering viewport-width spread is gone (R-1 amendment)');
+  assert.ok(src.includes('- 12') && src.includes('+ 24'), '12px inflation on all sides (§1)');
+  const holeIdx = src.indexOf('data-tour-hole');
+  assert.ok(holeIdx > -1, 'the cut-out hole element exists');
+  assert.ok(
+    holeIdx < src.indexOf('role="dialog"'),
+    'the hole renders BEFORE the card (W-4: the card paints last, above the dim)',
+  );
+  const holeBlock = src.slice(holeIdx, src.indexOf('role="dialog"'));
+  assert.ok(holeBlock.includes('rounded-md'), 'hole is rounded-md (§1)');
+  assert.ok(
+    holeBlock.includes('tour-dim-in 150ms ease-out'),
+    'the hole carries the §10 fade — its box-shadow IS the content-step dim',
+  );
+  assert.ok(
+    !holeBlock.includes('key='),
+    'the hole occupies ONE persistent JSX slot with NO React key (§10 no-remount pin)',
+  );
+  assert.equal(
+    (src.match(/tour-dim-in 150ms ease-out/g) || []).length,
+    2,
+    'BOTH dim-painters (hole + plain dim) carry the §10 fade; the keyframes are declared once',
+  );
+});
+
+test('spotlight re-measure: resize + orientationchange rAF-coalesced, card measured from the element (§2, E-1)', () => {
+  const src = tourSrc();
+  assert.ok(src.includes('orientationchange'), 'orientationchange re-measure trigger (E-1)');
+  assert.ok(src.includes('offsetHeight') && src.includes('offsetWidth'), 'card size measured from the rendered element (§2)');
+});
+
+test('spotlight placement: placeCard is the single geometry authority (D-03, plan-01 export)', () => {
+  const src = tourSrc();
+  assert.ok(src.includes('placeCard'), 'card geometry comes from the pure placement module');
+  assert.ok(src.includes('aria-hidden="true"'), 'hole/dim hidden from assistive tech (§9)');
+});
