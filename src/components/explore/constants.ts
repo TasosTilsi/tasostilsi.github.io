@@ -36,3 +36,17 @@ export type ExploreTheme = (typeof EXPLORE_THEME_VALUES)[number];
  */
 export const EXPLORE_STATUS_USER = "guest@tasostilsi";
 export const EXPLORE_STATUS_PATH = ":~/explore";
+
+/**
+ * D-06 / UI-SPEC §6: locked placeholder-panel humor lines.
+ * Chrome strings, NOT portfolio content (UI-SPEC §17.5) — format locked as
+ * `// <expression> — pending`, wording adopted verbatim from UI-SPEC §6
+ * (resolved the planner discretion by adopting the §6 strings).
+ */
+export const EXPLORE_PANEL_HUMOR: Record<ExploreSectionId, string> = {
+  about: "// about.profile.load() — pending",
+  experience: "// experience.render() — pending",
+  skills: "// skills.matrix.map() — pending",
+  projects: "// projects.repo.checkout() — pending",
+  contact: "// contact.establish_link() — pending",
+};
