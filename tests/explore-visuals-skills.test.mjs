@@ -132,3 +132,34 @@ test('explore-panels: skills closure threads experience, every other closure byt
   assert.ok(src.includes('experience: ({ data }) => <ExperienceSection experience={data.experience} />,'));
   assert.ok(src.includes('projects: ({ data }) => <ProjectsSection projects={data.projects} />,'));
 });
+
+// ---------------------------------------------------------------------------
+// Task 3: scoped light-theme chart-2/chart-3 overrides (UI-SPEC §2 B-1)
+// ---------------------------------------------------------------------------
+
+test('globals.css: light shell carries the pinned chart-2/chart-3 overrides exactly once (B-1)', () => {
+  const css = read('src/app/globals.css');
+  // Inside .light .explore-shell, with the pinned recomputed-contrast values.
+  assert.match(
+    css,
+    /\.light \.explore-shell\s*\{[^}]*--chart-2: 160 65% 32%;/s,
+    'light chart-2 override (4.49:1 on the white card)',
+  );
+  assert.match(
+    css,
+    /\.light \.explore-shell\s*\{[^}]*--chart-3: 30 75% 38%;/s,
+    'light chart-3 override (4.75:1)',
+  );
+  assert.equal((css.match(/--chart-2: 160 65% 32%;/g) || []).length, 1, 'chart-2 override exactly once');
+  assert.equal((css.match(/--chart-3: 30 75% 38%;/g) || []).length, 1, 'chart-3 override exactly once');
+});
+
+test('globals.css: dark shell untouched, no chart-1 override anywhere (OQ-6)', () => {
+  const css = read('src/app/globals.css');
+  // Line-start anchoring isolates the dark .explore-shell block — the
+  // substring form would also match the interior of .light .explore-shell.
+  assert.ok(!/^\.explore-shell\s*\{[^}]*--chart-2: /m.test(css), 'dark shell carries no chart-2 override');
+  assert.ok(!/^\.explore-shell\s*\{[^}]*--chart-3: /m.test(css), 'dark shell carries no chart-3 override');
+  assert.ok(!/^\.explore-shell\s*\{[^}]*--chart-1: /m.test(css), 'no chart-1 override in the dark shell (phase-1 invariant)');
+  assert.ok(!/\.light \.explore-shell\s*\{[^}]*--chart-1: /s.test(css), 'no chart-1 override in the light shell (phase-1 invariant)');
+});
