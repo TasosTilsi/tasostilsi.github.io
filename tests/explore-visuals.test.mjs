@@ -27,6 +27,7 @@ import {
   skillGroupFill,
   skillsGroupCounts,
   projectStats,
+  techMentions,
 } from '../src/components/explore/viz-data.ts';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -221,4 +222,128 @@ test('projectStats: activeYearsSpan null when no date carries a year (E-9)', () 
   assert.strictEqual(stats.total, 2);
   assert.strictEqual(stats.activeYearsSpan, null);
   assert.strictEqual(stats.linked, 1);
+});
+// ---------------------------------------------------------------------------
+// Task 3: techMentions — the D-08 whole-word mention engine
+// ---------------------------------------------------------------------------
+
+test('techMentions: exact cells from the real corpus — 4 cells / 5 mentions (UI-SPEC §0)', () => {
+  const cells = techMentions(data.experience, data.skills);
+  assert.deepStrictEqual(cells, [
+    { name: 'Java', count: 1, fill: 'hsl(var(--chart-2))' },
+    { name: 'CI/CD', count: 2, fill: 'hsl(var(--chart-4))' },
+    { name: 'MCP', count: 1, fill: 'hsl(var(--chart-5))' },
+    { name: 'RAG', count: 1, fill: 'hsl(var(--chart-5))' },
+  ], 'flattened keyword-set order (JSON group order, ties by first occurrence) — W-1 pin');
+});
+
+test('techMentions: zero-invented — every cell name is a JSON technology name', () => {
+  const cells = techMentions(data.experience, data.skills);
+  const jsonNames = [
+    ...data.skills.soft_skills,
+    ...Object.values(data.skills.hard_skills).flat(),
+    ...data.skills.languages,
+  ];
+  assert.ok(cells.length > 0, 'sanity: the real corpus yields cells');
+  for (const cell of cells) {
+    assert.ok(jsonNames.includes(cell.name), `cell "${cell.name}" is a JSON technology name`);
+  }
+});
+
+// Minimal fixture skills for boundary cases (contentful positions:
+// Languages 0 → chart-1, Infrastructure 1 → chart-2, Innovation 2 → chart-3).
+const fixtureSkills = {
+  soft_skills: [],
+  hard_skills: {
+    Languages: ['Java', 'JS', 'C++'],
+    Infrastructure: ['CI/CD'],
+    Innovation: ['AI Agents', 'MCP'],
+  },
+  languages: [],
+};
+
+test('techMentions: "Javascript" matches neither "Java" nor "JS"', () => {
+  const cells = techMentions(
+    [{
+      title: 'T', company: 'C', duration: 'd', isTechRelated: true,
+      responsibilities: ['Maintained existing projects (Android, Javascript).'],
+    }],
+    fixtureSkills,
+  );
+  assert.deepStrictEqual(cells, []);
+});
+
+test('techMentions: "AI agent skills" does not match "AI Agents" — plural differs', () => {
+  const cells = techMentions(
+    [{
+      title: 'T', company: 'C', duration: 'd', isTechRelated: true,
+      responsibilities: ['Deployed AI agent skills across engineering teams.'],
+    }],
+    fixtureSkills,
+  );
+  assert.deepStrictEqual(cells, []);
+});
+
+test('techMentions: positive control — the exact phrase "AI Agents" does match', () => {
+  const cells = techMentions(
+    [{
+      title: 'T', company: 'C', duration: 'd', isTechRelated: true,
+      responsibilities: ['We use AI Agents daily.'],
+    }],
+    fixtureSkills,
+  );
+  assert.deepStrictEqual(cells, [{ name: 'AI Agents', count: 1, fill: 'hsl(var(--chart-3))' }]);
+});
+
+test('techMentions: "C++" — escaped special chars match cleanly, no bogus trailing boundary', () => {
+  const cells = techMentions(
+    [{
+      title: 'T', company: 'C', duration: 'd', isTechRelated: true,
+      responsibilities: ['Wrote systems code in C++ daily.'],
+    }],
+    fixtureSkills,
+  );
+  assert.deepStrictEqual(cells, [{ name: 'C++', count: 1, fill: 'hsl(var(--chart-1))' }]);
+});
+
+test('techMentions: a name repeated within one bullet counts each occurrence', () => {
+  const cells = techMentions(
+    [
+      {
+        title: 'T', company: 'C', duration: 'd', isTechRelated: true,
+        responsibilities: ['MCP servers and MCP clients working together.'],
+      },
+      {
+        // entry with NO responsibilities — contributes nothing
+        title: 'T2', company: 'C2', duration: 'd2', isTechRelated: false,
+      },
+    ],
+    fixtureSkills,
+  );
+  assert.deepStrictEqual(cells, [{ name: 'MCP', count: 2, fill: 'hsl(var(--chart-3))' }]);
+});
+
+test('techMentions: empty experience or zero-match corpus → empty array (E-13)', () => {
+  assert.deepStrictEqual(techMentions([], data.skills), []);
+  assert.deepStrictEqual(
+    techMentions(
+      [{
+        title: 'T', company: 'C', duration: 'd', isTechRelated: true,
+        responsibilities: ['Nothing relevant here.'],
+      }],
+      fixtureSkills,
+    ),
+    [],
+  );
+});
+
+test('techMentions: duplicate name across groups aggregates, color from first group (E-17)', () => {
+  const cells = techMentions(
+    [{
+      title: 'T', company: 'C', duration: 'd', isTechRelated: true,
+      responsibilities: ['Java everywhere.'],
+    }],
+    { soft_skills: [], hard_skills: { Languages: ['Java'], Testing: ['Java'] }, languages: [] },
+  );
+  assert.deepStrictEqual(cells, [{ name: 'Java', count: 1, fill: 'hsl(var(--chart-1))' }]);
 });
