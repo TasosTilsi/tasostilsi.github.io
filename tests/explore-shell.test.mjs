@@ -255,52 +255,44 @@ test('header: drawer toggle rightmost, 44px Menu button inside ExploreDrawer tri
   assert.ok(themeIdx > -1 && drawerIdx > themeIdx, 'drawer toggle after theme toggle (UI-SPEC §3)');
 });
 
-test('panels: ExplorePanels renders stable section ids from EXPLORE_SECTIONS', () => {
+test('panels: ExplorePanels renders stable section ids via PanelShell + total SECTION_BODIES', () => {
   const src = read('src/components/explore/explore-panels.tsx');
   assert.ok(src.includes('EXPLORE_SECTIONS'), 'panels derive from the locked constant');
+  assert.ok(src.includes('SECTION_BODIES'), 'total body registry drives panel bodies (plan 02)');
   assert.ok(src.includes('id={section.id}'), 'stable anchor target ids');
   assert.ok(
-    src.includes('label={section.label}') &&
-      read('src/components/explore/panel-placeholder.tsx').includes('aria-label={label}'),
-    'labelled sections (aria-label lands in PanelPlaceholder)',
+    read('src/components/explore/panel-shell.tsx').includes('aria-label={label}'),
+    'labelled sections (aria-label lands in PanelShell)',
   );
   const page = read('src/app/explore/page.tsx');
   assert.ok(page.includes('<ExplorePanels'), 'page composes the panel grid');
 });
 
 // ---------------------------------------------------------------------------
-// Plan 02 Task 2: five-panel placeholder grid
-// (humor copy, accents, skeletons, responsive spans — D-06, D-01, EXPLORE-06)
+// Plan 02: real content replaces placeholders
+// (humor machinery removed, section bodies registered — D-06, EXPLORE-03/07)
 // ---------------------------------------------------------------------------
 
-test('constants: EXPLORE_PANEL_HUMOR locked chrome copy, one entry per section', () => {
+test('constants: placeholder humor machinery removed, pointer register lives (plan 02 D-06)', () => {
   const src = read('src/components/explore/constants.ts');
-  assert.ok(src.includes('EXPLORE_PANEL_HUMOR'), 'humor map exported');
-  const humor = [
-    '// about.profile.load() — pending',
-    '// experience.render() — pending',
-    '// skills.matrix.map() — pending',
-    '// projects.repo.checkout() — pending',
-    '// contact.establish_link() — pending',
-  ];
-  for (const line of humor) assert.ok(src.includes(`"${line}"`), `humor string locked: ${line}`);
+  assert.ok(!src.includes('EXPLORE_PANEL_HUMOR'), 'humor map removed from constants');
+  const pointer = read('src/components/explore/sections/terminal-pointer.tsx');
+  assert.ok(pointer.includes("'// more: '"), 'pointer register locked');
+  assert.ok(pointer.includes('in the terminal'), 'pointer chrome complete');
 });
 
-test('panel-placeholder: §6 anatomy — chip, label, humor, skeletons; hover-inert', () => {
-  const src = read('src/components/explore/panel-placeholder.tsx');
-  assert.ok(src.includes('EXPLORE_PANEL_HUMOR') || src.includes('humor'), 'humor line rendered');
-  assert.ok(src.includes('h-2 w-2') && src.includes('rounded-full'), '8px accent chip');
-  assert.ok(src.includes('aria-label={label}') || src.includes('id={id}'), 'labelled section');
-  assert.ok(src.includes('text-sm font-medium'), 'label typography');
-  assert.ok(src.includes('text-xs text-muted-foreground'), 'humor typography');
-  assert.ok(src.includes('Skeleton'), 'skeleton body from ui/skeleton');
-  assert.ok(src.includes('w-3/4') && src.includes('w-1/2'), 'skeleton widths');
-  assert.ok(src.includes('extraLine'), 'wide-panel third line prop');
-  assert.ok(src.includes('aria-hidden'), 'chip + bodies decorative');
-  const code = src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
+test('panel-shell: chrome anatomy — chip, label, body slot; hover-inert; sections registered', () => {
+  const shell = read('src/components/explore/panel-shell.tsx');
+  assert.ok(shell.includes('h-2 w-2') && shell.includes('rounded-full'), '8px accent chip');
+  assert.ok(shell.includes('id={id}') && shell.includes('aria-label={label}'), 'labelled section');
+  assert.ok(shell.includes('text-sm font-medium'), 'label typography');
+  const code = shell.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
   assert.ok(!code.includes('hover:'), 'no hover affordance (UI-SPEC §17.6 pinned)');
   assert.ok(!code.includes('cursor-pointer'), 'no pointer cursor');
   assert.ok(!code.includes('tabIndex'), 'not focusable');
+  const src = read('src/components/explore/explore-panels.tsx');
+  for (const s of ['AboutSection', 'ExperienceSection', 'SkillsSection', 'ProjectsSection', 'ContactSection'])
+    assert.ok(src.includes(s), `section body registered: ${s}`);
 });
 
 test('panels: responsive grid with About spanning md/lg, per-section chart accents', () => {
@@ -308,8 +300,9 @@ test('panels: responsive grid with About spanning md/lg, per-section chart accen
   assert.match(src, /grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3/, '1/2/3-col grid (EXPLORE-06)');
   assert.ok(src.includes('md:col-span-2') && src.includes('lg:col-span-2'), 'About spans at md/lg');
   for (let i = 1; i <= 5; i++) assert.ok(src.includes(`chart-${i}`), `accent mapping chart-${i}`);
-  assert.ok(src.includes('EXPLORE_PANEL_HUMOR'), 'humor from locked constant (D-06)');
-  assert.ok(src.includes('PanelPlaceholder'), 'full §6 anatomy composed');
+  assert.ok(!src.includes('EXPLORE_PANEL_HUMOR'), 'humor constant gone (plan 02, D-06)');
+  assert.ok(src.includes('<PanelShell'), 'shared §3 chrome composed');
+  assert.ok(src.includes('SECTION_BODIES'), 'bodies from total registry (plan 02)');
   // About-only span: both breakpoint classes written exactly once, applied
   // conditionally on the about panel — not baked into every panel
   assert.ok(
