@@ -1,6 +1,6 @@
 # Phase 3: explore-visuals - Spec
 
-**Gathered:** 2026-09-21T13:28:03.914Z
+**Gathered:** 2026-09-21T13:29:44.876Z
 **Mode:** interviewed
 
 ## Requirements
@@ -15,9 +15,9 @@ _Every requirement is FALSIFIABLE — a test or check proves whether it was met 
 
 ### Req EXPLORE-02d
 
-- **Current:** n/a (new — user-requested addition at execute step).
-- **Target:** A technology × year activity heatmap inside the Skills panel (below the bar chart), derived purely from matching the JSON's own technology names against role responsibilities within each role's active years.
-- **Acceptance:** Heatmap rows are technologies that appear in responsibilities text (matched by whole-word case-insensitive skill names from the JSON); columns = activity years derived from role durations; intensity levels from mention counts; pinned row cap keeps density sane; rendered below the skills bar chart; legible in both themes with existing tokens.
+- **Current:** n/a (new — user-requested addition, corrected from heatmap to treemap).
+- **Target:** A recharts Treemap inside the Skills panel (below the bar chart) showing which technologies dominate actual work — area proportional to total mention count across role responsibilities, colored by skill category.
+- **Acceptance:** Treemap cells are technologies matched whole-word case-insensitively by their own names from the skills JSON against the 7 roles' responsibilities text; area ∝ total mentions; colored by category (chart tokens); static name+count labels; pinned minimum-area rule keeps cells legible; rendered below the bar chart; zero tooltips; legible in both themes.
 
 ### Req EXPLORE-02b
 
@@ -39,8 +39,8 @@ _Every requirement is FALSIFIABLE — a test or check proves whether it was met 
 ## Constraints
 
 - Augment, never replace: phase-2 text content stays intact (EXPLORE-03/07 remain satisfied); the phase-1 grid, panel chrome, drawer, header, status bar untouched
-- recharts only for charts — already installed; no new dependencies; the heatmap is pure CSS (grid of tinted cells from existing tokens) matching the D-02 CSS-Gantt pattern
-- Every rendered number derives from portfolio-main-data.json at build time — the heatmap keyword list IS the JSON's own technology names; zero hardcoded stats or invented keywords (EXPLORE-07)
+- recharts only for charts (bar chart + treemap) — already installed; no new dependencies; the Gantt remains pure CSS per D-02
+- Every rendered number derives from portfolio-main-data.json at build time — the treemap's technology set and counts come from matching the JSON's own skill names against responsibilities text; zero hardcoded stats or invented keywords (EXPLORE-07)
 - recharts components 'use client' with ResponsiveContainer; isAnimationActive={false} unconditionally; SSG-safe hydration shells; 375px no-horizontal-scroll invariant preserved; JetBrains Mono carries labels
 - Duration/date/mention parsing happens in the pure data-shaping module (typed, testable) — no parsing scattered in components
 - The scoped light-theme chart overrides pinned in the phase-3 UI-SPEC (§2) are part of this phase's contract
@@ -49,13 +49,13 @@ _Every requirement is FALSIFIABLE — a test or check proves whether it was met 
 
 - `npm run build` (CI gate), `npm run typecheck`, and `node --test tests/explore-shell.test.mjs` all pass on the final tree; /explore still exports statically
 - Skills panel: horizontal bar chart of technology counts per category (6 groups from JSON) renders above the existing chips; bar values match the JSON counts exactly (soft 6, Languages 9, Testing 6, Infrastructure 6, Innovation 7, languages 2)
-- Skills panel: technology × year activity heatmap renders below the bar chart — rows = technologies matched by name from the skills JSON, columns = activity years, cell intensity = mention counts in role responsibilities active that year; matches are case-insensitive whole-word matches of skill names from the JSON itself
-- Heatmap rows are capped (top technologies by total mentions) to keep panel density sane; the cap count is a pinned chrome constant, the technology set itself is data-derived
+- Skills panel: a recharts Treemap renders below the bar chart — cells = technologies that appear in responsibilities text (matched whole-word, case-insensitive, by their own names from the skills JSON), area proportional to total mention count across the 7 roles' responsibilities; grouped/colored by category using chart tokens; matches are zero-invented-keyword
+- Treemap cell labels print the technology name and mention count as static text (JetBrains Mono); no tooltips; cells too small for labels show at least the name, or drop below a pinned minimum-mention threshold to keep the treemap legible
 - Experience panel: career-span chart renders ALL 7 roles as duration bars across a time axis derived from the JSON duration strings; the phase-2 3-role text details remain below it
 - Projects panel: stat tiles render above the cards — total count, active-years span, linked-project count — every number derived from portfolio-main-data.json (grep: no hardcoded stats)
 - All visualizations use the chart-1..5 design tokens (with the pinned scoped light-theme overrides for --chart-2/--chart-3) and remain legible in dark and light themes
-- 375px: no horizontal scroll — charts and heatmap scale with their panel (ResponsiveContainer or equivalent), never overflow
-- Reduced motion: recharts animations disabled unconditionally (isAnimationActive={false}); heatmap is static CSS (no animation to suppress)
+- 375px: no horizontal scroll — charts and treemap scale with their panel (ResponsiveContainer or equivalent), never overflow
+- Reduced motion: recharts animations disabled unconditionally (isAnimationActive={false}) across all chart components including the Treemap
 - The static export contains the chart components (client-hydration shells present in out/explore.html) with zero new dependencies beyond recharts (already installed)
 
 ## Edge Coverage / Prohibitions
@@ -66,10 +66,11 @@ _OUT OF SCOPE (later phase): edge-completeness and prohibition probes are handle
 ## Interview Log
 
 - Q: Which visualizations? A: All three + (user, at execute step): 'you fit a heatmap as well somewhere to show some extra valuable information'.
-- Q: Heatmap shows what? A: user custom: 'I was thinking more into the stats for the skills' → RESOLVED: technology × year activity heatmap in the Skills panel; technologies matched by their own names from the skills JSON against role responsibilities text; placement below the skills bar chart (agent-assigned per augment pattern; user delegated 'you fit').
+- Q: Heatmap shows what? A: user: 'I was thinking more into the stats for the skills' → agent proposed tech × year activity heatmap in Skills panel.
+- USER CORRECTION (2026-09-21): 'better to have treemap not heatmap' → RESOLVED: the skills-activity visualization is a recharts Treemap (cells = technologies, area ∝ mention counts in role responsibilities, colored by category via chart tokens), placed in the Skills panel below the bar chart. Heatmap idea superseded.
 - Q: Skills chart form? A: Bar chart of counts (data has no proficiency levels — radar rejected as misleading).
 - Q: Project stats form? A: Stat tiles (total, active years, linked count).
-- Q: Placement? A: Augment panels — charts above/below existing content; no grid redesign.
+- Q: Placement? A: Augment panels — no grid redesign.
 - Q: Timeline build? A: Pure CSS Gantt (deviation approved); static printed values, no tooltips.
 
 ---
@@ -80,12 +81,12 @@ _OUT OF SCOPE (later phase): edge-completeness and prohibition probes are handle
 
 | Dimension | Score | Min | Status |
 |---|---|---|---|
-| Goal Clarity | 0.85 | 0.75 | PASS |
-| Boundary Clarity | 0.72 | 0.70 | PASS |
-| Constraint Clarity | 0.82 | 0.65 | PASS |
-| Acceptance Criteria | 0.80 | 0.70 | PASS |
+| Goal Clarity | 0.88 | 0.75 | PASS |
+| Boundary Clarity | 0.78 | 0.70 | PASS |
+| Constraint Clarity | 0.88 | 0.65 | PASS |
+| Acceptance Criteria | 0.87 | 0.70 | PASS |
 
-**Overall Ambiguity:** 0.199  (max 0.2)
+**Overall Ambiguity:** 0.147  (max 0.2)
 
 **Gate:** PASSING — requires ambiguity <= 0.2 AND all four dimensions at/above their minima
 
