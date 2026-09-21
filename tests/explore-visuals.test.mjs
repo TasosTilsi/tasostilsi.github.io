@@ -28,6 +28,7 @@ import {
   skillsGroupCounts,
   projectStats,
   techMentions,
+  buildCareerSpan,
 } from '../src/components/explore/viz-data.ts';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -346,4 +347,110 @@ test('techMentions: duplicate name across groups aggregates, color from first gr
     { soft_skills: [], hard_skills: { Languages: ['Java'], Testing: ['Java'] }, languages: [] },
   );
   assert.deepStrictEqual(cells, [{ name: 'Java', count: 1, fill: 'hsl(var(--chart-1))' }]);
+});
+
+// ---------------------------------------------------------------------------
+// Task 4: buildCareerSpan — Gantt geometry with injectable now (D-02)
+// ---------------------------------------------------------------------------
+
+test('buildCareerSpan: 7 rows in JSON order, WashPark at 0%, Chubb reaches 100%', () => {
+  const now = new Date('2026-09-21T00:00:00Z');
+  const span = buildCareerSpan(data.experience, now);
+  assert.strictEqual(span.startYear, 2017, 'axis start = WashPark March 2017');
+  assert.strictEqual(span.rows.length, 7);
+  assert.deepStrictEqual(
+    span.rows.map((r) => [r.company, r.title, r.duration, r.isTechRelated]),
+    [
+      ['Chubb', 'Senior Software Engineer in Test', 'Sept 2023 — Present', true],
+      ['Upstream Systems', 'Software Engineer in Test', 'Sept 2022 — Aug 2023', true],
+      ['Netcompany-Intrasoft', 'Software Engineer in Test', 'June 2019 — Sept 2022', true],
+      ['Smartup PCC', 'Android Developer', 'November 2017 - April 2018', true],
+      ['Sweet Corner', 'Barista', 'May 2018 - June 2018', false],
+      ['Mini Market at University Campus of AUTH', 'Storekeeper', 'June 2017 - July 2017', false],
+      ['WashPark', 'Washer', 'March 2017 - June 2017', false],
+    ],
+    'JSON order preserved — no sorting anywhere (R-4/E-6); display strings verbatim (both dash styles intact)',
+  );
+  const chubb = span.rows[0];
+  const washPark = span.rows[6];
+  assert.strictEqual(washPark.leftPct, 0, 'axis minimum = WashPark March 2017');
+  assert.ok(
+    Math.abs(chubb.leftPct + chubb.widthPct - 100) < 1e-9,
+    'Present row extends to the axis end — left+width = 100 (E-3)',
+  );
+  assert.ok(
+    washPark.leftPct < span.rows[1].leftPct && span.rows[1].leftPct < chubb.leftPct,
+    'Upstream starts strictly between WashPark and Chubb positions',
+  );
+});
+
+test('buildCareerSpan: year ticks — axis-start year at 0 through axis-end year', () => {
+  const now = new Date('2026-09-21T00:00:00Z');
+  const span = buildCareerSpan(data.experience, now);
+  assert.deepStrictEqual(span.yearTicks[0], { year: 2017, leftPct: 0 });
+  const last = span.yearTicks[span.yearTicks.length - 1];
+  assert.strictEqual(last.year, 2026, 'last tick = axis-end year');
+  assert.strictEqual(span.yearTicks.length, 10, 'one tick per January 2017..2026 — no right-edge tick');
+  assert.ok(last.leftPct > 0 && last.leftPct < 100, 'final January sits inside the axis');
+  for (let i = 1; i < span.yearTicks.length; i += 1) {
+    assert.ok(span.yearTicks[i].leftPct > span.yearTicks[i - 1].leftPct, 'ticks are monotonic');
+  }
+});
+
+test('buildCareerSpan: unparseable duration → null geometry, text intact (E-1)', () => {
+  const now = new Date('2026-09-21T00:00:00Z');
+  const span = buildCareerSpan(
+    [
+      { title: 'A', company: 'C1', duration: 'unparseable', isTechRelated: true },
+      { title: 'B', company: 'C2', duration: 'March 2017 - June 2017', isTechRelated: false },
+    ],
+    now,
+  );
+  assert.strictEqual(span.rows[0].duration, 'unparseable');
+  assert.strictEqual(span.rows[0].title, 'A');
+  assert.strictEqual(span.rows[0].leftPct, null);
+  assert.strictEqual(span.rows[0].widthPct, null);
+  assert.strictEqual(span.startYear, 2017, 'axis unaffected by the unparseable row');
+  assert.strictEqual(span.rows[1].leftPct, 0);
+});
+
+test('buildCareerSpan: all durations unparseable → every row null (E-2)', () => {
+  const now = new Date('2026-09-21T00:00:00Z');
+  const span = buildCareerSpan(
+    [
+      { title: 'A', company: 'C1', duration: 'unparseable', isTechRelated: true },
+      { title: 'B', company: 'C2', duration: '', isTechRelated: false },
+    ],
+    now,
+  );
+  assert.strictEqual(span.rows.length, 2);
+  for (const row of span.rows) {
+    assert.strictEqual(row.leftPct, null);
+    assert.strictEqual(row.widthPct, null);
+  }
+});
+
+test('buildCareerSpan: end beyond now clamps to axis end (E-4)', () => {
+  const now = new Date('2026-09-21T00:00:00Z');
+  const span = buildCareerSpan(
+    [{ title: 'A', company: 'C', duration: 'January 2020 - January 2030', isTechRelated: true }],
+    now,
+  );
+  assert.strictEqual(span.rows[0].leftPct, 0);
+  assert.ok(span.rows[0].widthPct <= 100);
+  assert.ok(
+    Math.abs(span.rows[0].widthPct - 100) < 1e-9,
+    'unclamped span would exceed 100 — the bar is clamped to the axis end',
+  );
+});
+
+test('buildCareerSpan: start==end entry still yields a row (E-5)', () => {
+  const now = new Date('2026-09-21T00:00:00Z');
+  const span = buildCareerSpan(
+    [{ title: 'A', company: 'C', duration: 'June 2017 - June 2017', isTechRelated: true }],
+    now,
+  );
+  assert.strictEqual(span.rows.length, 1);
+  assert.strictEqual(span.rows[0].leftPct, 0);
+  assert.strictEqual(span.rows[0].widthPct, 0, "min-width is the component's job — module reports 0");
 });

@@ -258,3 +258,101 @@ export function techMentions(
   }
   return cells;
 }
+
+// ---------------------------------------------------------------------------
+// buildCareerSpan — pure CSS Gantt geometry (D-02, UI-SPEC §4)
+// ---------------------------------------------------------------------------
+
+export interface CareerSpanRow {
+  index: number;
+  title: string;
+  company: string;
+  duration: string;
+  isTechRelated: boolean;
+  leftPct: number | null;
+  widthPct: number | null;
+}
+
+export interface YearTick {
+  year: number;
+  leftPct: number;
+}
+
+export interface CareerSpanData {
+  startYear: number;
+  yearTicks: YearTick[];
+  rows: CareerSpanRow[];
+}
+
+/** Month index = year * 12 + (month - 1) — the pure month unit (UI-SPEC §4). */
+function monthIndex(year: number, month: number): number {
+  return year * 12 + (month - 1);
+}
+
+/**
+ * Career-span geometry (D-02, approved CSS-Gantt deviation): duration
+ * strings → percentage positions on a shared axis. axisStart = the minimum
+ * parsed start across all entries; axisEnd = the `now` month-index —
+ * INJECTABLE for tests; the default `new Date()` evaluated during SSG
+ * render freezes the export until rebuild (D-02/OQ-7). Rows render in JSON
+ * order — NO sorting of any kind (R-4/E-6). Per row, title/company/duration
+ * are copied VERBATIM as stored (the parser never alters display strings —
+ * phase-2 data fidelity); 'Present' ends at axisEnd (E-3), an end beyond
+ * now clamps (E-4), an unparseable duration yields null geometry (E-1,
+ * track renders, bar omitted — never invented), and totalMonths <= 0
+ * nulls every row (E-2 groundwork — the component then graceful-hides).
+ * yearTicks: the axis-start year at 0%, then one tick at each January of
+ * every subsequent year through the axis-end year; no right-edge tick.
+ */
+export function buildCareerSpan(
+  experience: PortfolioData['experience'],
+  now: Date = new Date(),
+): CareerSpanData {
+  const axisEnd = monthIndex(now.getFullYear(), now.getMonth() + 1);
+  let axisStart = Number.POSITIVE_INFINITY;
+  const parsedDurations = experience.map((entry) => {
+    const parsed = parseDuration(entry.duration);
+    if (parsed) {
+      axisStart = Math.min(axisStart, monthIndex(parsed.startYear, parsed.startMonth));
+    }
+    return parsed;
+  });
+  const totalMonths = axisStart === Number.POSITIVE_INFINITY ? 0 : axisEnd - axisStart;
+  const startYear =
+    axisStart === Number.POSITIVE_INFINITY ? now.getFullYear() : Math.floor(axisStart / 12);
+
+  const rows: CareerSpanRow[] = experience.map((entry, index) => {
+    const base = {
+      index,
+      title: entry.title,
+      company: entry.company,
+      duration: entry.duration,
+      isTechRelated: entry.isTechRelated,
+    };
+    const parsed = parsedDurations[index];
+    if (!parsed || totalMonths <= 0) {
+      return { ...base, leftPct: null, widthPct: null };
+    }
+    const start = monthIndex(parsed.startYear, parsed.startMonth);
+    const end =
+      parsed.endYear === null || parsed.endMonth === null
+        ? axisEnd
+        : Math.min(monthIndex(parsed.endYear, parsed.endMonth), axisEnd);
+    return {
+      ...base,
+      leftPct: ((start - axisStart) / totalMonths) * 100,
+      widthPct: ((end - start) / totalMonths) * 100,
+    };
+  });
+
+  const yearTicks: YearTick[] = [];
+  if (totalMonths > 0) {
+    yearTicks.push({ year: startYear, leftPct: 0 });
+    const axisEndYear = Math.floor(axisEnd / 12);
+    for (let year = startYear + 1; year <= axisEndYear; year += 1) {
+      yearTicks.push({ year, leftPct: ((year * 12 - axisStart) / totalMonths) * 100 });
+    }
+  }
+
+  return { startYear, yearTicks, rows };
+}
