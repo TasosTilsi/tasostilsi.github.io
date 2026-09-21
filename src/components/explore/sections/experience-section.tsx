@@ -16,12 +16,20 @@
  * padding, no invented copy). An empty role list renders nothing at all.
  * A static terminal pointer (D-02) closes the body.
  *
+ * CareerSpanChart (D-02, the approved pure-CSS Gantt deviation) renders
+ * ALL roles' duration bars above the text timeline, fed by
+ * viz-data's buildCareerSpan on the FULL experience array; the wrapper
+ * only mounts when geometry exists so a fully-unparseable set leaves no
+ * stray margin (E-2). The text timeline below stays byte-identical.
+ *
  * Server component (UI-SPEC §2): no client directive, no hooks. All
  * timeline elements are static — no hover/press/cursor affordance
  * (§17.6). Content text wraps fully, never clipped (UI-SPEC §3).
  */
 import type { PortfolioData } from '@/data/portfolio-main-data';
+import { buildCareerSpan } from '../viz-data';
 import { TerminalPointer } from './terminal-pointer';
+import { CareerSpanChart } from './career-span-chart';
 
 export function ExperienceSection({
   experience,
@@ -32,8 +40,15 @@ export function ExperienceSection({
   if (roles.length === 0) {
     return null; // whole list empty → block renders nothing (§11)
   }
+  const span = buildCareerSpan(experience);
+  const hasSpan = span.rows.some((row) => row.leftPct !== null);
   return (
     <div>
+      {hasSpan && (
+        <div className="mb-5">
+          <CareerSpanChart span={span} />
+        </div>
+      )}
       <ol className="relative space-y-5 border-l border-border">
         {roles.map((entry, index) => {
           const bullets = (entry.responsibilities ?? []).slice(0, 3);
