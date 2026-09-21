@@ -82,22 +82,22 @@ Tiles are the first child (receives no `space-y-2` top margin); wrapper `mb-3` g
 | 3 | Testing | `skills.hard_skills.Testing` | 6 |
 | 4 | Infrastructure | `skills.hard_skills.Infrastructure` | 6 |
 | 5 | Innovation | `skills.hard_skills.Innovation` | 7 |
-| 6 | Spoken Languages | `skills.languages` | 2 |
+| 6 | Languages | `skills.languages` | 2 |
 
 **Layout & anatomy:**
 
 - `<BarChart layout="vertical" data={…} margin={{ top: 4, right: 20, bottom: 0, left: 0 }}>`
 - `<ResponsiveContainer width="100%" height={192}>` — **fixed height**, 6 category rows do not vary with width; parent reserves the box, so SSG shell → hydration causes **no layout shift**.
 - `XAxis type="number" hide` — the numeric axis is fully hidden; values are printed on bars instead (D-04 static print).
-- `YAxis type="category" dataKey="label" width={104} axisLine={false} tickLine={false}` with tick `fontSize={10}` `fill="hsl(var(--muted-foreground))"`. Width 104px is sized for the longest label ("Spoken Languages", 16 chars ≈ 96px at 10px JetBrains Mono) — labels never truncate.
+- `YAxis type="category" dataKey="label" width={88} axisLine={false} tickLine={false}` with tick `fontSize={10}` `fill="hsl(var(--muted-foreground))"`. Width 88px is sized for the longest label ("Infrastructure", 14 chars ≈ 84px at 10px JetBrains Mono) — labels never truncate. Row labels reuse the **skills-section group builder labels verbatim** (W-1 resolution: chart == chips, zero invented copy; the two "Languages" rows disambiguate by position in JSON order, exactly as the existing chips already do).
 - `<Bar dataKey="count" barSize={12} radius={[0, 2, 2, 0]}>` with one `<Cell>` per row; `<LabelList dataKey="count" position="right" fontSize={10} fill="hsl(var(--foreground))">`. LabelList is a **permanent printed label, not a tooltip** — this is the D-04 mechanism. All six counts are single-digit; 20px right margin guarantees the label never clips at panel edge.
 - No `CartesianGrid` — gridlines would add noise against the chips below; the axis-free print keeps the terminal minimalism.
 
-**Bar color mapping (discretion exercised — planner may assume):** rows 1–5 map to `chart-1…5` in table order (fill `"hsl(var(--chart-N))"`); row 6 (Spoken Languages) maps to **`muted-foreground`**, not a sixth hue. Rationale: the only unused in-shell hue (`accent 160 84% 45%`) is hue-adjacent to chart-2's green and would falsely pair the two "Languages" rows; gray reads honestly as the minor spoken-languages group and is a design token, satisfying the "chart-token colors" acceptance. All five chart-1..5 tokens appear in the chart.
+**Bar color mapping (discretion exercised — planner may assume):** rows 1–5 map to `chart-1…5` in table order (fill `"hsl(var(--chart-N))"`); row 6 (Languages) maps to **`muted-foreground`**, not a sixth hue. Rationale: the only unused in-shell hue (`accent 160 84% 45%`) is hue-adjacent to chart-2's green and would falsely pair the two "Languages" rows; gray reads honestly as the minor spoken-languages group (label = builder's "Languages") and is a design token, satisfying the "chart-token colors" acceptance. All five chart-1..5 tokens appear in the chart.
 
-**Visual order contract:** chart rows read **top→bottom in JSON group order** (Soft Skills top … Spoken Languages bottom) — same order as the chips below, so eye travel between chart and chips is order-consistent. recharts' vertical-layout band axis defaults to first-item-at-bottom; the executor must make the rendered order match this contract (likely `reversed` on YAxis — verify against rendered output; do not silently accept reversed order).
+**Visual order contract:** chart rows read **top→bottom in JSON group order** (Soft Skills top … Languages bottom) — same order as the chips below, so eye travel between chart and chips is order-consistent. recharts' vertical-layout band axis defaults to first-item-at-bottom; the executor must make the rendered order match this contract (likely `reversed` on YAxis — verify against rendered output; do not silently accept reversed order).
 
-**Legibility (both themes verified by token math):** fills are mid-lightness HSLs (45–60%) on card `12%` L (dark) and `100%` L (light) — every fill clears 3:1 non-text contrast in both themes; tick labels (`muted-foreground`: 60% L on dark card, 40% L on white) and value labels (`foreground`) clear 4.5:1. No per-theme color switching is needed or permitted — tokens do the work.
+**Legibility (both themes — pinned scoped override, user decision B-1):** dark theme: tokens as-is, minimum fill contrast 3.06:1 (chart-1) — passes. Light theme: `chart-2` (`160 60% 45%` = 2.53:1) and `chart-3` (`30 80% 55%` = 2.55:1) FAIL 3:1 against the white card — therefore `.light .explore-shell` gains scoped overrides **`--chart-2: 160 65% 32%` (4.49:1)** and **`--chart-3: 30 75% 38%` (4.75:1)** (hue-preserving, computed ≥3:1; user-confirmed). Every fill clears 3:1 non-text contrast in both themes AFTER the override; tick labels (`muted-foreground`) and value labels (`foreground`) clear 4.5:1. The phase-2 theme-invariance claim is deliberately superseded by this scoped decision: dark token values are untouched, the override lives only inside `.light .explore-shell` (drawer digits + 8px accent chips for chart-2/3 darken with it in light mode — decorative/aria-hidden, improved consistency, no regression). The verifier must recompute both light values against white before signing off.
 
 ---
 
@@ -181,10 +181,9 @@ No new cursor, hover, transition, or focus style may be introduced on any chart 
 
 ## §6 — Visual behaviour: motion, themes, hydration
 
-- **recharts entry animation:** recharts default grow animation runs on non-reduced-motion clients. `isAnimationActive={false}` is applied via the explore-intro matchMedia-once pattern (one-shot mount effect, D-06 mechanism) — component state defaults `false→` animation on, flips before paint matters because the static SVG shell is already complete.
-- **Known artifact (accepted):** recharts re-mounts on hydration → bars re-grow once after the static shell paints. Accepted for non-reduce users; under reduce the pattern disables animation so no re-grow occurs. **Planner-assumable fallback:** if the re-grow reads as a glitch in review, hardcode `isAnimationActive={false}` unconditionally (acceptance only constrains reduced motion, and D-06's mechanism remains trivially satisfied). Do not add custom easing/duration configs.
+- **recharts entry animation: NONE (W-3 resolution — pinned unconditional):** every recharts component sets `isAnimationActive={false}` **unconditionally** — no matchMedia wiring, no mount-effect race. Bars render complete on hydration; there is no re-grow artifact at all. (Supersedes the D-06 matchMedia mechanism for recharts; the CSS reduced-motion guard continues to cover the shell's own CSS animations.)
 - **CSS Gantt & tiles:** **no entry animation defined at all** — nothing to suppress; the globals.css reduced-motion guard covers them for free (and must not be edited).
-- **Theme behaviour:** zero theme-conditional classes. All colors are semantic tokens (`chart-N`, `muted-foreground`, `foreground`, `border`, `card`, `muted`) which flip correctly between `.explore-shell` and `.light .explore-shell`; chart-1..5 are theme-invariant by design (§0). Legibility is guaranteed by token math (§2), not by dark:/light: variants.
+- **Theme behaviour:** all colors are semantic tokens (`chart-N`, `muted-foreground`, `foreground`, `border`, `card`, `muted`) which flip correctly between `.explore-shell` and `.light .explore-shell`. **One deliberate exception (B-1 resolution, user-confirmed):** `.light .explore-shell` carries scoped overrides for `--chart-2`/`--chart-3` (§2) so light-theme fills clear 3:1 — dark values untouched. Legibility is by token math + the pinned override, not by dark:/light: classes.
 - **Empty/error states:** no fallback copy, no skeletons, no "no data" messages anywhere — graceful-hide governs (§1, §10). This matches D-06/EXPLORE-07: real data, zero filler.
 - **Scroll/overflow:** charts never introduce horizontal scroll at any width. recharts scales via ResponsiveContainer; Gantt is percentage-based; tiles are a fixed 3-col grid. `overflow-x-hidden` on the shell remains the last-line guard, not the mechanism.
 
@@ -204,7 +203,7 @@ Single fluid anatomy across all breakpoints is the contract — **no** responsiv
 
 ## §8 — Accessibility
 
-- **Skills chart:** wrapper carries `role="img"` + `aria-label` summarizing all values (e.g. "Technologies per category: Soft Skills 6, Languages 9, Testing 6, Infrastructure 6, Innovation 7, Spoken Languages 2"). The recharts SVG internals stay un-navigable; the chips below remain the full AT-consumable source, so nothing is lost.
+- **Skills chart:** wrapper carries `role="img"` + `aria-label` summarizing all values — the label is **composed at render time from the viz-data array** (W-2 resolution: zero numeric literals in the component; the illustrative example below is NOT copy-pasteable source: "…Soft Skills 6, Languages 9, Testing 6…"). The recharts SVG internals stay un-navigable; the chips below remain the full AT-consumable source, so nothing is lost.
 - **Gantt:** row text (title / company / duration) is **real DOM text** — the screen-reader experience is a natural 7-item role+duration list, strictly better than a graphic; no ARIA duplication of row content. Bars, tracks, and gridline-free axis decorations that carry no text are `aria-hidden="true"`. Year tick labels are real text (meaningful) and stay readable.
 - **Tiles:** plain text; values+labels read as pairs in DOM order. `tabular-nums` for stable reading.
 - **Reduced motion:** covered (§6) — recharts animations off, CSS motion nonexistent.
@@ -253,7 +252,7 @@ Every rendered number/position MUST trace to `portfolio-main-data.json` through 
 3. Gantt renders 7 rows in JSON order; Chubb bar right edge at 100%; WashPark bar left edge at 0%.
 4. `npm run build` still emits `out/explore.html` containing the ResponsiveContainer shell; `/explore` remains SSG.
 5. `grep` for hardcoded stats in the three components returns nothing (EXPLORE-07).
-6. Reduced-motion: `isAnimationActive` wired through the matchMedia-once pattern; no new CSS animation anywhere.
+6. Reduced-motion: `isAnimationActive={false}` unconditionally on every recharts component (W-3 resolution — no timing race); no new CSS animation anywhere.
 7. 375px: no horizontal scroll with all three charts present (manual viewport check).
 8. Both themes: manual check — fills/labels legible on `bg-card` in `.explore-shell` and `.light .explore-shell`.
 
