@@ -34,6 +34,7 @@ import { PanelShell } from './panel-shell';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AboutSection } from './sections/about-section';
 import { ContactSection } from './sections/contact-section';
+import { ExperienceSection } from './sections/experience-section';
 import type { PortfolioData } from '@/data/portfolio-main-data';
 
 /** Chip accent per section order: About=chart-1 … Contact=chart-5 (UI-SPEC §6). */
@@ -58,6 +59,7 @@ const SECTION_BODIES: Partial<
 > = {
   about: ({ data }) => <AboutSection about={data.about} />,
   contact: ({ data }) => <ContactSection contact={data.about.contact} />,
+  experience: ({ data }) => <ExperienceSection experience={data.experience} />,
 };
 
 /**
