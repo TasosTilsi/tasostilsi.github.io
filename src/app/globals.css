@@ -491,3 +491,38 @@ body {
     word-break: break-word;
   }
 }
+
+/* explore IDE tokens — scoped; CLI token blocks above are untouched (D-10) */
+/* Dark IDE theme is the default for the /explore shell (UI-SPEC §9.2).
+   Chart-1..5, success, and warning are inherited by proximity: values on the
+   shell div shadow the <html>-level CLI classes for all descendants. */
+.explore-shell {
+  --background: 220 13% 9%;
+  --foreground: 220 12% 84%;
+  --card: 220 12% 12%;
+  --card-foreground: 220 12% 84%;
+  --popover: 220 12% 13%;
+  --popover-foreground: 220 12% 84%;
+  --primary: 215 90% 64%;
+  --primary-foreground: 220 13% 9%;
+  --secondary: 220 10% 17%;
+  --secondary-foreground: 220 12% 84%;
+  --muted: 220 10% 16%;
+  --muted-foreground: 220 8% 60%;
+  --accent: 160 84% 45%;
+  --accent-foreground: 220 13% 9%;
+  --destructive: 0 72% 51%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 220 10% 20%;
+  --input: 220 10% 16%;
+  --ring: 215 90% 64%;
+  --sidebar-background: 220 12% 11%;
+  --sidebar-foreground: 220 10% 78%;
+  --sidebar-primary: 215 90% 64%;
+  --sidebar-primary-foreground: 220 13% 9%;
+  --sidebar-accent: 220 10% 18%;
+  --sidebar-accent-foreground: 220 12% 90%;
+  --sidebar-border: 220 10% 18%;
+  --sidebar-ring: 215 90% 64%;
+  --radius: 0.25rem;
+}
