@@ -1,4 +1,4 @@
-All grounding verified against the codebase: phase-1 chrome/tokens (panel-placeholder, explore-panels, explore-shell, globals.css `.explore-shell` blocks), data file + types (caps, optional fields, 9 contact channels, 6/6 top projects with links, 6 skill groups / 35 chips), Badge variants, lucide 0.475.0 icon inventory (no Medium brand icon — PenLine substitute), the verified resume-modal top-6 cap precedent (`ResumeView.tsx:146`), the live `/resume` route, and the sidebar.tsx Skeleton import that forbids deleting the skeleton file. Contrast for new color uses (`text-accent` on card, muted-foreground on card) computed for both themes. Full UI-SPEC.md follows.
+All grounding verified against the codebase: phase-1 chrome/tokens (panel-placeholder, explore-panels, explore-shell, globals.css `.explore-shell` blocks), data file + types (caps, optional fields, 9 contact channels, 6/6 top projects with links, 6 skill groups / 36 chips), Badge variants, lucide 0.475.0 icon inventory (no Medium brand icon — PenLine substitute), the verified resume-modal top-6 cap precedent (`ResumeView.tsx:146`), the live `/resume` route, and the sidebar.tsx Skeleton import that forbids deleting the skeleton file. Contrast for new color uses (`text-accent` on card, muted-foreground on card) computed for both themes. Full UI-SPEC.md follows.
 
 # Phase 2: explore-content — UI Spec
 
@@ -21,7 +21,7 @@ All grounding verified against the codebase: phase-1 chrome/tokens (panel-placeh
 | `/resume` route exists — internal, same-tab target | `src/app/resume/page.tsx` |
 | Resume-modal project cap precedent verified: `<ResumeProjects data limit={6}>` → `slice(0, 6)` | `src/components/resume/ResumeView.tsx:146`, `resume/ResumeProjects.tsx:11-16` |
 | Types: `Project.date`/`link`/`sourceUrl` optional; `ExperienceEntry.responsibilities` optional; contact channels `portfolio/facebook/instagram/twitter/twitch` optional (all present in data) | `src/data/portfolio-main-data.d.ts:19-25, 1-8, 65-75` |
-| Data verified: top-3 experience = Chubb (7 responsibilities), Upstream (3), Netcompany-Intrasoft (3) — all ≥3; top-6 projects all carry `link` (DeepIndex also has `sourceUrl` — not rendered); contact has all 9 channels; skills = 6 groups / 35 chips | `src/data/portfolio-main-data.json:30-155, 172-186` |
+| Data verified: top-3 experience = Chubb (7 responsibilities), Upstream (3), Netcompany-Intrasoft (3) — all ≥3; top-6 projects all carry `link` (DeepIndex also has `sourceUrl` — not rendered); contact has all 9 channels; skills = 6 groups / 36 chips | `src/data/portfolio-main-data.json:30-155, 172-186` |
 | Page already imports full `portfolioData` (server) and passes children (server-rendered) into the client `ExploreShell` | `src/app/explore/page.tsx:30-47` |
 | `ui/skeleton.tsx` is still imported by `src/components/ui/sidebar.tsx` — the FILE stays; only panels stop using it | `src/components/ui/sidebar.tsx` |
 | Panel content width: 375px → **309px**; md → **318px** (About 686px); lg → **419px** (About 888px) | grid + padding math (shell p-4/p-6, panel p-4, 1px borders, gap-4) |
@@ -104,9 +104,9 @@ No name repetition (header bar + intro strip carry it), no terminal pointer (D-0
 </div>
 ```
 
-- **Group header = the JSON key path verbatim** (`soft_skills`, `hard_skills.Languages`, …, `languages`) — zero invented labels, maximal EXPLORE-07 fidelity, IDE-native dotted paths. (UNRESOLVED §16 — alternative registered.)
+- **Group header = prettified chrome label** (user-confirmed W-5): `soft_skills` → `Soft Skills` · `hard_skills.Languages` → `Languages` · `hard_skills.Testing` → `Testing` · `hard_skills.Infrastructure` → `Infrastructure` · `hard_skills.Innovation` → `Innovation` · `languages` → `Languages` (the two Languages entries render as separate rows, keyed by their distinct JSON paths). Key→label map is structural chrome (allowed per SPEC) — group ORDER still follows JSON key order, no sorting.
 - **Chip:** existing `Badge`, `variant="outline"` (transparent bg + border + `text-foreground`, correct on card in both themes), `font-normal` override (badge default `font-semibold` is heavy at this density), and **`pointer-events-none`** — chips are static; Badge's variants carry `hover:` classes and CSS `:hover` fires on divs, so without neutralization a cursor pass would flick chip backgrounds. No cursor change, not focusable.
-- All 35 chips render — every group as-is, no cap (CONTEXT discretion locked).
+- All 36 chips render — every group as-is, no cap (CONTEXT discretion locked).
 - Terminal pointer after the groups (§9).
 
 ## 7. Projects Panel Body (accent chart-4) — mini-cards
@@ -116,10 +116,10 @@ No name repetition (header bar + intro strip carry it), no terminal pointer (D-0
 - Card anatomy:
 
 ```
-<a class="block rounded-md border border-border p-3">
+<a class="group block rounded-md border border-border p-3">
   <div class="flex items-baseline justify-between gap-2">
-    <span class="flex min-w-0 items-center gap-1 text-sm font-medium text-foreground">
-      {name} <ArrowUpRight aria-hidden class="h-3.5 w-3.5 shrink-0" />   ← ↗ after name
+    <span class="flex min-w-0 items-center gap-1 text-sm font-medium text-foreground group-hover:text-accent transition-colors">
+      {name} <ArrowUpRight aria-hidden class="h-3.5 w-3.5 shrink-0 group-hover:text-accent transition-colors" />   ← ↗ after name; hover = name + ↗ only, via group on the anchor (W-2 pin)
     </span>
     <span class="shrink-0 text-xs text-muted-foreground tabular-nums">{date}</span>
   </div>
@@ -137,8 +137,8 @@ No name repetition (header bar + intro strip carry it), no terminal pointer (D-0
 1. **'Full resume →' row — FIRST, prominent (D-03):**
 
 ```
-<Link href="/resume" class="flex min-h-[44px] items-center gap-2 rounded-md border border-border px-3 text-sm font-medium text-accent">
-  <FileText aria-hidden class="h-4 w-4" /> Full resume <ArrowRight aria-hidden class="h-4 w-4" />
+<Link href="/resume" class="group flex min-h-[44px] items-center gap-2 rounded-md border border-border px-3 text-sm font-medium text-accent">
+  <FileText aria-hidden class="h-4 w-4" /> <span class="group-hover:underline">Full resume</span> <ArrowRight aria-hidden class="h-4 w-4" />
 </Link>
 ```
 
@@ -216,7 +216,7 @@ Data is build-time-verified present for every pinned value (§0) — these are r
 | About | description ~7 lines; meta row wraps to 2 lines | 2-3 lines; meta 1 line | meta 1 line |
 | Experience | title/company/duration/location stack; location wraps to 2 lines | same, fewer wraps | location 1 line |
 | Skills | chips wrap freely; 6 groups stacked | same | same |
-| Projects | card header may wrap (name + date stack); description 2-4 lines | 1-2 lines | ≤3 lines |
+| Projects | card header: name wraps internally, date stays pinned right (anatomy-authoritative — no `flex-wrap`, W-4 pin); description 2-4 lines | 1-2 lines | ≤3 lines |
 | Contact | URL value wraps to 2 lines (`break-all`); rows stay ≥44px | URL 1 line | URL 1 line |
 | Terminal pointer | may wrap to 2 lines | 1 line | 1 line |
 | Horizontal scroll | **none — invariant** (`break-all` + wrap + no fixed widths) | none | none |
@@ -259,7 +259,7 @@ Density note (EXPLORE-03c): caps make each panel complete-feeling in roughly one
 
 | Marker | Item | Default if unaddressed |
 |---|---|---|
-| (UNRESOLVED) | Skills group-header formatting: verbatim JSON key paths (`soft_skills`, `hard_skills.Languages`) vs prettified chrome labels ("Soft Skills", "Languages", …) | **verbatim key paths** (pinned default — zero invented copy, most IDE-native); the prettified variant requires a key→label chrome map and is allowed only if the user objects to raw keys |
+| (RESOLVED — user picked prettified labels) | Skills group-header formatting: **prettified chrome labels** ("Soft Skills", "Languages", "Testing", "Infrastructure", "Innovation", "Languages") via a structural key→label map; JSON key order preserved; group ORDER carries disambiguation for the duplicate Languages label | resolved 2026-09-21 |
 | (OPTIONAL) | Chip color-coding per group (chart-N accents) | skip — chart-as-sole-text-color is prohibited (§17.12); single outline style scans cleaner |
 | (OPTIONAL) | Subtle inset bg on project cards (`bg-background/40`) | skip — border-only cards |
 | (OPTIONAL) | Resume row below the 9 channels instead of first | skip — first-row placement is the pinned prominence choice |
