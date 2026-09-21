@@ -15,10 +15,10 @@ I have everything grounded: components, data, tokens (chart-1..5 are global cons
 - **Augment-only:** outer grid (`grid-cols-1 md:grid-cols-2 lg:grid-cols-3`, About spans 2), PanelShell chrome (accent chip + label + `p-4 rounded-md border bg-card`), drawer, header, intro strip, status bar — **byte-untouched**. No new dependencies beyond `recharts ^2.15.1` (already in package.json:51). No tooltips, no hover interactions on any chart element (D-04).
 - **Augment points are INSIDE the three section bodies** (server components compose new children; D-06): `skills-section.tsx`, `experience-section.tsx`, `projects-section.tsx`. Chart sub-components are new files under `src/components/explore/sections/`; the pure data-shaping module lives at `src/components/explore/viz-data.ts` (D-05). Components never parse strings inline.
 - **Verified environment facts this contract relies on:**
-  - `--chart-1…5` are defined once at `:root` (globals.css:37-41) and **never overridden by any theme block** — the same five hues render in dark and light explore themes. `--chart-1` blue `220 70% 50%`, `--chart-2` green `160 60% 45%`, `--chart-3` orange `30 80% 55%`, `--chart-4` purple `280 65% 60%`, `--chart-5` pink `340 75% 55%`.
+  - `--chart-1…5` are defined once at `:root` (globals.css:37-41); `--chart-2`/`--chart-3` gain a scoped light-theme override inside `.light .explore-shell` (§2, B-1 resolution) — dark values unchanged.
   - Explore themes are exactly two: `.explore-shell` dark (default) and `.light .explore-shell`. Panels sit on `--card` (dark `220 12% 12%`, light `0 0% 100%`).
   - JetBrains Mono is scoped to `.explore-shell` via `--font-jetbrains` (globals.css:502) — all chart text **inherits it automatically**; no explicit font-family needed anywhere.
-  - The phase-1 reduced-motion guard (globals.css:573-586) already kills all CSS animation/transition inside `.explore-shell` — the CSS Gantt inherits suppression with zero new CSS. Only recharts needs the matchMedia-once pattern.
+  - The phase-1 reduced-motion guard (globals.css:573-586) already kills all CSS animation/transition inside `.explore-shell` — the CSS Gantt inherits suppression with zero new CSS. recharts components carry `isAnimationActive={false}` unconditionally (§6, W-3 resolution) — no motion wiring needed at all.
   - Main scroll container padding: `p-4 md:p-6` (explore-shell.tsx:50). Panel body inner width: **≈311px at 375px viewport** (375 − 32 shell − 32 panel padding) — this is the binding constraint.
 
 ---
