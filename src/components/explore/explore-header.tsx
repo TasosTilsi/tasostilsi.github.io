@@ -2,16 +2,20 @@
  * ExploreHeader — IDE header bar (UI-SPEC §3, D-01).
  *
  * Left: decorative window glyphs + truncating data-driven title.
- * Right: theme toggle only (the drawer toggle arrives in plan 02) — a real
- * 44×44 px touch target, ghost-styled, no transition classes (instant theme
- * swap, UI-SPEC §9.1). Icon is the TARGET theme: Sun while dark (click →
- * light), Moon while light. Toggle state comes from ExploreShell's single
- * useExploreTheme instance via props.
+ * Right cluster, in order: theme toggle, then the drawer toggle (RIGHTMOST,
+ * UI-SPEC §3) — both real 44×44 px touch targets, ghost-styled, no
+ * transition classes on the theme swap (instant, UI-SPEC §9.1; icon is the
+ * TARGET theme: Sun while dark → light, Moon while light). The drawer
+ * toggle is passed as ExploreDrawer's SheetTrigger child — Radix supplies
+ * aria-expanded/aria-controls and focus return (EXPLORE-01b, plan 02).
  *
- * The px-based h-[52px] bar and h-[44px] button are immune to the ≤640px
- * html{font-size:14px} rem shrink (UI-SPEC §3/§11/§13) — never convert to rem.
+ * Toggle state comes from ExploreShell's single useExploreTheme instance
+ * via props. The px-based h-[52px] bar and h-[44px] buttons are immune to
+ * the ≤640px html{font-size:14px} rem shrink (UI-SPEC §3/§11/§13) — never
+ * convert to rem.
  */
-import { Moon, Sun } from 'lucide-react';
+import { Menu, Moon, Sun } from 'lucide-react';
+import { ExploreDrawer } from './explore-drawer';
 import { ExploreTheme } from './constants';
 
 export function ExploreHeader({
@@ -64,6 +68,19 @@ export function ExploreHeader({
           <Moon className="h-5 w-5" aria-hidden="true" />
         )}
       </button>
+      {/* Drawer toggle: rightmost control (UI-SPEC §3) — SheetTrigger supplies
+          aria-expanded/aria-controls and focus return; no manual a11y attrs */}
+      <ExploreDrawer
+        trigger={
+          <button
+            type="button"
+            aria-label="Open section navigation"
+            className="flex h-[44px] w-[44px] shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          >
+            <Menu className="h-5 w-5" aria-hidden="true" />
+          </button>
+        }
+      />
     </header>
   );
 }

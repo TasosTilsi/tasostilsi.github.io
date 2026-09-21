@@ -81,7 +81,7 @@ test('status bar: breadcrumb + live theme label + static 0/5 counter', () => {
   assert.ok(src.includes('aria-live="polite"'), 'right group announces (UI-SPEC §7)');
 });
 
-test('page: h-dvh flex shell with explore-shell marker, one About placeholder', () => {
+test('page: h-dvh flex shell with explore-shell marker, panel grid composed', () => {
   const sources = ['src/app/explore/page.tsx', 'src/components/explore/explore-shell.tsx']
     .filter((p) => existsSync(join(root, p)))
     .map((p) => read(p));
@@ -92,7 +92,14 @@ test('page: h-dvh flex shell with explore-shell marker, one About placeholder', 
     'shell root class combo (UI-SPEC §2.1)',
   );
   const page = read('src/app/explore/page.tsx');
-  assert.match(page, /id="about"/, 'About placeholder panel');
+  const panels = existsSync(join(root, 'src/components/explore/explore-panels.tsx'))
+    ? read('src/components/explore/explore-panels.tsx')
+    : page; // before plan 02 the tracer panel lived inline in page.tsx
+  assert.match(
+    panels,
+    /id=\{section\.id\}|id="about"/,
+    'About section id provided (drawer anchor target)',
+  );
   const shellSrc = existsSync(join(root, 'src/components/explore/explore-shell.tsx'))
     ? read('src/components/explore/explore-shell.tsx')
     : '';
@@ -201,6 +208,60 @@ test('theme: page stays a server component wrapping ExploreShell', () => {
   assert.ok(src.includes('<ExploreShell'), 'client boundary for theme state');
   assert.ok(!src.includes('use client'), 'page remains a server component');
   assert.match(src, /about\.name/, 'data-driven props (D-08)');
+});
+
+// ---------------------------------------------------------------------------
+// Plan 02 Task 1: tracer — Sheet drawer end-to-end
+// (header toggle → left drawer → 5 anchors → panel ids; D-02, EXPLORE-01b)
+// ---------------------------------------------------------------------------
+
+test('drawer: composes Sheet side="left" with portal-safe explore-shell class', () => {
+  const src = read('src/components/explore/explore-drawer.tsx');
+  assert.match(src, /["']use client["']/);
+  assert.ok(src.includes('side="left"'), 'left off-canvas (D-02)');
+  assert.ok(src.includes('SheetTrigger'), 'toggle wired as Radix trigger');
+  assert.match(
+    src,
+    /className=["'][^"']*explore-shell/,
+    'SheetContent carries the portal scope class (UI-SPEC §5 hard requirement)',
+  );
+  assert.ok(src.includes('~/explore'), 'SheetTitle chrome copy (UI-SPEC §5)');
+  assert.ok(src.includes('Jump to a section'), 'SheetDescription a11y guard');
+  const code = src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, ''); // strip comments
+  assert.ok(!code.includes('max-w-'), 'no width overrides — default left variant pinned');
+});
+
+test('drawer: 5 anchor items from EXPLORE_SECTIONS, 44px targets, decorative chart digits', () => {
+  const src = read('src/components/explore/explore-drawer.tsx');
+  assert.ok(src.includes('EXPLORE_SECTIONS'), 'items derive from the locked constant');
+  assert.ok(src.includes('`#${section.id}`'), 'anchor hrefs derived from section ids');
+  assert.ok(src.includes('min-h-[44px]'), 'real px touch targets (EXPLORE-06)');
+  assert.ok(src.includes('padStart(2'), 'leading index digits 01…05');
+  assert.ok(src.includes('aria-hidden'), 'digits decorative (W-3 fix)');
+  for (let i = 1; i <= 5; i++) {
+    assert.ok(src.includes(`text-chart-${i}`), `digit accent chart-${i}`);
+  }
+  assert.ok(src.includes('hover:bg-sidebar-accent'), 'item hover state (UI-SPEC §5)');
+  assert.ok(src.includes('tabular-nums'), 'digit numerals');
+});
+
+test('header: drawer toggle rightmost, 44px Menu button inside ExploreDrawer trigger', () => {
+  const src = read('src/components/explore/explore-header.tsx');
+  assert.ok(src.includes('Menu'), 'Menu icon drawer toggle');
+  assert.ok(src.includes('ExploreDrawer'), 'toggle passed as ExploreDrawer trigger');
+  assert.ok(src.includes('h-[44px]') && src.includes('w-[44px]'), '44px px-based target');
+  const themeIdx = src.indexOf('onClick={onToggleTheme}');
+  const drawerIdx = src.indexOf('<ExploreDrawer');
+  assert.ok(themeIdx > -1 && drawerIdx > themeIdx, 'drawer toggle after theme toggle (UI-SPEC §3)');
+});
+
+test('panels: ExplorePanels renders stable section ids from EXPLORE_SECTIONS', () => {
+  const src = read('src/components/explore/explore-panels.tsx');
+  assert.ok(src.includes('EXPLORE_SECTIONS'), 'panels derive from the locked constant');
+  assert.ok(src.includes('id={section.id}'), 'stable anchor target ids');
+  assert.ok(src.includes('aria-label={section.label}'), 'labelled sections');
+  const page = read('src/app/explore/page.tsx');
+  assert.ok(page.includes('<ExplorePanels'), 'page composes the panel grid');
 });
 
 // ---------------------------------------------------------------------------
