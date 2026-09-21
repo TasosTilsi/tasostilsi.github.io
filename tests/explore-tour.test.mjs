@@ -121,3 +121,161 @@ test('tour copy guard: chrome only, no digits beyond the allowed "60" (§12.4)',
   );
   assert.equal(EXPLORE_TOUR_STEPS[6].body, EXPLORE_TOUR_FINISH.congrats, 'finish body = congrats');
 });
+
+// ---------------------------------------------------------------------------
+// Task 2: tour-placement.ts — placeCard table (§3 as amended by R-10),
+// visitThreshold (R-2), visited-id parse/serialize (E-8)
+// ---------------------------------------------------------------------------
+
+import {
+  parseVisitedIds,
+  placeCard,
+  serializeVisitedIds,
+  visitThreshold,
+} from '../src/components/explore/tour-placement.ts';
+
+const VALID_IDS = ['about', 'experience', 'skills', 'projects', 'contact'];
+
+test('placeCard: below fits under the panel (§3 first branch)', () => {
+  const out = placeCard({
+    panelRect: { left: 100, top: 100, width: 300, height: 200 },
+    cardSize: { width: 300, height: 100 },
+    viewport: { width: 1280, height: 800 },
+  });
+  assert.deepEqual(out, { mode: 'below', top: 312, left: 100, width: 300 });
+});
+
+test('placeCard: below overflow resolves above (§3 second branch)', () => {
+  const out = placeCard({
+    panelRect: { left: 100, top: 640, width: 300, height: 140 },
+    cardSize: { width: 300, height: 100 },
+    viewport: { width: 1280, height: 800 },
+  });
+  assert.deepEqual(out, { mode: 'above', top: 528, left: 100, width: 300 });
+});
+
+test('placeCard: near-bottom sliver — above-card would cross the bottom margin → docks', () => {
+  // top = 798 passes the viewport gate; above top = 798 − 12 − 100 = 686 and
+  // 686 + 100 = 786 > 800 − 16 — the R-10-added above bottom bound closes it.
+  const out = placeCard({
+    panelRect: { left: 100, top: 798, width: 300, height: 2 },
+    cardSize: { width: 300, height: 100 },
+    viewport: { width: 1280, height: 800 },
+  });
+  assert.deepEqual(out, { mode: 'dock', top: 684, left: 16, width: 1248 });
+});
+
+test('placeCard: tall panel blocks both below and above → docks', () => {
+  const out = placeCard({
+    panelRect: { left: 100, top: 5, width: 300, height: 700 },
+    cardSize: { width: 300, height: 100 },
+    viewport: { width: 1280, height: 800 },
+  });
+  assert.deepEqual(out, { mode: 'dock', top: 684, left: 16, width: 1248 });
+});
+
+test('placeCard: no-target docks below 640px — width = viewport − 32 (§3)', () => {
+  const out = placeCard({
+    panelRect: null,
+    cardSize: { width: 343, height: 120 },
+    viewport: { width: 375, height: 812 },
+  });
+  assert.deepEqual(out, { mode: 'dock', top: 676, left: 16, width: 343 });
+  assert.equal(out.width, 375 - 32, 'dock width = viewport.width − 32');
+});
+
+test('placeCard: no-target centers at 1280px (§3)', () => {
+  const out = placeCard({
+    panelRect: null,
+    cardSize: { width: 384, height: 120 },
+    viewport: { width: 1280, height: 800 },
+  });
+  assert.deepEqual(out, { mode: 'center', top: 340, left: 448, width: 384 });
+});
+
+test('placeCard: targeted width clamps to min(384, panelWidth) (§3)', () => {
+  const out = placeCard({
+    panelRect: { left: 200, top: 100, width: 500, height: 150 },
+    cardSize: { width: 300, height: 80 },
+    viewport: { width: 1280, height: 800 },
+  });
+  assert.deepEqual(out, { mode: 'below', top: 262, left: 200, width: 384 });
+  assert.equal(out.width, Math.min(384, 500), 'targeted width = min(384, panelRect.width)');
+});
+
+test('placeCard: left edge clamps to the 16px gutter (§3)', () => {
+  const out = placeCard({
+    panelRect: { left: 5, top: 100, width: 300, height: 150 },
+    cardSize: { width: 300, height: 80 },
+    viewport: { width: 1280, height: 800 },
+  });
+  assert.deepEqual(out, { mode: 'below', top: 262, left: 16, width: 300 });
+});
+
+test('placeCard: right edge clamps to the 16px gutter (§3)', () => {
+  const out = placeCard({
+    panelRect: { left: 1250, top: 100, width: 300, height: 150 },
+    cardSize: { width: 300, height: 80 },
+    viewport: { width: 1280, height: 800 },
+  });
+  assert.deepEqual(out, { mode: 'below', top: 262, left: 964, width: 300 });
+});
+
+test('placeCard: panel fully above the viewport (bottom ≤ 0) docks (R-10 gate)', () => {
+  // bottom = −5 ∈ (−12, 0): the exact trap the pinned §3 rows alone admitted —
+  // a `below` card at top = 7 would sit on-screen pointing at nothing.
+  const out = placeCard({
+    panelRect: { left: 100, top: -205, width: 300, height: 200 },
+    cardSize: { width: 300, height: 100 },
+    viewport: { width: 1280, height: 800 },
+  });
+  assert.equal(out.mode, 'dock');
+  assert.deepEqual(out, { mode: 'dock', top: 684, left: 16, width: 1248 });
+});
+
+test('placeCard: panel fully below the viewport (top ≥ vh) docks (R-10 gate)', () => {
+  const out = placeCard({
+    panelRect: { left: 100, top: 850, width: 300, height: 200 },
+    cardSize: { width: 300, height: 100 },
+    viewport: { width: 1280, height: 800 },
+  });
+  assert.equal(out.mode, 'dock');
+  assert.deepEqual(out, { mode: 'dock', top: 684, left: 16, width: 1248 });
+});
+
+test('visitThreshold: short panel caps at exactly 0.5 (UI-SPEC §5)', () => {
+  assert.equal(visitThreshold(200, 346), 0.5);
+});
+
+test('visitThreshold: tall panel ratio falls below 0.5 (R-2 amendment)', () => {
+  const out = visitThreshold(1400, 346);
+  assert.ok(out < 0.5, 'a panel taller than 2× the visible root still marks');
+  assert.ok(Math.abs(out - 346 / 1400) < 1e-12);
+});
+
+test('visitThreshold: 0.05 floor for extreme panels (R-2)', () => {
+  assert.equal(visitThreshold(20000, 346), 0.05);
+});
+
+test('parseVisitedIds: null and empty raw → [] (E-8)', () => {
+  assert.deepEqual(parseVisitedIds(null, VALID_IDS), []);
+  assert.deepEqual(parseVisitedIds('', VALID_IDS), []);
+});
+
+test('parseVisitedIds: garbage and non-array JSON → [] (E-8)', () => {
+  assert.deepEqual(parseVisitedIds('garbage', VALID_IDS), []);
+  assert.deepEqual(parseVisitedIds('{"a":1}', VALID_IDS), []);
+  assert.deepEqual(parseVisitedIds('"about"', VALID_IDS), []);
+});
+
+test('parseVisitedIds: filters invalid ids, dedupes preserving first-occurrence order (E-8)', () => {
+  assert.deepEqual(parseVisitedIds('["about","bogus"]', VALID_IDS), ['about']);
+  assert.deepEqual(parseVisitedIds('["about","about","skills"]', VALID_IDS), ['about', 'skills']);
+  assert.deepEqual(parseVisitedIds('["skills","about"]', VALID_IDS), ['skills', 'about']);
+});
+
+test('serializeVisitedIds: round-trips a deduped valid list (E-8)', () => {
+  assert.equal(serializeVisitedIds(parseVisitedIds('["about","skills"]', VALID_IDS)), '["about","skills"]');
+  assert.equal(serializeVisitedIds(parseVisitedIds('["about","about"]', VALID_IDS)), '["about"]');
+  assert.equal(serializeVisitedIds([]), '[]');
+});
