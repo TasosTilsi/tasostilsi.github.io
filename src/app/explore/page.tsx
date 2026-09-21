@@ -7,11 +7,13 @@
  *     ├── <ExploreHeader name title />      window glyphs + title + toggles
  *     ├── intro slot                        <ExploreIntro> typewriter strip (D-07)
  *     ├── <main aria-label tabIndex={0}>    ONLY scroll container (§2.1)
- *     │     └── <ExplorePanels />           5-panel grid, stable section ids
+ *     │     └── <ExplorePanels data />      5-panel grid, stable section ids
  *     └── <ExploreStatusBar theme />        breadcrumb + theme + 0/5 counter
  *
  * Server component: imports portfolio-main-data.json and passes name/title
- * through the ExploreShell client boundary — all interactive theme/drawer/
+ * through the ExploreShell client boundary plus the full typed data object
+ * down to ExplorePanels (page → panels → sections as typed props, D-07) —
+ * all interactive theme/drawer/
  * typewriter state lives behind that boundary while panels stay
  * server-rendered (D-08). The intro goes through the shell's dedicated
  * slot (NOT children) so it sits outside the main scroll container as
@@ -24,8 +26,9 @@
  * (src/app/(main)/layout.tsx:16). SSG-compatible: pure data imports, no
  * server APIs, so the static export (output: 'export') emits out/explore.html.
  *
- * The five placeholder panels come from ExplorePanels: stable section ids
- * as drawer anchor targets; real panel content is phase 2.
+ * Panels come from ExplorePanels: stable section ids as drawer anchor
+ * targets; section bodies render the real portfolio content from the data
+ * prop (phase 2).
  */
 import portfolioData from '@/data/portfolio-main-data.json';
 import { ExploreShell } from '@/components/explore/explore-shell';
@@ -44,7 +47,7 @@ export default function ExplorePage() {
         />
       }
     >
-      <ExplorePanels />
+      <ExplorePanels data={portfolioData} />
     </ExploreShell>
   );
 }
