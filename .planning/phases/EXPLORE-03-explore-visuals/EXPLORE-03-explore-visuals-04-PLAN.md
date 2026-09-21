@@ -6,18 +6,19 @@ wave: 3
 depends_on: ["EXPLORE-03-explore-visuals-02", "EXPLORE-03-explore-visuals-03"]
 files_modified: [tests/explore-visuals.test.mjs]
 autonomous: true
-requirements: ["EXPLORE-02"]
+requirements: ["EXPLORE-02", "EXPLORE-02b", "EXPLORE-02c", "EXPLORE-02d"]
 user_setup: []
 must_haves:
   truths:
-    - "Layer-2 source invariants are green on the final tree: augment order in all three sections, client boundary only on skills-chart.tsx, isAnimationActive={false} present, no Tooltip or matchMedia in any chart file, viz-data.ts the sole parsing site, zero hardcoded stat literals, package.json dependencies unchanged (D-04/D-05/D-07)"
-    - "npm run build emits out/explore.html containing the recharts-responsive-container hydration shell, the data-derived skills aria-label, all 7 Gantt company rows with year ticks, and the JSON-derived tile values — /explore still exports statically (SPEC acceptance)"
+    - "Cross-cutting source invariants are green on the final tree: 'use client' ONLY on skills-chart.tsx and skills-treemap.tsx; isAnimationActive={false} in both and nowhere true; no Tooltip or matchMedia in any chart/section file this phase touched; viz-data.ts the sole duration/date/mention parsing site; zero stat literals; zero-invented treemap keywords; dependencies unchanged (39 keys, recharts ^2.15.1); the pinned light overrides present and chart-1 absent from both shell blocks (D-04/D-05/D-07/D-08, OQ-6)"
+    - "npm run build emits out/explore.html containing at least 2 recharts-responsive-container hydration shells (bar + treemap), the server-rendered treemap caption 'Mentions in role responsibilities', and the data-derived aria-label substrings for all 6 bar rows and all treemap cells — /explore still exports statically (SPEC acceptance, OQ-4)"
+    - "The Gantt and tiles are fully server-rendered in out/explore.html: all 7 company names, the axis-start year tick derived from the JSON, and the JSON-derived tile strings (total, span, linked — computed at test time, never the stale literal 9 or a pinned 14) (OQ-1/U-1)"
     - "out/index.html and out/resume.html are still emitted — the CLI terminal and printable resume remain fully intact (EXPLORE-05/D-07)"
-    - "The full gate is green on the final tree in one chronological-last run: npm run build, npm run typecheck, node --test tests/explore-shell.test.mjs, node --test tests/explore-visuals.test.mjs"
+    - "The full gate is green in one chronological-last run on the final tree — npm run build, npm run typecheck, node --test tests/explore-shell.test.mjs, node --test tests/explore-visuals.test.mjs, node --test tests/explore-visuals-skills.test.mjs, node --test tests/explore-visuals-server.test.mjs — and nothing is written after it; the phase's completion claim anchors on THIS run (green-gate finality)"
   artifacts:
     - path: tests/explore-visuals.test.mjs
-      provides: "Layer-2 source-invariant suites + Layer-3 export-invariant suites appended to the Layer-1 unit suite — the phase's automated proof surface"
-      min_lines: 250
+      provides: "The phase's main proof surface: plan-01 Layer-1 unit suites + Layer-2 cross-cutting source invariants + Layer-3 export-level invariants (appended this plan)"
+      min_lines: 320
   key_links:
     - from: tests/explore-visuals.test.mjs
       to: out/explore.html
@@ -25,71 +26,81 @@ must_haves:
       pattern: "recharts-responsive-container"
     - from: tests/explore-visuals.test.mjs
       to: package.json
-      via: "D-07 zero-new-deps assertion over the dependencies block (recharts ^2.15.1, audited count 39)"
+      via: "D-07 zero-new-deps assertion — dependencies object still has exactly 39 keys with recharts '^2.15.1'"
       pattern: "recharts"
+    - from: tests/explore-visuals.test.mjs
+      to: src/data/portfolio-main-data.json
+      via: "export expectations derived from the JSON at test time (skillsGroupCounts/techMentions/company names/tile values) — survives future data edits (OQ-1)"
+      pattern: "portfolio-main-data.json"
 ---
 
 <objective>
-Prove the phase, not just finish it: append the Layer-2 source-invariant and Layer-3 export-invariant suites to tests/explore-visuals.test.mjs (mirroring tests/explore-shell.test.mjs conventions), then run the complete SPEC gate — build, typecheck, both suites — as the chronological-last action on the final tree, so the last green run covers exactly what ships.
+Prove the phase, not just finish it: append the cross-cutting Layer-2 source invariants and the Layer-3 export-level invariants to tests/explore-visuals.test.mjs (mirroring tests/explore-shell.test.mjs conventions), then run the complete six-command gate — build, typecheck, and all four test files — as the chronological-last action on the final tree, so the last green run covers exactly what ships and nothing is written after it.
 </objective>
 
+<assumption_delta_decision>
+Noun now primary: the viz-data module as the one data-shaping representation (see plan 01).
+Decision: promote — this plan's export tests derive every expected string through the viz-data module at test time (counts, cells, company rows, tile values), proving the promoted representation round-trips into the rendered HTML for all four visualization variants; nothing is asserted against parallel paths. No accepted debt.
+</assumption_delta_decision>
+
 <context>
-@.planning/phases/EXPLORE-03-explore-visuals/EXPLORE-03-explore-visuals-UI-SPEC.md — §9 grep-proof audit rules, §11 verification hooks
-@.planning/phases/EXPLORE-03-explore-visuals/EXPLORE-03-explore-visuals-CONTEXT.md — D-04/D-05/D-07 prohibitions this plan asserts
-@.planning/phases/EXPLORE-03-explore-visuals/EXPLORE-03-explore-visuals-RESEARCH.md — §5 validation architecture (Layer 1/2/3), OQ-1 (JSON-derived tile numbers), OQ-4 (shells only in static HTML)
+@.planning/phases/EXPLORE-03-explore-visuals/EXPLORE-03-explore-visuals-UI-SPEC.md — §10 data-derived audit (grep-proof rules), §12 verification hooks 1-9
+@.planning/phases/EXPLORE-03-explore-visuals/EXPLORE-03-explore-visuals-CONTEXT.md — D-04/D-05/D-07/D-08 prohibitions this plan asserts
+@.planning/phases/EXPLORE-03-explore-visuals/EXPLORE-03-explore-visuals-RESEARCH.md — §5 validation architecture (Layer 1/2/3), OQ-1 (JSON-derived tile numbers), OQ-3 (6 bands), OQ-4 (shells only in static HTML)
 @tests/explore-visuals.test.mjs — the plan-01 Layer-1 suite being extended
-@tests/explore-shell.test.mjs — conventions to mirror (lines 368-426 export-level pattern with existsSync + 'run npm run build' hints)
-@src/components/explore/sections/skills-section.tsx, @src/components/explore/sections/experience-section.tsx, @src/components/explore/sections/projects-section.tsx — augment-order targets
+@tests/explore-visuals-skills.test.mjs, @tests/explore-visuals-server.test.mjs — the wave-2 carriers the final gate runs alongside
+@tests/explore-shell.test.mjs — conventions to mirror (export-level existsSync + 'run npm run build' hint pattern)
+@src/components/explore/explore-panels.tsx, @src/app/globals.css, @package.json — invariant targets
 </context>
 
 <tasks>
   <task type="auto">
-    <name>Task 1: Layer-2 source invariants appended to the suite</name>
+    <name>Task 1: Cross-cutting Layer-2 source invariants (append + run on the settled wave-2 tree)</name>
     <files>tests/explore-visuals.test.mjs</files>
-    <read_first>tests/explore-visuals.test.mjs (current Layer-1 content); tests/explore-shell.test.mjs lines 41-80 and 346-366 (indexOf ordering style); UI-SPEC §9, §11</read_first>
+    <read_first>UI-SPEC §10 (grep-proof audit rules) and §12 (hooks), CONTEXT.md D-04/D-05/D-07/D-08, tests/explore-visuals.test.mjs (the Layer-1 file being extended), package.json (dependencies block)</read_first>
     <action>
-      Append a clearly-commented Layer-2 section to tests/explore-visuals.test.mjs using the established helpers (read(), assert/strict) and the comment-stripping idiom of tests/explore-shell.test.mjs:172 for the whole-file token greps in suites (c)/(d) (doc-comment prose must never flip a source-invariant assertion). These are regression pins over the CONTRACT plans 02/03 implemented — write them from the UI-SPEC contract, then run; any failure is a real defect to fix before proceeding. Suites: (a) augment order — in skills-section.tsx indexOf('<SkillsChart') < indexOf('groups.map'); in experience-section.tsx indexOf('<CareerSpanChart') < indexOf('<ol'); in projects-section.tsx indexOf('<ProjectStatTiles') < indexOf('cards.map'); (b) client boundary — skills-chart.tsx matches /["']use client["']/ and contains "from 'recharts'"; career-span-chart.tsx and project-stat-tiles.tsx contain neither a use-client directive nor a recharts import; (c) D-04/OQ-2 — skills-chart.tsx includes 'isAnimationActive={false}'; the string 'Tooltip' appears in none of skills-chart.tsx, career-span-chart.tsx, project-stat-tiles.tsx; 'matchMedia' appears in none of the three chart files and none of the three section files; skills-chart.tsx contains no 'CartesianGrid'; (d) D-05 sole-parser — none of the six files under sections/ touched by this phase (skills-chart, career-span-chart, project-stat-tiles, and the three edited sections) contains 'parseDuration', 'new Date(', or a month-token list; the three edited sections instead reference viz-data ('skillsGroupCounts', 'buildCareerSpan', 'projectStats'); (e) EXPLORE-07 literals — project-stat-tiles.tsx contains no '2016' and no '2026'; career-span-chart.tsx contains no '2017' (tick labels come from tick.year); project-stat-tiles.tsx and career-span-chart.tsx contain no hardcoded count of experience/projects entries (no '=== 7', no '=== 14', no '=== 6' guards); (f) D-07 augment-only — package.json dependencies object has exactly 39 entries (the audited pre-phase count, verified programmatically) with recharts '^2.15.1' present and no other entry added or removed; globals.css still has the reduced-motion guard ('animation: none !important') and the two pinned light overrides inside .light .explore-shell while no shell block overrides --chart-1; (g) phase-2 preservation — experience-section.tsx still contains 'slice(0, 3)' and renders 'entry.duration'; projects-section.tsx still contains 'slice(0, 6)'; skills-section.tsx still contains 'font-normal pointer-events-none'.
+      These are proof-of-delivery invariants against the now-complete wave-2 tree — they are expected to pass immediately (the behavior exists). Any failure is a REAL defect in the owning plan's scope: fix it in source with the smallest change honouring that plan's pinned D-NN rules, then rerun — never weaken the assertion to pass.
+
+      Append a Layer-2 block to tests/explore-visuals.test.mjs asserting, across the files this phase touched: (a) client boundary — 'use client' appears ONLY in src/components/explore/sections/skills-chart.tsx and skills-treemap.tsx among the section/chart files; career-span-chart.tsx and project-stat-tiles.tsx contain neither 'use client' nor a recharts import (D-06); (b) motion — isAnimationActive={false} present in both chart files; grep for 'isAnimationActive={true}' under src/components/explore returns nothing; no 'matchMedia' in the four chart components or the three section bodies (explore-intro.tsx's existing matchMedia stays out of scope and untouched — scope greps to the seven files this phase edits, OQ-2); (c) interaction prohibition — no 'Tooltip' import and no 'onClick'/'onMouseEnter' in any of the four chart components (D-04/§6); (d) sole parsing site — the four chart components and the three section bodies contain no 'new Date(' and no duration/date regex parsing; every parse lives in viz-data.ts (D-05); (e) zero stat literals — the doc-comment-stripped sources of the four chart components contain no standalone 14, 9, 2016, 2026 driving rendered values (values arrive via props/module, EXPLORE-07); (f) zero-invented keywords — skills-treemap.tsx contains no hand-written technology name strings (its keyword source is viz-data's cells only, D-08); (g) registry spine — explore-panels.tsx's skills closure contains experience={data.experience} and all five closures still map their original slices with no other registry change (D-07); (h) dependencies — parse package.json and assert the dependencies object has exactly 39 keys including recharts '^2.15.1' (D-07 zero-new-deps; no dependency added or removed this phase); (i) css — the .light .explore-shell block contains '--chart-2: 160 65% 32%;' and '--chart-3: 30 75% 38%;', the dark .explore-shell block contains neither, and no '--chart-1' override appears in either block (OQ-6: the phase-1 assertions stay meaningful). Run the whole file — Layer-1 units plus the new invariants — and confirm it exits 0.
     </action>
     <verify>node --test tests/explore-visuals.test.mjs</verify>
     <acceptance_criteria>
-      - `node --test tests/explore-visuals.test.mjs` exits 0 including the new Layer-2 suites
-      - grep -c "Layer-2" on tests/explore-visuals.test.mjs returns ≥ 1
-      - the package.json assertion references the count 39 and 'recharts'
+      - `node --test tests/explore-visuals.test.mjs` exits 0 with the Layer-2 block appended
+      - the test file contains assertions for: 39 dependency keys, recharts '^2.15.1', no 'Tooltip' under the chart components, no 'new Date(' in the seven phase-touched component files, and the two pinned css override strings
     </acceptance_criteria>
-    <done>Every locked prohibition (D-04/D-05/D-07) and augment-order pin is a runnable assertion, green against the implemented tree.</done>
+    <done>Cross-cutting prohibitions (client boundary, motion, tooltips, parsing site, literals, deps, css) are pinned by automated assertions on the settled tree.</done>
   </task>
 
   <task type="auto">
-    <name>Task 2: Layer-3 export invariants — build then assert out/explore.html</name>
+    <name>Task 2: Layer-3 export-level invariants (build, then assert out/explore.html)</name>
     <files>tests/explore-visuals.test.mjs</files>
-    <read_first>tests/explore-shell.test.mjs lines 368-426 (export-level pattern); RESEARCH.md §5 Layer 3 + OQ-1 + OQ-4; src/data/portfolio-main-data.json</read_first>
+    <read_first>RESEARCH.md OQ-4 (shells-only acceptance) and §5 Layer 3, tests/explore-shell.test.mjs export-level block (~lines 368-426 — existsSync guard + hint convention), src/data/portfolio-main-data.json</read_first>
     <action>
-      Red/green ordering: append the export-level suites FIRST and run `node --test tests/explore-visuals.test.mjs` WITHOUT a fresh build if out/ is stale — the existsSync guards fail with the 'run `npm run build` first' message, which is the honest RED for not-yet-proven export behavior; then run npm run build and rerun the suite to green. Mirror tests/explore-shell.test.mjs lines 368-426: every export test starts with assert.ok(existsSync(...), '... — run `npm run build` first').
-
-      Suites against out/explore.html (all expectations DERIVED from the JSON via fs + the viz-data imports already present in this test file — never pinned literals per OQ-1): (a) hydration shell — html includes 'recharts-responsive-container' (the SPEC's pinned acceptance; OQ-4: shells only, no static SVG); (b) skills aria-label — build the exact string the component composes ('Skills by category: ' + the six label-count pairs joined ', ') from the JSON read in the test using the same grouping order as skillsGroupCounts (import and call the real skillsGroupCounts from the .ts module on the JSON skills — single source), and assert html.includes(that string) — this proves the data-derived chart content server-rendered without SVG; (c) Gantt fully server-rendered — for each company from the JSON experience array assert html.includes(company) (all 7); call buildCareerSpan(experience) in the test and assert html.includes(String(span.startYear)) for the axis-start year tick (recomputes if data ever changes); (d) tiles — call projectStats(projects) in the test and assert html.includes(String(stats.total)), html.includes(stats.activeYearsSpan), html.includes(String(stats.linked)); (e) D-04 no-tooltip — html contains neither 'recharts-tooltip' nor 'recharts-default-tooltip'; (f) CLI/resume intact — out/index.html and out/resume.html both exist (EXPLORE-05/D-07).
+      Run `npm run build` FIRST (the export must exist for these assertions). Then append a Layer-3 block to tests/explore-visuals.test.mjs mirroring the suite's export-level convention: guard out/explore.html with existsSync and fail with a 'run npm run build' hint when absent. Assertions: (a) out/explore.html contains the string 'recharts-responsive-container' at least TWICE (bar + treemap hydration shells — the SPEC's shells-only acceptance, OQ-4); (b) the server-rendered treemap caption 'Mentions in role responsibilities' appears; (c) the bar chart's aria-label carries every 'label count' pair — import skillsGroupCounts from '../src/components/explore/viz-data.ts' (Node 24 strips the types, proven in Layer 1), derive `${label} ${count}` for all six rows, and assert each substring appears in out/explore.html; (d) the treemap's aria-label carries every `${name} ${count}` pair derived from techMentions(JSON.experience, JSON.skills) the same way; (e) the Gantt is fully server-rendered: all 7 company names from JSON.experience appear, and the axis-start year tick (derived as String of the minimum parsed start year — '2017' with current data) appears; (f) the tiles are present with JSON-derived strings: total = JSON.projects.length, span = the min/max 4-digit years across projects[].date joined by the en-dash, linked = JSON.projects.filter(p => p.link).length — derive ALL three at test time and assert each appears (never pin the stale SPEC literal 9 or a hardcoded 14, OQ-1/U-1); (g) out/index.html and out/resume.html both exist (EXPLORE-05/D-07: CLI + resume untouched). Run the file — green. Manual checks deliberately NOT asserted here (static HTML has no chart SVG, OQ-4): §12.2 bar row order (reversed YAxis), §12.3 treemap area ∝ mentions, §12.8 375px no-scroll, §12.9 both-theme legibility — these are listed for the verify step's human pass.
     </action>
-    <verify>npm run build && node --test tests/explore-visuals.test.mjs && node --test tests/explore-shell.test.mjs</verify>
+    <verify>npm run build && node --test tests/explore-visuals.test.mjs</verify>
     <acceptance_criteria>
-      - `npm run build` exits 0 and regenerates out/explore.html
-      - grep -c "recharts-responsive-container" on out/explore.html returns ≥ 1
-      - `node --test tests/explore-visuals.test.mjs` exits 0 including the Layer-3 suites; `node --test tests/explore-shell.test.mjs` still exits 0 (phase-1 export assertions unbroken)
+      - `npm run build` exits 0 and emits out/explore.html
+      - `node --test tests/explore-visuals.test.mjs` exits 0 with the Layer-3 block passing
+      - the test file derives the tile strings and aria-label pairs from the JSON/viz-data at test time (contains 'skillsGroupCounts' and 'techMentions' imports) and contains no pinned linked literal (grep for "linked, 9" or "linked).toBe(14" returns nothing)
+      - out/index.html and out/resume.html exist on disk after the build
     </acceptance_criteria>
-    <done>The static export provably contains the hydration shell plus the fully server-rendered Gantt and tiles with JSON-derived values, and /, /resume exports remain.</done>
+    <done>The static export provably contains the hydration shells, the server-rendered Gantt/tiles, and the data-derived aria labels — /explore still exports statically with / and /resume intact.</done>
   </task>
 
   <task type="auto">
-    <name>Task 3: full green gate on the final tree (chronological-last action)</name>
+    <name>Task 3: Full gate — the chronological-last green run on the final tree</name>
     <files>tests/explore-visuals.test.mjs</files>
-    <read_first>SPEC acceptance criteria (CONTEXT.md specifics block); RESEARCH.md §5 gates; .planning/phases/EXPLORE-03-explore-visuals/EXPLORE-03-explore-visuals-UI-SPEC.md §11</read_first>
+    <read_first>tests/explore-shell.test.mjs (regression target), STATE.md blockers note (milestone ships as a whole — this gate is the phase's completion proof)</read_first>
     <action>
-      Run the complete SPEC gate as ONE sequence on the final tree, with NO source, data, CSS, or planning-file edits after it (green-gate-finality: the last green run must cover the exact delivered state): npm run build (fresh static export with all three visualizations), npm run typecheck, node --test tests/explore-shell.test.mjs, node --test tests/explore-visuals.test.mjs. If anything fails, fix within this plan's scope (only tests/explore-visuals.test.mjs may be edited in this plan; a source fix belongs to the failing plan's scope — flag it in the summary instead) and rerun the ENTIRE four-command sequence. After the green run, record the manual UAT items that automation cannot prove for the verify step: 375px no horizontal scroll with all three charts present; visual row order top→bottom matching the chips order (R-7 rendered-order check); post-hydration: 6 bar bands render with both 'Languages' ticks visible (OQ-3/R-1 rendered duplicate-category check); both-theme legibility beyond the token math.
+      Run the COMPLETE six-command gate in this exact order, as the LAST actions on the final tree, with NO file writes of any kind after it (any later write — code, docs, or planning artefacts — re-opens the gate): 1. npm run build; 2. npm run typecheck; 3. node --test tests/explore-shell.test.mjs; 4. node --test tests/explore-visuals.test.mjs; 5. node --test tests/explore-visuals-skills.test.mjs; 6. node --test tests/explore-visuals-server.test.mjs. All six must exit 0 in this single chronological-last run. If anything fails: make the smallest source fix that honours the owning plan's D-NN pins, commit it atomically, and rerun the FULL six-command sequence from step 1 — never declare the phase done on a gate that predates the last write. This run is the phase's completion evidence: /explore still exports statically (out/explore.html emitted by step 1), and the CLI (/) and /resume suites still pass.
     </action>
-    <verify>npm run build && npm run typecheck && node --test tests/explore-shell.test.mjs && node --test tests/explore-visuals.test.mjs</verify>
+    <verify>npm run build && npm run typecheck && node --test tests/explore-shell.test.mjs && node --test tests/explore-visuals.test.mjs && node --test tests/explore-visuals-skills.test.mjs && node --test tests/explore-visuals-server.test.mjs</verify>
     <acceptance_criteria>
-      - all four commands exit 0 in one uninterrupted sequence on the final tree
-      - out/explore.html regenerated by this build contains 'recharts-responsive-container'
-      - no file outside tests/explore-visuals.test.mjs changed after this green run (git status clean of uncommitted source edits)
+      - each of the six commands exits 0 in the same chronological-last run
+      - out/explore.html exists after the final build (SSG acceptance)
+      - no file in the workspace is modified after this run completes (the completion claim anchors on this run)
     </acceptance_criteria>
-    <done>The SPEC gate is green with the final tree covered; phase 3 is ready for gsd_verify, with the four manual UAT items recorded.</done>
+    <done>The phase gate is green chronologically-last on the final tree: build, typecheck, and all four suites pass together — the phase is provably done, not merely finished.</done>
   </task>
 </tasks>
