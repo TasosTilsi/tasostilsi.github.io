@@ -25,7 +25,7 @@ All environment facts verified (components read, Radix ESC behavior verified in 
   - Reduced-motion CSS `scroll-behavior: auto !important` (globals.css:592) does **not** override an explicit JS `scrollIntoView({behavior:'smooth'})` — the implementation must branch behavior on `window.matchMedia('(prefers-reduced-motion: reduce)')` at call time (matchMedia pattern precedent: explore-intro.tsx).
   - Storage precedent: guarded `try { localStorage… } catch {}` so private mode keeps working per-session (use-explore-theme.ts:44-47); state initializes to a **literal** and syncs in a one-shot mount effect — never read storage during render (hydration contract, use-explore-theme.ts:27-31).
   - Test harness: `node --test` source-level + `out/`-export-level invariants, zero new deps (tests/explore-shell.test.mjs pattern). Static export target: `out/explore.html` — the tour overlay must be **absent from static HTML** (client-mount-only) while the Tour button **is present** (client components SSR at build).
-  - Viewport reality: 375px → main padding 16px each side → panel width ≈ **311px**; status bar **28px** tall (<640px), header 52px, intro strip 20–40px (explore-intro.tsx). Tailwind defaults: sm 640 / md 768 / lg 1024 (no custom screens in tailwind.config.ts).
+  - Viewport reality: 375px → shell `p-4` → **main content width ≈343px** (375 − 32; the panels grid has no horizontal padding — explore-panels.tsx:67; the ≈311px figure applies to the docked card's CONTENT box after its own padding, §3); status bar **28px** tall (<640px), header 52px, intro strip 20–40px (explore-intro.tsx). Tailwind defaults: sm 640 / md 768 / lg 1024 (no custom screens in tailwind.config.ts).
 
 ---
 
@@ -44,7 +44,7 @@ All environment facts verified (components read, Radix ESC behavior verified in 
 
 1. **Cut-out hole element** (content steps only): absolutely-positioned transparent element sized to the measured panel rect **inflated 12px on all sides**, `rounded-md`, `box-shadow: 0 0 0 100vw rgba(0,0,0,0.7)` (D-01 verbatim), `pointer-events: none`, `aria-hidden="true"`. The box-shadow IS the dim layer — one element, no SVG mask. The 12px ring shows undimmed page background around the panel (intended spotlight breathing ring; hole radius 2px vs panel radius 2px with a 12px ring — corner mismatch is imperceptible).
 2. **Plain full dim** (welcome/finish steps only): `fixed inset-0` div with `background: rgba(0,0,0,0.7)`, `pointer-events-none`, `aria-hidden` — no hole, no cut-out.
-3. **Step card**: the ONLY `pointer-events-auto` descendant. Geometry in §3, anatomy in §4.
+3. **Step card**: the ONLY `pointer-events-auto` descendant. Geometry in §3, anatomy in §4. **Paint order (W-4 pin): the card is the LAST child of the overlay wrapper** (hole first, plain dim second where applicable, card last) — if the card preceded the hole in DOM, the hole's `0 0 0 100vw` box-shadow would dim the card.
 
 **Pointer-events model (pinned, resolves D-01 honestly):** the entire overlay except the card is `pointer-events: none`. The dim is **visual-only** — the page stays fully interactive during the tour (panel links, header toggles all work; nothing is click-blocked). Rationale: with the one-element box-shadow technique (D-01 bans SVG masks), a click-blocking dim would also block the hole; "never blocks the page" (SPEC) wins. Outside clicks therefore do **not** dismiss the tour — dismissal is X / ESC / finish / link-out only. No caret/pointer connects card to panel — the 12px undimmed ring is the association.
 
@@ -55,9 +55,9 @@ All environment facts verified (components read, Radix ESC behavior verified in 
 ## §2 — Spotlight mechanics: measure, re-measure, scroll-settle
 
 - **Measure primitive:** `document.getElementById(sectionId).getBoundingClientRect()` — viewport coords, matching `position: fixed` overlay math. Target lookup happens **after** scroll settle, never mid-scroll (D-02).
-- **Scroll-settle (shared primitive, used by wizard advance AND §3 re-measure):** call `main.scrollIntoView… ` then `main.addEventListener('scrollend', settle, { once: true })` racing a `setTimeout(settle, 700)` fallback (Safari lag; idempotent guard so only the first fires), plus double-`requestAnimationFrame` before measuring. If the panel is already fully in view, settle fires immediately (scrollend or timeout — measure still runs).
+- **Scroll-settle (shared primitive, used by wizard advance AND §3 re-measure):** call `panelEl.scrollIntoView({ block: 'start', behavior })` — exact call pinned (W-1); `block: 'start'` aligns the panel to the container top — then `main.addEventListener('scrollend', settle, { once: true })` racing a `setTimeout(settle, 700)` fallback (Safari lag; idempotent guard so only the first fires), plus double-`requestAnimationFrame` before measuring. **Already-in-view fast path (W-2 pin):** if the target rect is already fully within the main container's client rect before scrolling, SKIP the settle entirely and measure after a double-`requestAnimationFrame` — zero-scroll steps must not pay the 700ms timeout.
 - **Reduced motion:** `behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'` — under reduce the jump is instant and settle logic still runs (measure-after-jump contract identical).
-- **Re-measure triggers (cut-out + card reposition, always INSTANT — no transition on left/top/width/height, ever):** (a) step change (after settle), (b) window `resize`/`orientationchange` (rAF-coalesced, immediate), (c) main-container scroll settle (the §2 primitive) — mid-scroll drift is accepted and corrected at scrollend (U-2).
+- **Re-measure triggers (cut-out + card reposition, always INSTANT — no transition on left/top/width/height, ever):** (a) step change (after settle), (b) window `resize`/`orientationchange` (rAF-coalesced, immediate), (c) main-container scroll settle — **measure-only (W-3 pin): user-initiated scrollends re-position the cut-out/card but NEVER re-scroll to the panel; the programmatic `scrollIntoView` fires on step activation only.** Mid-scroll drift is accepted and corrected at scrollend (U-2).
 - **Rapid Next/Back during an unsettled scroll:** each step change cancels the pending settle listener/timer and starts a fresh one for the new target — last click wins, no flicker loop.
 - **Target missing guard:** if the panel element is not found (defensive; all five always render this phase), render the plain full dim (no hole) and place the card docked-bottom — the tour never crashes on a missing target.
 - **Panel content interactivity inside the hole:** unchanged — drawer anchors, contact links, everything inside the cut-out behaves exactly as with no tour.
@@ -105,7 +105,7 @@ Step activation order per content step: set step → mark visited (`markVisited(
    - **Center**: dots row — 7 dots `h-1.5 w-1.5 rounded-full`, active `bg-accent`, inactive `bg-muted-foreground/40`; + `text-[10px] text-muted-foreground` `Step N of 7`. **At `<640px` the dots hide** (counter text remains — the 311px card cannot fit both); dots are `aria-hidden` (counter text is the accessible progress), non-interactive.
    - **Next**: same ghost recipe; label per step: step 1 = **Start**, steps 2–5 = **Next**, step 6 = **Finish**, step 7 (finish card) = **Done**. Primary action reads `text-accent`.
 
-**Pinned copy (chrome; ≤2 sentences; planner may adjust wording WITHIN register — §14):**
+**Pinned copy (chrome; ≤2 sentences; planner may adjust wording WITHIN register — the copy-register statement in the contract header block):**
 
 | Step | Heading | Body |
 |---|---|---|
@@ -127,6 +127,8 @@ Copy above is grounded in verified panel content only (about-section.tsx bio/tit
 
 **Status-bar live counter** (replaces the literal `0`, explore-status-bar.tsx:31): `<span>{`${visitedCount}/${EXPLORE_SECTIONS.length} sections visited`}</span>` inside the existing `aria-live="polite"` `<p>` — string format byte-identical to today. When `visitedCount === 5`, the counter span renders `text-accent` (tiny gamification, no toast — the only celebration visual in the phase). `ExploreStatusBar` gains a `visitedCount: number` prop; single source of truth lives in `ExploreShell`.
 
+**IntersectionObserver marking path (B-2 resolution — D-06/SPEC EXPLORE-04c contract):** besides drawer anchors and wizard arrivals, **manual scroll-into-view marks sections visited** via one `IntersectionObserver` with `root = document.querySelector('main')` (the sole scroll container — never the window), `threshold: 0.5`, one observer instance over all five panel elements. Semantics pinned: (a) a panel marks visited when ≥50% of it crosses the root's visibility — **once per panel per session, deduped in the store**; (b) the observer is created in a mount-only effect after hydration (SSG-safe — no server work), never re-created; (c) while the tour overlay is open, the observer keeps running (wizard arrivals mark independently; no double-marking harm — dedupe covers it); (d) the drawer-open state does not pause the observer (the drawer is transient); (e) marking is idempotent and fires no toasts. A §12 source hook asserts the observer wiring exists with root/threshold pinned.
+
 ---
 
 ## §6 — Interaction states (complete matrix)
@@ -143,7 +145,7 @@ Copy above is grounded in verified panel content only (about-section.tsx bio/tit
 | Drawer mid-tour | — | — | — | — | — | — | opens normally ABOVE dim (z-50>40); see §11 |
 | Panels inside cut-out | unchanged | unchanged | unchanged | unchanged | unchanged | n/a | pass-through by D-01 |
 
-**Keyboard (pinned):** `Enter`/`Space` native on buttons; `ArrowLeft`/`ArrowRight` on the card = Back/Next (disabled-aware); `Tab` cycles **within the card's focusables only** (minimal keydown trap — with the visual-only dim, an untrapped Tab would wander into dimmed panels, violating the SPEC's "focus is not lost behind the overlay"); `ESC` = dismiss (ordering table in §9).
+**Keyboard (pinned):** `Enter`/`Space` native on buttons; `ArrowLeft`/`ArrowRight` on the card = Back/Next (disabled-aware); `Tab` cycles **within the card's focusables only** — **card-element-scoped trap (W-6 pin): the keydown handler attaches to the card element, NOT document capture — while the drawer is open mid-tour, the card trap is suspended and the drawer's own Radix focus trap governs (E-2); on drawer close, focus returns to the card's active control (E-2's return-to-trigger lands on the card, not the page)**; `ESC` = dismiss (ordering table in §9).
 
 ---
 
@@ -171,7 +173,7 @@ No horizontal scroll at any width: dim shadow never scrolls, card clamped to 16p
 ## §9 — Accessibility
 
 - Card: `role="dialog"`, **`aria-modal="false"`** (honest non-modal — the dim does not make the page inert), `aria-labelledby` → heading id, `tabIndex={-1}`, focused on open and on every step change.
-- SR step announcements: one `sr-only` `aria-live="polite"` region announcing `Step N of 7 — <section label>` on step change (container focus alone does not re-read body copy).
+- SR step announcements: one `sr-only` `aria-live="polite"` region announcing on step change **and once on initial open (W-5 pin)** — exact strings: **`Step 1 of 7 — welcome`**, `Step 2 of 7 — About`, … `Step 6 of 7 — Contact`, **`Step 7 of 7 — tour complete`** (steps 1/7 carry these fixed chrome strings; no section label exists for them).
 - Hole/dim: `aria-hidden="true"`.
 - ESC resolution (verified Radix facts, §0): the tour registers its ESC keydown on `document` in **capture** phase **when the tour opens**. If a drawer is opened AFTER the tour, the drawer's Radix capture listener registers later → tour's listener fires first: dismiss the tour AND call `stopImmediatePropagation()` → drawer unaffected (closes on the NEXT ESC). Tour-only open: ESC dismisses tour. Drawer-only open: Radix closes drawer (unchanged). One ESC never double-dismisses.
 - All touch targets ≥44px real px (immune to the ≤640px `html{font-size:14px}` rem shrink — px-based like the header, explore-header.tsx:13-15). Contrast: card tokens are the existing 4.5:1-clearing set; dim at 70% black leaves the card as the only interactive surface — no contrast regressions.
@@ -222,7 +224,7 @@ No horizontal scroll at any width: dim shadow never scrolls, card clamped to 16p
 7. **Status bar:** source shows `${…}/${EXPLORE_SECTIONS.length} sections visited` with a live variable (no literal `0/`), `text-accent` branch at 5, prop `visitedCount`; `<p aria-live="polite">` unchanged.
 8. **Header:** right-cluster order Tour→Theme→Drawer (source order), 44px px classes, `Compass` import, drawer rightmost pin preserved.
 9. **ESC contract:** tour registers document keydown capture + `stopImmediatePropagation` (source-level match).
-10. **Reduced motion:** `scrollIntoView` behavior branches on `prefers-reduced-motion` matchMedia (source-level); no transition classes on hole/card geometry (grep: no `transition` in tour components).
+10. **Reduced motion + overlay animation budget:** `scrollIntoView` behavior branches on `prefers-reduced-motion` matchMedia (source-level). **(B-1 resolution, reworded):** transitions/animations on hole/card **GEOMETRY properties** (`left`/`top`/`width`/`height`) are forbidden (grep: no `transition` targeting geometry in tour components); an **opacity-only fade on the dim/cut-out (≤150ms) is explicitly permitted** (§10's pinned fade) — under `prefers-reduced-motion` the phase-1 CSS guard suppresses it automatically.
 11. **Storage:** guarded try/catch writes for both keys; visited read filters invalid ids.
 12. **Full gate:** `npm run build`, `npm run typecheck`, full node --test suite green on the final tree; /explore still exports statically.
 
@@ -230,7 +232,7 @@ No horizontal scroll at any width: dim shadow never scrolls, card clamped to 16p
 
 ## §13 — UNRESOLVED (planner assumes the stated default)
 
-- **U-1 — Hole highlight ring:** default **none** (pure cut-out; the panel's own border/chrome is the highlight). A 1px `outline-foreground/40` ring on the hole is the fallback if the cut-out reads ambiguously on the light theme; pick one, don't add config for both.
+- **U-1 — Hole highlight ring: NONE, unconditionally (W-7 pin)** — pure cut-out this phase; the panel's own border/chrome is the highlight. No ring variant, no conditional fallback; if light-theme ambiguity shows up in review, it is a ui-review finding, not an executor judgement call.
 - **U-2 — Card re-anchor during manual scroll:** default **scrollend-only** (§2/E-4). Per-frame tracking is explicitly out.
 - **U-3 — Auto-open delay:** default **800ms**; any value 500–1500ms is acceptable if the executor finds an interaction reason.
 
