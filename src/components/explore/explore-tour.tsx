@@ -177,6 +177,33 @@ export function ExploreTour({
     if (open) setStepIndex(0);
   }, [open, reopenEpoch]);
 
+  // §7/D-05 auto-open: exactly once per page load, 800ms after mount, ONLY
+  // when no tour flag exists (ANY non-null value suppresses, E-8 — read via
+  // the data-tier accessor). Any pointerdown/keydown before it fires cancels
+  // the timer (the visitor is already driving). Opens at step 1 through the
+  // reset effect above; auto-open does NOT bump reopenEpoch (E-10 semantics).
+  useEffect(() => {
+    if (readTourFlag() !== null) return;
+    let cancelled = false;
+    const cancel = () => {
+      cancelled = true;
+    };
+    const timer = setTimeout(() => {
+      if (cancelled) return;
+      document.removeEventListener('pointerdown', cancel, { capture: true });
+      document.removeEventListener('keydown', cancel, { capture: true });
+      onOpenChangeRef.current(true);
+    }, 800);
+    document.addEventListener('pointerdown', cancel, { once: true, capture: true });
+    document.addEventListener('keydown', cancel, { once: true, capture: true });
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+      document.removeEventListener('pointerdown', cancel, { capture: true });
+      document.removeEventListener('keydown', cancel, { capture: true });
+    };
+  }, []);
+
   // D-04: the 'completed' flag is bound to finish ACTIVATION (render of the
   // finish card, §7), not to dismissal — a later Done/ESC 'seen' write
   // no-ops against it inside writeTourFlag (never downgrades, D-05).

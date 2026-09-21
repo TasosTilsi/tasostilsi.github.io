@@ -478,3 +478,57 @@ test('spotlight placement: placeCard is the single geometry authority (D-03, pla
   assert.ok(src.includes('placeCard'), 'card geometry comes from the pure placement module');
   assert.ok(src.includes('aria-hidden="true"'), 'hole/dim hidden from assistive tech (§9)');
 });
+
+// ---------------------------------------------------------------------------
+// Plan 02 Task 3: auto-open + LIVE status-bar counter (§5/§7, §12 items 6/7)
+// ---------------------------------------------------------------------------
+
+test('tour auto-open: 800ms delayed, cancelled by pointerdown/keydown, suppressed by any flag (§7, E-8)', () => {
+  const src = tourSrc();
+  assert.ok(src.includes('readTourFlag'), 'the auto-open check reads the flag via the data-tier accessor (E-8)');
+  assert.ok(src.includes('800'), '800ms delay (U-3 default)');
+  assert.ok(
+    src.includes('pointerdown') && src.includes('keydown'),
+    'pointer/keyboard activity cancels the pending auto-open (§7)',
+  );
+  assert.ok(
+    !stripComments(src).includes('setInterval'),
+    'manual pacing only — no timers beyond the one-shot auto-open (D-03)',
+  );
+});
+
+test('status bar: LIVE N/5 counter fed by visitedCount, accent at 5/5 (§5, §12.7)', () => {
+  const src = read('src/components/explore/explore-status-bar.tsx');
+  assert.ok(src.includes('visitedCount'), 'visitedCount prop flows in (§5)');
+  assert.ok(
+    src.includes('${visitedCount}/${EXPLORE_SECTIONS.length} sections visited'),
+    'live template string — format byte-identical to the old literal (§5)',
+  );
+  assert.ok(src.includes('text-accent'), '5/5 celebration accent (E-13)');
+  assert.ok(src.includes('aria-live="polite"'), 'existing live region untouched (§5)');
+});
+
+test('shell: single visited instance lifted, tour composed as LAST child (OQ-7, W-4)', () => {
+  const src = read('src/components/explore/explore-shell.tsx');
+  assert.ok(src.includes('useExploreVisited()'), 'single visited instance owned by the shell');
+  assert.ok(src.includes('visitedCount={visitedCount}'), 'visitedCount flows to the status bar (§5)');
+  const statusIdx = src.indexOf('<ExploreStatusBar');
+  const tourIdx = src.indexOf('<ExploreTour');
+  assert.ok(
+    statusIdx > -1 && tourIdx > statusIdx,
+    'ExploreTour renders after the status bar — LAST child of the shell root (W-4)',
+  );
+  assert.ok(src.includes('onOpenTour'), 'the header Tour trigger is wired (D-05)');
+});
+
+test('export: literal-0 SSR counter + Tour button survive, overlay still absent (§12.6/§12.7)', () => {
+  const exportHtmlPath = join(root, 'out/explore.html');
+  assert.ok(existsSync(exportHtmlPath), 'out/explore.html missing — run `npm run build` first');
+  const html = readFileSync(exportHtmlPath, 'utf8');
+  assert.ok(
+    html.includes('0/5 sections visited'),
+    'SSR renders the literal-0 initial state — hydration syncs after mount (§12.6, R-5)',
+  );
+  assert.ok(html.includes('aria-label="Start the guided tour"'), 'Tour button SSRs (§12.6)');
+  assert.ok(!html.includes('data-tour-overlay'), 'overlay still client-mount-only (§12.6)');
+});

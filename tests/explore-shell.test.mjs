@@ -70,14 +70,20 @@ test('header: 52px bar, window glyphs, truncating data-driven title', () => {
   assert.ok(src.includes('{name}') || src.includes('name'), 'renders name prop');
 });
 
-test('status bar: breadcrumb + live theme label + static 0/5 counter', () => {
+test('status bar: breadcrumb + live theme label + LIVE N/5 counter', () => {
   const src = read('src/components/explore/explore-status-bar.tsx');
   assert.ok(src.includes('EXPLORE_STATUS_USER'), 'breadcrumb user from constants');
   assert.ok(src.includes('EXPLORE_STATUS_PATH'), 'breadcrumb path from constants');
   assert.ok(
-    src.includes('0/${EXPLORE_SECTIONS.length} sections visited'),
-    'static counter from constant (D-03)',
+    src.includes('${visitedCount}/${EXPLORE_SECTIONS.length} sections visited'),
+    'live counter from the visited store (EXPLORE-04c, D-06)',
   );
+  assert.ok(
+    !/0\/\$\{EXPLORE_SECTIONS\.length\} sections visited/.test(src),
+    'no literal-0 counter remains — the stale assertion is superseded (R-4 renewal)',
+  );
+  assert.ok(src.includes('visitedCount'), 'visitedCount prop flows in (UI-SPEC §5)');
+  assert.ok(src.includes('text-accent'), '5/5 celebration accent branch (E-13)');
   assert.ok(src.includes('aria-live="polite"'), 'right group announces (UI-SPEC §7)');
 });
 

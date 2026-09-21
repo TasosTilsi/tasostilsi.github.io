@@ -45,8 +45,8 @@ export function ExploreShell({
 }) {
   const { theme, setTheme } = useExploreTheme();
   // Single visited source of truth (OQ-7): markVisited threads to the tour,
-  // visitedCount reaches the status bar in the plan-02 counter task.
-  const { markVisited } = useExploreVisited();
+  // visitedCount drives the status bar's LIVE N/5 counter (EXPLORE-04c, D-06).
+  const { visitedCount, markVisited } = useExploreVisited();
   const [tourOpen, setTourOpen] = useState(false);
   const [tourEpoch, setTourEpoch] = useState(0);
   const openTour = useCallback(() => {
@@ -71,7 +71,7 @@ export function ExploreShell({
       >
         {children}
       </main>
-      <ExploreStatusBar theme={theme} />
+      <ExploreStatusBar theme={theme} visitedCount={visitedCount} />
       <ExploreTour
         open={tourOpen}
         reopenEpoch={tourEpoch}
