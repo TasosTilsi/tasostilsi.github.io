@@ -497,6 +497,9 @@ body {
    Chart-1..5, success, and warning are inherited by proximity: values on the
    shell div shadow the <html>-level CLI classes for all descendants. */
 .explore-shell {
+  /* D-04: JetBrains Mono scoped to the shell via --font-jetbrains (added to
+     <body> in layout.tsx); CLI pages keep Geist Mono via the body rule above. */
+  font-family: var(--font-jetbrains), var(--font-geist-mono), Menlo, Monaco, 'Courier New', monospace;
   --background: 220 13% 9%;
   --foreground: 220 12% 84%;
   --card: 220 12% 12%;

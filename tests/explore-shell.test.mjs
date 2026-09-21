@@ -12,7 +12,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -99,6 +99,35 @@ test('page: h-dvh flex shell with explore-shell marker, one About placeholder', 
 });
 
 // ---------------------------------------------------------------------------
+// Task 2: JetBrains Mono via next/font, scoped to /explore (D-04, EXPLORE-01c)
+// ---------------------------------------------------------------------------
+
+test('fonts: JetBrains_Mono added additively, Geist variables untouched (D-10)', () => {
+  const layout = read('src/app/layout.tsx');
+  assert.ok(layout.includes('JetBrains_Mono'), 'JetBrains_Mono imported');
+  assert.ok(layout.includes('geistMono'), 'Geist_Mono still declared (coexist)');
+  assert.ok(layout.includes('geistSans'), 'Geist still declared (coexist)');
+  assert.match(layout, /variable: ['"]--font-jetbrains['"]/);
+  assert.match(layout, /\$\{jetbrainsMono\.variable\}/, 'variable appended to body className');
+  // additive ordering: Geist variables come first, JetBrains appended after
+  assert.ok(
+    layout.indexOf('geistSans.variable') < layout.indexOf('jetbrainsMono.variable'),
+    'Geist variables untouched ahead of JetBrains variable',
+  );
+});
+
+test('fonts: .explore-shell font-family consumes --font-jetbrains (scoped, UI-SPEC §10)', () => {
+  const css = read('src/app/globals.css');
+  const shellBlock = css.slice(css.indexOf('.explore-shell'), css.indexOf('}', css.indexOf('.explore-shell')));
+  assert.match(
+    shellBlock,
+    /font-family: var\(--font-jetbrains\), var\(--font-geist-mono\), Menlo, Monaco, 'Courier New', monospace;/,
+  );
+  // body rule untouched
+  assert.match(css, /body\s*\{[^}]*var\(--font-geist-mono\)[^}]*\}/s);
+});
+
+// ---------------------------------------------------------------------------
 // Export-level invariants (require `npm run build` first)
 // ---------------------------------------------------------------------------
 
@@ -128,4 +157,13 @@ test('static export: CLI + resume untouched, no new font CDN on /explore', () =>
     );
     assert.ok(!html.includes('fonts.googleapis'), 'no new runtime font CDN (EXPLORE-01c)');
   }
+});
+
+test('static export: JetBrains Mono self-hosted in emitted CSS (EXPLORE-01c)', () => {
+  assert.ok(existsSync(exportHtml), 'out/explore.html missing — run `npm run build` first');
+  const cssDir = join(root, 'out/_next/static/css');
+  assert.ok(existsSync(cssDir), 'emitted CSS dir missing');
+  const cssFiles = readdirSync(cssDir).filter((f) => f.endsWith('.css'));
+  const combined = cssFiles.map((f) => readFileSync(join(cssDir, f), 'utf8')).join('\n');
+  assert.ok(combined.includes('JetBrains Mono'), 'self-hosted @font-face present (no CDN)');
 });

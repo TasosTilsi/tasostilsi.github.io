@@ -1,6 +1,6 @@
 
 import type { Metadata, Viewport } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
+import { Geist, Geist_Mono, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import portfolioData from '@/data/portfolio-main-data.json';
@@ -14,6 +14,15 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: '--font-geist-mono',
   subsets: ['latin'],
+});
+
+// D-04: JetBrains Mono for the /explore IDE shell, exposed as --font-jetbrains.
+// Purely additive — the Geist variables below/above stay untouched so CLI
+// pages keep Geist Mono via the body rule (globals.css:5-8). next/font
+// self-hosts the font at build (no runtime CDN fetch).
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ['latin'],
+  variable: '--font-jetbrains',
 });
 
 // Metadata from JSON
@@ -117,7 +126,7 @@ export default function RootLayout({
           `}
         </Script>
       </head>
-      <body className={`${geistSans.variable} ${geistMono.variable} font-mono antialiased h-full flex flex-col`} suppressHydrationWarning>
+      <body className={`${geistSans.variable} ${geistMono.variable} ${jetbrainsMono.variable} font-mono antialiased h-full flex flex-col`} suppressHydrationWarning>
         {children}
         <Toaster />
       </body>
