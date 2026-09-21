@@ -1,6 +1,10 @@
 /**
- * Layer-1 unit suite for plan EXPLORE-03-explore-visuals-01 — the pure
- * viz-data module (D-05/D-08).
+ * The phase EXPLORE-03 proof surface — extended per plan:
+ *  • plan 01: Layer-1 unit suite of the pure viz-data module (D-05/D-08).
+ *  • plan 04: Layer-2 cross-cutting source invariants over the settled
+ *    wave-2 tree (client boundary, motion, interaction, parsing site,
+ *    literals, keywords, registry spine, dependencies, css) and Layer-3
+ *    export-level invariants against out/explore.html after `npm run build`.
  *
  * Runner: node --test tests/explore-visuals.test.mjs (no npm test script
  * exists — run directly).
@@ -18,7 +22,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -453,4 +457,190 @@ test('buildCareerSpan: start==end entry still yields a row (E-5)', () => {
   assert.strictEqual(span.rows.length, 1);
   assert.strictEqual(span.rows[0].leftPct, 0);
   assert.strictEqual(span.rows[0].widthPct, 0, "min-width is the component's job — module reports 0");
+});
+
+// ---------------------------------------------------------------------------
+// Plan 04 Task 1: cross-cutting Layer-2 source invariants — proof of delivery
+// over the settled wave-2 tree. These are expected to pass immediately (the
+// behavior exists); any failure is a REAL defect in the owning plan's scope —
+// fix it in source honouring that plan's D-NN rules, never weaken the
+// assertion to pass.
+// ---------------------------------------------------------------------------
+
+// Doc-comment stripping per the explore-shell suite convention (lines 172+):
+// banned-token greps judge code, not prose.
+const codeOf = (p) =>
+  read(p).replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
+
+const clientChartFiles = [
+  'src/components/explore/sections/skills-chart.tsx',
+  'src/components/explore/sections/skills-treemap.tsx',
+];
+const serverSlices = [
+  'src/components/explore/sections/career-span-chart.tsx',
+  'src/components/explore/sections/project-stat-tiles.tsx',
+];
+const sectionBodies = [
+  'src/components/explore/sections/skills-section.tsx',
+  'src/components/explore/sections/experience-section.tsx',
+  'src/components/explore/sections/projects-section.tsx',
+];
+const phaseTouchedComponents = [...clientChartFiles, ...serverSlices, ...sectionBodies];
+
+test('cross-cutting: client boundary — "use client" ONLY in the two recharts slices (D-06)', () => {
+  for (const p of clientChartFiles) {
+    const code = codeOf(p);
+    assert.match(code, /['"]use client['"]/, `${p}: client boundary present (D-06)`);
+    assert.ok(code.includes("from 'recharts'"), `${p}: recharts import`);
+  }
+  for (const p of [...serverSlices, ...sectionBodies, 'src/components/explore/explore-panels.tsx']) {
+    const code = codeOf(p);
+    assert.ok(!code.includes('use client'), `${p}: no client directive — server component (D-06)`);
+    assert.ok(!/from ['"]recharts['"]/.test(code), `${p}: no recharts import (D-06)`);
+  }
+});
+
+test('cross-cutting: motion — isAnimationActive={false} in both chart files, never true under explore, no matchMedia in the phase-touched files (OQ-2)', () => {
+  for (const p of clientChartFiles) {
+    assert.ok(
+      codeOf(p).includes('isAnimationActive={false}'),
+      `${p}: animation off unconditionally (UI-SPEC §7)`,
+    );
+  }
+  const exploreFiles = readdirSync(join(root, 'src/components/explore'), { recursive: true })
+    .filter((f) => /\.(tsx|ts)$/.test(f));
+  for (const rel of exploreFiles) {
+    const src = read(join('src/components/explore', rel));
+    assert.ok(
+      !src.includes('isAnimationActive={true}'),
+      `src/components/explore/${rel}: never isAnimationActive={true} (OQ-2)`,
+    );
+  }
+  // explore-intro.tsx keeps its own pre-existing matchMedia — out of scope
+  // and untouched; the seven phase-touched files gain none.
+  for (const p of phaseTouchedComponents) {
+    assert.ok(
+      !codeOf(p).includes('matchMedia'),
+      `${p}: no matchMedia — charts are unconditionally static (OQ-2)`,
+    );
+  }
+});
+
+test('cross-cutting: interaction-free charts — no Tooltip/grid/handlers in any of the four chart components (D-04/§6)', () => {
+  for (const p of [...clientChartFiles, ...serverSlices]) {
+    const code = codeOf(p);
+    for (const banned of ['Tooltip', 'CartesianGrid', 'onClick', 'onMouseEnter', 'onMouseLeave']) {
+      assert.ok(!code.includes(banned), `${p}: ${banned} absent (D-04/§6)`);
+    }
+  }
+});
+
+test('cross-cutting: viz-data is the SOLE parsing site — the seven component files parse nothing inline (D-05)', () => {
+  for (const p of phaseTouchedComponents) {
+    const code = codeOf(p);
+    for (const banned of ['new Date(', 'getFullYear', 'getMonth', '.match(', 'RegExp(', 'parseDuration(']) {
+      assert.ok(!code.includes(banned), `${p}: ${banned} absent — parsing lives in viz-data (D-05)`);
+    }
+  }
+  const viz = read('src/components/explore/viz-data.ts');
+  for (const site of [
+    'parseDuration',
+    'skillGroupFill',
+    'skillsGroupCounts',
+    'projectStats',
+    'techMentions',
+    'buildCareerSpan',
+    'YEAR_PATTERN',
+  ]) {
+    assert.ok(viz.includes(site), `viz-data.ts hosts ${site} — the one data-shaping module (D-05)`);
+  }
+});
+
+test('cross-cutting: zero stat literals — no standalone 14/9/2016/2026 drives a rendered value (EXPLORE-07/OQ-1/U-1)', () => {
+  const stripAll = (p) => read(p).replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/[^\n]*/g, '');
+  // Full banned set over every component where a stray number could be a
+  // stat. skills-treemap is exempt from the standalone-9 check ONLY for its
+  // documented chrome font constants (COUNT_FONT = 9 — a label size, never a
+  // stat); its data-side invariant is the count[=:] shape assertion below.
+  for (const p of phaseTouchedComponents.filter((f) => !f.includes('skills-treemap'))) {
+    const code = stripAll(p);
+    for (const literal of ['14', '9', '2016', '2026']) {
+      assert.ok(
+        !new RegExp(`(?<![\\w.])${literal}(?![\\w.])`).test(code),
+        `${p}: no standalone literal ${literal} driving a rendered value (EXPLORE-07)`,
+      );
+    }
+  }
+  const treemap = stripAll('src/components/explore/sections/skills-treemap.tsx');
+  for (const literal of ['14', '2016', '2026']) {
+    assert.ok(
+      !new RegExp(`(?<![\\w.])${literal}(?![\\w.])`).test(treemap),
+      `treemap: no standalone literal ${literal} driving a rendered value (EXPLORE-07)`,
+    );
+  }
+  for (const p of clientChartFiles) {
+    assert.ok(
+      !/count[=:]\s*\d/.test(codeOf(p)),
+      `${p}: no numeric count literal — counts arrive via props (EXPLORE-07)`,
+    );
+  }
+});
+
+test('cross-cutting: treemap keywords zero-invented — the component holds no JSON technology-name literal (D-08)', () => {
+  const code = codeOf('src/components/explore/sections/skills-treemap.tsx');
+  const jsonNames = [
+    ...data.skills.soft_skills,
+    ...Object.values(data.skills.hard_skills).flat(),
+    ...data.skills.languages,
+  ];
+  assert.ok(jsonNames.length > 0, 'sanity: the JSON keyword set is non-empty');
+  for (const name of jsonNames) {
+    assert.ok(
+      !code.includes(`'${name}'`) && !code.includes(`"${name}"`),
+      `no hand-written "${name}" keyword in the treemap component — cells come from viz-data (D-08)`,
+    );
+  }
+});
+
+test('cross-cutting: registry spine — five total closures, skills threads the corpus, nothing else changed (D-07)', () => {
+  const src = read('src/components/explore/explore-panels.tsx');
+  assert.ok(
+    src.includes('skills: ({ data }) => <SkillsSection skills={data.skills} experience={data.experience} />,'),
+    'skills closure threads experience={data.experience} for the treemap corpus (§10)',
+  );
+  assert.ok(src.includes('about: ({ data }) => <AboutSection about={data.about} />,'));
+  assert.ok(src.includes('contact: ({ data }) => <ContactSection contact={data.about.contact} />,'));
+  assert.ok(src.includes('experience: ({ data }) => <ExperienceSection experience={data.experience} />,'));
+  assert.ok(src.includes('projects: ({ data }) => <ProjectsSection projects={data.projects} />,'));
+  assert.equal(
+    (src.match(/\w+: \(\{ data \}\) => </g) || []).length,
+    5,
+    'exactly five adapter closures — the registry is total, no new data paths (D-07)',
+  );
+});
+
+test('cross-cutting: zero new dependencies — 39 dependency keys with recharts ^2.15.1 (D-07)', () => {
+  const pkg = JSON.parse(read('package.json'));
+  assert.equal(Object.keys(pkg.dependencies).length, 39, 'dependencies unchanged this phase (D-07)');
+  assert.equal(pkg.dependencies.recharts, '^2.15.1', 'recharts pinned version unchanged');
+});
+
+test('cross-cutting: scoped light-theme chart overrides pinned, chart-1 absent from both shell blocks (UI-SPEC §2 B-1/OQ-6)', () => {
+  const css = read('src/app/globals.css');
+  assert.match(
+    css,
+    /\.light \.explore-shell\s*\{[^}]*--chart-2: 160 65% 32%;/s,
+    'light chart-2 override (4.49:1 on the white card)',
+  );
+  assert.match(
+    css,
+    /\.light \.explore-shell\s*\{[^}]*--chart-3: 30 75% 38%;/s,
+    'light chart-3 override (4.75:1)',
+  );
+  // Line-start anchoring isolates the dark .explore-shell block (the substring
+  // form would also match the interior of .light .explore-shell).
+  assert.ok(!/^\.explore-shell\s*\{[^}]*--chart-2: /m.test(css), 'dark shell carries no chart-2 override');
+  assert.ok(!/^\.explore-shell\s*\{[^}]*--chart-3: /m.test(css), 'dark shell carries no chart-3 override');
+  assert.ok(!/^\.explore-shell\s*\{[^}]*--chart-1: /m.test(css), 'no chart-1 override in the dark shell (phase-1 invariant)');
+  assert.ok(!/\.light \.explore-shell\s*\{[^}]*--chart-1: /s.test(css), 'no chart-1 override in the light shell (phase-1 invariant)');
 });
