@@ -279,3 +279,55 @@ test('serializeVisitedIds: round-trips a deduped valid list (E-8)', () => {
   assert.equal(serializeVisitedIds(parseVisitedIds('["about","about"]', VALID_IDS)), '["about"]');
   assert.equal(serializeVisitedIds([]), '[]');
 });
+// ---------------------------------------------------------------------------
+// Task 3: use-explore-visited.ts — data-tier source invariants + storage
+// confinement (D-05/D-06, E-7, RESEARCH §5 tier map)
+// ---------------------------------------------------------------------------
+
+test('use-explore-visited: exports the visited hook + tour-flag accessors, client-only', () => {
+  const path = 'src/components/explore/use-explore-visited.ts';
+  assert.ok(existsSync(join(root, path)), 'the data-tier file exists');
+  const src = read(path);
+  assert.ok(src.startsWith('"use client"'), 'client directive first');
+  for (const name of ['useExploreVisited', 'readTourFlag', 'writeTourFlag']) {
+    assert.ok(src.includes(`export function ${name}`), `exports ${name}`);
+  }
+  assert.ok(src.includes('EXPLORE_VISITED_STORAGE_KEY'), 'uses the visited key (D-06)');
+  assert.ok(src.includes('EXPLORE_TOUR_STORAGE_KEY'), 'uses the tour key (D-05)');
+  assert.ok(src.includes('try {'), 'guarded storage access (E-7)');
+  assert.ok(src.includes('catch'), 'guarded storage access (E-7)');
+  assert.ok(!src.includes('portfolio-theme'), 'no CLI theme key (D-05/D-06)');
+  assert.ok(!src.includes('portfolioCliFoundEasterEggs'), 'no CLI easter-egg key (D-05/D-06)');
+  assert.ok(src.includes('.explore-shell > main'), 'IO root targets the explore <main> (D-06)');
+  assert.ok(src.includes('visitThreshold'), 'R-2 height-aware thresholds wired (UI-SPEC §5)');
+  assert.ok(src.includes('IntersectionObserver'), 'IO marking path present (OQ-3)');
+});
+
+test('tour/visited storage keys confined to the data tier (D-05/D-06, RESEARCH §5)', () => {
+  const files = readdirSync(join(root, 'src/components/explore')).filter((f) =>
+    f.endsWith('.ts') || f.endsWith('.tsx'),
+  );
+  const keyUsers = files.filter((f) => {
+    const src = read(`src/components/explore/${f}`);
+    return src.includes('EXPLORE_TOUR_STORAGE_KEY') || src.includes('EXPLORE_VISITED_STORAGE_KEY');
+  });
+  assert.deepEqual(
+    keyUsers.sort(),
+    ['constants.ts', 'use-explore-visited.ts'],
+    'the two tour keys are referenced ONLY by the definition site and the data tier',
+  );
+  assert.ok(
+    !read('src/components/explore/constants.ts').includes('localStorage'),
+    'constants.ts stays storage-free (key string constants only)',
+  );
+  // 'localStorage' appears ONLY in the data tier + the PRE-EXISTING theme
+  // write (use-explore-theme.ts:43, byte-untouched this phase, D-08).
+  const storageFiles = files.filter((f) =>
+    read(`src/components/explore/${f}`).includes('localStorage'),
+  );
+  assert.deepEqual(
+    storageFiles.sort(),
+    ['use-explore-theme.ts', 'use-explore-visited.ts'],
+    'tour/visited localStorage CALLS confined to use-explore-visited.ts',
+  );
+});
