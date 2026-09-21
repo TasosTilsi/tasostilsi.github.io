@@ -38,5 +38,15 @@
     "started": "2026-09-21T10:11:01.633Z",
     "result": "SUMMARY written",
     "completed": "2026-09-21T10:18:12.283Z"
+  },
+  {
+    "id": "JOB-05",
+    "kind": "subagent",
+    "plan": "EXPLORE-03-explore-visuals-01",
+    "phase": 3,
+    "status": "done",
+    "started": "2026-09-21T14:18:41.786Z",
+    "result": "SUMMARY written",
+    "completed": "2026-09-21T14:29:12.650Z"
   }
 ]
