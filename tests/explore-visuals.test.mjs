@@ -22,7 +22,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -643,4 +643,123 @@ test('cross-cutting: scoped light-theme chart overrides pinned, chart-1 absent f
   assert.ok(!/^\.explore-shell\s*\{[^}]*--chart-3: /m.test(css), 'dark shell carries no chart-3 override');
   assert.ok(!/^\.explore-shell\s*\{[^}]*--chart-1: /m.test(css), 'no chart-1 override in the dark shell (phase-1 invariant)');
   assert.ok(!/\.light \.explore-shell\s*\{[^}]*--chart-1: /s.test(css), 'no chart-1 override in the light shell (phase-1 invariant)');
+});
+
+// ---------------------------------------------------------------------------
+// Plan 04 Task 2: Layer-3 export-level invariants — hold against the static
+// export (out/) produced by `npm run build`; they fail with a build hint
+// until then (suite convention). Only the two recharts skills charts are
+// hydration shells in the static HTML (OQ-4 — no SVG until measured); the
+// Gantt and the tiles are fully server-rendered and must appear complete.
+// Manual checks deliberately NOT asserted here (static HTML cannot carry
+// them): §12.2 rendered bar row order, §12.3 treemap area ∝ mentions,
+// §12.8 375px no-scroll, §12.9 both-theme legibility — listed for the verify
+// step's human pass.
+// ---------------------------------------------------------------------------
+
+const exportHtmlPath = join(root, 'out/explore.html');
+const readExport = () => readFileSync(exportHtmlPath, 'utf8');
+const escapeRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+test('export: /explore carries the recharts hydration shells + treemap caption (OQ-4)', () => {
+  assert.ok(existsSync(exportHtmlPath), 'out/explore.html missing — run `npm run build` first');
+  const html = readExport();
+  const shells = (html.match(/recharts-responsive-container/g) || []).length;
+  assert.ok(shells >= 2, `bar + treemap hydration shells present — found ${shells} (OQ-4)`);
+  assert.ok(
+    html.includes('Mentions in role responsibilities'),
+    'treemap honesty caption server-rendered (§3)',
+  );
+});
+
+test('export: bar chart aria-label enumerates every JSON-derived label count pair', () => {
+  assert.ok(existsSync(exportHtmlPath), 'out/explore.html missing — run `npm run build` first');
+  const html = readExport();
+  const pairs = skillsGroupCounts(data.skills).map((row) => `${row.label} ${row.count}`);
+  assert.ok(
+    html.includes(`Skills by category. ${pairs[0]}`),
+    'pinned aria-label format opens with the first pair',
+  );
+  for (const pair of pairs) {
+    assert.ok(
+      html.includes(pair),
+      `bar aria-label carries "${pair}" — derived from the JSON at test time (OQ-3)`,
+    );
+  }
+});
+
+test('export: treemap aria-label enumerates every techMentions name count pair', () => {
+  assert.ok(existsSync(exportHtmlPath), 'out/explore.html missing — run `npm run build` first');
+  const html = readExport();
+  const cells = techMentions(data.experience, data.skills);
+  assert.ok(cells.length > 0, 'sanity: the corpus yields cells');
+  const pairs = cells.map((cell) => `${cell.name} ${cell.count}`);
+  assert.ok(
+    html.includes(`Technology mentions across role responsibilities. ${pairs[0]}`),
+    'pinned aria-label format opens with the first pair',
+  );
+  for (const pair of pairs) {
+    assert.ok(html.includes(pair), `treemap aria-label carries "${pair}" (derived at test time)`);
+  }
+});
+
+test('export: Gantt fully server-rendered — all 7 companies + the axis-start year tick', () => {
+  assert.ok(existsSync(exportHtmlPath), 'out/explore.html missing — run `npm run build` first');
+  const html = readExport();
+  const startYears = data.experience
+    .map((entry) => parseDuration(entry.duration))
+    .filter(Boolean)
+    .map((parsed) => parsed.startYear);
+  const axisStartYear = String(Math.min(...startYears));
+  // Cross-check the derivation against the module the component renders from.
+  assert.strictEqual(
+    String(buildCareerSpan(data.experience, new Date('2026-09-21T00:00:00Z')).startYear),
+    axisStartYear,
+    'viz-data axis start = minimum parsed start year',
+  );
+  assert.ok(
+    html.includes(`>${axisStartYear}</span>`),
+    `axis-start year tick "${axisStartYear}" server-rendered (derived, never pinned)`,
+  );
+  // Company names carry no HTML-escapable characters in this dataset; the
+  // raw substring form is the honest presence check.
+  for (const entry of data.experience) {
+    assert.ok(
+      html.includes(entry.company),
+      `Gantt row company "${entry.company}" server-rendered`,
+    );
+  }
+});
+
+test('export: stat tiles server-rendered with JSON-derived values (OQ-1/U-1 — no pinned linked literal)', () => {
+  assert.ok(existsSync(exportHtmlPath), 'out/explore.html missing — run `npm run build` first');
+  const html = readExport();
+  const stats = projectStats(data.projects);
+  // The module output must agree with a raw-JSON derivation — the promoted
+  // representation round-trips from the data it summarizes.
+  assert.equal(stats.total, data.projects.length, 'total = raw JSON length');
+  assert.equal(stats.linked, data.projects.filter((p) => p.link).length, 'linked = raw truthy-link count');
+  const years = data.projects
+    .flatMap((p) => (p.date ? (p.date.match(/\b(?:19|20)\d{2}\b/g) ?? []) : []))
+    .map(Number);
+  assert.equal(
+    stats.activeYearsSpan,
+    years.length === 0 ? null : `${Math.min(...years)}\u2013${Math.max(...years)}`,
+    'span = min/max 4-digit years joined by the en-dash',
+  );
+  for (const [value, label] of [
+    [String(stats.total), 'Projects'],
+    [stats.activeYearsSpan, 'Active Years'],
+    [String(stats.linked), 'Linked'],
+  ]) {
+    assert.ok(
+      new RegExp(`>${escapeRe(value)}</p><p class="[^"]*">${label}</p>`).test(html),
+      `tile "${label}" renders the derived value "${value}" (adjacent value→label pair)`,
+    );
+  }
+});
+
+test('export: CLI and resume still emitted (EXPLORE-05/D-07)', () => {
+  assert.ok(existsSync(join(root, 'out/index.html')), 'out/index.html still emitted (D-10)');
+  assert.ok(existsSync(join(root, 'out/resume.html')), 'out/resume.html still emitted (D-10)');
 });
