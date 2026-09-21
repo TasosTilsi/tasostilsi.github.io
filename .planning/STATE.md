@@ -40,7 +40,7 @@ _No active phase._
 - Phase 2: plan 02 executed — 3 tasks committed (Projects body top-6, Skills body 36 grouped chips, total registry + transitional-body removal); full phase acceptance sweep green (typecheck + build + all UI-SPEC §15 verifier hooks, humor/pending counts 0).
 
 ### Blockers / Concerns
-_none_
+- Shipping decision (user, 2026-09-21): ship the milestone AS A WHOLE at milestone close — no per-phase PRs. phase-1 and phase-2 branches pushed to origin (backup only); gsd_ship deferred for both phases. phase-2 branch contains phase-1 commits (stacked).
 
 ## Session Continuity
 
