@@ -9,6 +9,12 @@
  * secondary source link stays out of the card — one link per card (§17.11)
  * — and remains reachable through the terminal pointer below (D-02).
  *
+ * ProjectStatTiles (D-03) opens the body with the three JSON-derived
+ * summary tiles above the cards — values from viz-data's projectStats
+ * (EXPLORE-07); the wrapper's mb-3 gives the intentional 12px tiles→cards
+ * gap versus the 8px card-card rhythm (§1). The card map below stays
+ * byte-identical.
+ *
  * Server component (UI-SPEC §2): no client directive, no hooks — copy
  * arrives entirely from the portfolio data via props (D-07). Graceful-hide
  * (UI-SPEC §11): the date tag renders only when present, an unlinked
@@ -17,7 +23,9 @@
  */
 import { ArrowUpRight } from 'lucide-react';
 import type { PortfolioData } from '@/data/portfolio-main-data';
+import { projectStats } from '../viz-data';
 import { TerminalPointer } from './terminal-pointer';
+import { ProjectStatTiles } from './project-stat-tiles';
 
 export function ProjectsSection({
   projects,
@@ -28,8 +36,12 @@ export function ProjectsSection({
   if (cards.length === 0) {
     return null;
   }
+  const stats = projectStats(projects);
   return (
     <div className="space-y-2">
+      <div className="mb-3">
+        <ProjectStatTiles stats={stats} />
+      </div>
       {cards.map((project) => {
         const header = (
           <div className="flex items-baseline justify-between gap-2">

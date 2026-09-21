@@ -105,3 +105,58 @@ test('gantt files: no duration normalization — .replace( never touches a durat
     );
   }
 });
+// ---------------------------------------------------------------------------
+// Task 2: project stat tiles — augment order, D-05 single-source, no literals
+// ---------------------------------------------------------------------------
+
+test('project-stat-tiles: exists as a pure server component (no client, no recharts)', () => {
+  const src = read(tilesPath);
+  assert.ok(src.length > 0, 'file exists');
+  assert.ok(!src.includes('"use client"'), 'no "use client" directive — server component');
+  assert.ok(!/from ['"]recharts['"]/.test(src), 'no recharts import — plain CSS tiles');
+});
+
+test('project-stat-tiles: pinned 3-up grid anatomy (§5 — never stacks at 375px)', () => {
+  const src = read(tilesPath);
+  assert.ok(src.includes('grid grid-cols-3 gap-2'), 'root is grid-cols-3 gap-2');
+  assert.ok(src.includes('rounded-md border border-border p-2.5'), 'tile anatomy mirrors the cards');
+});
+
+test('project-stat-tiles: values received via props (D-05) + E-9 em-dash placeholder', () => {
+  const src = read(tilesPath);
+  assert.ok(src.includes('stats.activeYearsSpan'), 'span value arrives from ProjectStats props');
+  assert.ok(src.includes("'—'") || src.includes('—'), "E-9 placeholder keeps the grid when no date parses");
+});
+
+test('project-stat-tiles: zero stat literals in code (EXPLORE-07 — doc comments stripped)', () => {
+  const src = read(tilesPath).replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/[^\n]*/g, '');
+  for (const literal of ['14', '9', '2016', '2026']) {
+    assert.ok(
+      !new RegExp(`(?<![\\w.])${literal}(?![\\w.])`).test(src),
+      `no standalone literal ${literal} driving a rendered value (OQ-1/U-1)`,
+    );
+  }
+});
+
+test('projects-section: ProjectStatTiles composed BEFORE the cards map with an mb-3 wrapper', () => {
+  const src = read(projPath);
+  const tilesIdx = src.indexOf('<ProjectStatTiles');
+  const cardsIdx = src.indexOf('cards.map(');
+  assert.ok(tilesIdx !== -1, '<ProjectStatTiles present');
+  assert.ok(cardsIdx !== -1, 'cards map present');
+  assert.ok(tilesIdx < cardsIdx, 'tiles compose BEFORE the 6 cards (§1 ③)');
+  assert.ok(src.includes('mb-3'), 'tiles wrapper carries mb-3 (§1: 12px tiles→cards gap)');
+});
+
+test('projects-section: tile values from projectStats(projects) (D-05/EXPLORE-07)', () => {
+  const src = read(projPath);
+  assert.ok(src.includes('projectStats(projects)'), 'stats computed by the viz-data module, never inline');
+  assert.ok(src.includes("from '../viz-data'"), 'imports from the viz-data module');
+});
+
+test('projects-section: cards body byte-stable (slice(0,6), one-link card, TerminalPointer)', () => {
+  const src = read(projPath);
+  assert.ok(src.includes('projects.slice(0, 6)'), 'D-01 top-6 cap unchanged');
+  assert.ok(src.includes('target="_blank"'), 'linked-card anchor unchanged');
+  assert.ok(src.includes('projects --all'), 'terminal pointer unchanged');
+});
