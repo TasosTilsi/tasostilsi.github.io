@@ -36,6 +36,7 @@ import { AboutSection } from './sections/about-section';
 import { ContactSection } from './sections/contact-section';
 import { ExperienceSection } from './sections/experience-section';
 import { ProjectsSection } from './sections/projects-section';
+import { SkillsSection } from './sections/skills-section';
 import type { PortfolioData } from '@/data/portfolio-main-data';
 
 /** Chip accent per section order: About=chart-1 … Contact=chart-5 (UI-SPEC §6). */
@@ -62,6 +63,7 @@ const SECTION_BODIES: Partial<
   contact: ({ data }) => <ContactSection contact={data.about.contact} />,
   experience: ({ data }) => <ExperienceSection experience={data.experience} />,
   projects: ({ data }) => <ProjectsSection projects={data.projects} />,
+  skills: ({ data }) => <SkillsSection skills={data.skills} />,
 };
 
 /**
