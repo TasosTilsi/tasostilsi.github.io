@@ -8,5 +8,15 @@
     "started": "2026-09-21T06:55:50.708Z",
     "result": "SUMMARY written",
     "completed": "2026-09-21T07:10:22.488Z"
+  },
+  {
+    "id": "JOB-02",
+    "kind": "subagent",
+    "plan": "EXPLORE-01-explore-shell-02",
+    "phase": 1,
+    "status": "done",
+    "started": "2026-09-21T07:10:29.559Z",
+    "result": "SUMMARY written",
+    "completed": "2026-09-21T07:18:17.955Z"
   }
 ]
