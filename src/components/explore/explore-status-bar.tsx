@@ -15,9 +15,10 @@ import {
   EXPLORE_SECTIONS,
   EXPLORE_STATUS_PATH,
   EXPLORE_STATUS_USER,
+  ExploreTheme,
 } from './constants';
 
-export function ExploreStatusBar({ theme }: { theme: string }) {
+export function ExploreStatusBar({ theme }: { theme: ExploreTheme }) {
   return (
     <footer className="flex h-7 shrink-0 items-center justify-between border-t px-3 text-[10px] sm:h-8 sm:px-4 sm:text-xs">
       <p>

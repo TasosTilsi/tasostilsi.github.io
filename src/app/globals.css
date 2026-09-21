@@ -529,3 +529,58 @@ body {
   --sidebar-ring: 215 90% 64%;
   --radius: 0.25rem;
 }
+
+/* Light IDE theme override — activates when <html> carries .light (UI-SPEC §9.3).
+   Specificity (0,2,0) beats .explore-shell (0,1,0); the shell div's own values
+   beat <html>-level CLI classes for all descendants. The CLI .light block above
+   stays byte-untouched (D-10). Chart-1..5 remain inherited (not overridden). */
+.light .explore-shell {
+  --background: 220 20% 97%;
+  --foreground: 220 14% 16%;
+  --card: 0 0% 100%;
+  --card-foreground: 220 14% 16%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 220 14% 16%;
+  --primary: 215 85% 45%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 220 14% 93%;
+  --secondary-foreground: 220 14% 20%;
+  --muted: 220 14% 92%;
+  --muted-foreground: 220 9% 40%;
+  --accent: 160 80% 28%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 74% 46%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 220 12% 85%;
+  --input: 220 13% 89%;
+  --ring: 215 85% 45%;
+  --sidebar-background: 220 16% 94%;
+  --sidebar-foreground: 220 11% 30%;
+  --sidebar-primary: 215 85% 45%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 220 14% 90%;
+  --sidebar-accent-foreground: 220 14% 15%;
+  --sidebar-border: 220 12% 86%;
+  --sidebar-ring: 215 85% 45%;
+  --radius: 0.25rem;
+}
+
+/* Reduced-motion guard (UI-SPEC §12) — the ONLY motion-suppression mechanism of
+   this phase. Covers the in-flow shell (marker-class descendants) and the
+   portaled SheetOverlay/SheetContent via body:has(.explore-shell) data-state
+   selectors — sheet.tsx untouched (§17.2). The scroll-behavior override beats
+   the body smooth rule above. */
+@media (prefers-reduced-motion: reduce) {
+  .explore-shell *,
+  .explore-shell .animate-pulse,
+  body:has(.explore-shell) [data-state="open"],
+  body:has(.explore-shell) [data-state="closed"] {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  body:has(.explore-shell),
+  .explore-shell main {
+    scroll-behavior: auto !important;
+  }
+}

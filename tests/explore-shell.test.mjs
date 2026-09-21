@@ -93,8 +93,17 @@ test('page: h-dvh flex shell with explore-shell marker, one About placeholder', 
   );
   const page = read('src/app/explore/page.tsx');
   assert.match(page, /id="about"/, 'About placeholder panel');
-  assert.match(page, /tabIndex=\{0\}/, 'main keyboard-scrollable (UI-SPEC §13)');
-  const code = page.replace(/\/\*[\s\S]*?\*\//g, ''); // strip doc comments first
+  const shellSrc = existsSync(join(root, 'src/components/explore/explore-shell.tsx'))
+    ? read('src/components/explore/explore-shell.tsx')
+    : '';
+  // tabIndex 0 + aria-label live on <main> — in page.tsx (tracer) or in the
+  // ExploreShell client boundary after Task 3 moves the frame there.
+  assert.match(
+    page + shellSrc,
+    /tabIndex=\{0\}/,
+    'main keyboard-scrollable (UI-SPEC §13)',
+  );
+  const code = (page + shellSrc).replace(/\/\*[\s\S]*?\*\//g, ''); // strip doc comments
   assert.ok(!code.includes('h-screen'), 'h-dvh only, never stacked h-screen');
 });
 
@@ -125,6 +134,73 @@ test('fonts: .explore-shell font-family consumes --font-jetbrains (scoped, UI-SP
   );
   // body rule untouched
   assert.match(css, /body\s*\{[^}]*var\(--font-geist-mono\)[^}]*\}/s);
+});
+
+// ---------------------------------------------------------------------------
+// Task 3: hand-rolled explore theme (D-05, EXPLORE-01d)
+// ---------------------------------------------------------------------------
+
+test('theme: .light .explore-shell override block, CLI .light block untouched (D-10)', () => {
+  const css = read('src/app/globals.css');
+  assert.match(css, /\.light \.explore-shell\s*\{/);
+  assert.ok(css.includes('--background: 220 20% 97%;'), 'light IDE background (UI-SPEC §9.3)');
+  assert.ok(css.includes('--accent: 160 80% 28%;'), 'light IDE accent');
+  assert.match(css, /\.light\s*\{[^}]*--background: 0 0% 93%;/s, 'CLI .light block keeps its values');
+  assert.ok(
+    !/\.light \.explore-shell\s*\{[^}]*--chart-1/s.test(css),
+    'no --chart override in light shell block',
+  );
+});
+
+test('theme: reduced-motion guard covers shell + portaled Sheet (UI-SPEC §12)', () => {
+  const css = read('src/app/globals.css');
+  assert.ok(css.includes('prefers-reduced-motion: reduce'));
+  assert.ok(css.includes('body:has(.explore-shell) [data-state="open"]'), 'portal overlay covered');
+  assert.ok(css.includes('body:has(.explore-shell) [data-state="closed"]'), 'portal content covered');
+  assert.ok(css.includes('scroll-behavior: auto !important'), 'anchor scroll overridden');
+});
+
+test('theme: useExploreTheme — literal dark init, no prefers-color-scheme, CLI key untouched', () => {
+  const src = read('src/components/explore/use-explore-theme.ts');
+  const code = src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, ''); // strip comments
+  assert.ok(src.includes('useExploreTheme'), 'hook exported');
+  assert.ok(!code.includes('prefers-color-scheme'), 'no OS detection (UI-SPEC §17.7)');
+  assert.ok(src.includes('EXPLORE_THEME_STORAGE_KEY'), 'persistence via explore key');
+  assert.ok(!/= ["']portfolio-theme["']/.test(src), 'never reads/writes CLI key (D-05/D-10)');
+  assert.match(src, /classList\.remove\(["']dark["'],\s*["']light["']\)/, 'class swap');
+  assert.match(src, /useState<ExploreTheme>\(['"]dark['"]\)/, 'literal dark init — never documentElement during render');
+});
+
+test('theme: ExploreShell client boundary owns theme state, composes header/main/status', () => {
+  const src = read('src/components/explore/explore-shell.tsx');
+  assert.match(src, /["']use client["']/);
+  assert.ok(src.includes('useExploreTheme()'), 'single source of truth');
+  assert.ok(src.includes('<ExploreHeader'), 'composes header');
+  assert.ok(src.includes('<ExploreStatusBar'), 'composes status bar');
+  assert.match(
+    src,
+    /explore-shell flex h-dvh flex-col overflow-x-hidden bg-background text-foreground/,
+    'shell root class combo moved here',
+  );
+  assert.ok(src.includes('aria-label="Portfolio sections"'), 'main pinned for keyboard scroll');
+});
+
+test('theme: header toggle is px-based 44px ghost button with target-theme icon', () => {
+  const src = read('src/components/explore/explore-header.tsx');
+  assert.ok(src.includes('h-[44px]') && src.includes('w-[44px]'), 'real px touch target (UI-SPEC §13)');
+  assert.ok(src.includes('Sun') && src.includes('Moon'), 'target-theme icons (UI-SPEC §3)');
+  assert.ok(src.includes('Switch to light theme'), 'aria-label swaps');
+  assert.ok(src.includes('Switch to dark theme'));
+  assert.ok(src.includes('type="button"'), 'explicit button type');
+  const code = src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, ''); // strip comments
+  assert.ok(!/transition/.test(code), 'no transition classes — instant swap (UI-SPEC §9.1)');
+});
+
+test('theme: page stays a server component wrapping ExploreShell', () => {
+  const src = read('src/app/explore/page.tsx');
+  assert.ok(src.includes('<ExploreShell'), 'client boundary for theme state');
+  assert.ok(!src.includes('use client'), 'page remains a server component');
+  assert.match(src, /about\.name/, 'data-driven props (D-08)');
 });
 
 // ---------------------------------------------------------------------------
@@ -166,4 +242,12 @@ test('static export: JetBrains Mono self-hosted in emitted CSS (EXPLORE-01c)', (
   const cssFiles = readdirSync(cssDir).filter((f) => f.endsWith('.css'));
   const combined = cssFiles.map((f) => readFileSync(join(cssDir, f), 'utf8')).join('\n');
   assert.ok(combined.includes('JetBrains Mono'), 'self-hosted @font-face present (no CDN)');
+});
+
+test('static export: theme script + toggle emitted into out/explore.html', () => {
+  assert.ok(existsSync(exportHtml), 'out/explore.html missing — run `npm run build` first');
+  const html = readFileSync(exportHtml, 'utf8');
+  assert.ok(html.includes('portfolio-explore-theme'), 'before-paint script reads the explore key');
+  assert.ok(html.includes('Switch to light theme'), 'theme toggle aria-label (SSR default dark)');
+  assert.ok(html.includes('classList.remove("dark", "light")'), 'strips stale classes before paint');
 });

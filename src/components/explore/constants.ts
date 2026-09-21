@@ -18,8 +18,8 @@ export const EXPLORE_SECTIONS = [
 export type ExploreSectionId = (typeof EXPLORE_SECTIONS)[number]["id"];
 
 /**
- * D-05/D-10: the explore theme storage key MUST stay disjoint from the CLI's
- * "portfolio-theme" key (src/components/cli/constants.ts:65). The shell never
+ * D-05/D-10: the explore theme storage key MUST stay disjoint from the CLI
+ * theme key (src/components/cli/constants.ts:65). The shell never
  * reads or writes the CLI key and vice versa; both surfaces self-heal their
  * own <html> classes on mount.
  */
