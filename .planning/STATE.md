@@ -48,6 +48,7 @@ _No active phase._
 
 ### Blockers / Concerns
 - Shipping decision (user, 2026-09-21): ship the milestone AS A WHOLE at milestone close — no per-phase PRs. phase-1 and phase-2 branches pushed to origin (backup only); gsd_ship deferred for both phases. phase-2 branch contains phase-1 commits (stacked).
+- Phase-3 visual revision (user, 2026-09-21): user verified the visualizations live but DID NOT LIKE the visual result. Before ship, a NEW PHASE will be added carrying the user's concrete change requests for the visualizations (design-correction pass on top of phase 3; details to be supplied by the user). Recorded in phase-3 VERIFICATION.md as verified_disliked_visuals.
 
 ## Session Continuity
 
