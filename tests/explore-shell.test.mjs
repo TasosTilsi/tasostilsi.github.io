@@ -320,6 +320,59 @@ test('panels: responsive grid with About spanning md/lg, per-section chart accen
 });
 
 // ---------------------------------------------------------------------------
+// Plan 02 Task 3: typewriter intro from real data
+// (reduced-motion fallback + sr-only h1 — D-07, EXPLORE-01)
+// ---------------------------------------------------------------------------
+
+test('intro: ExploreIntro reuses the untouched CLI TypingEffect with locked timing', () => {
+  const src = read('src/components/explore/explore-intro.tsx');
+  assert.match(src, /from ['"]@\/components\/cli\/TypingEffect['"]/, 'CLI component reused (D-07)');
+  assert.ok(src.includes('TypingEffect'), 'TypingEffect rendered');
+  assert.match(src, /speed=\{30\}/, 'speed 30 pinned (UI-SPEC §4)');
+  assert.match(src, /delay=\{400\}/, 'delay 400ms pinned');
+  assert.ok(src.includes('name') && src.includes('title'), 'real data props');
+});
+
+test('intro: reduced-motion check once on mount, TypingEffect not rendered under reduce', () => {
+  const src = read('src/components/explore/explore-intro.tsx');
+  assert.match(src, /["']use client["']/);
+  assert.ok(src.includes('prefers-reduced-motion'), 'reduced-motion query (UI-SPEC §12)');
+  assert.ok(src.includes('matchMedia'), 'matchMedia check');
+  assert.ok(src.includes('useEffect'), 'mount-effect check — before the 400ms delay fires');
+});
+
+test('intro: sr-only h1 carries full name—title, reserved height, strip chrome', () => {
+  const src = read('src/components/explore/explore-intro.tsx');
+  assert.match(src, /<h1 className=["']sr-only["']>/, 'sr-only h1 (a11y + no-JS contract)');
+  assert.ok(src.includes('aria-hidden'), 'animated strip hidden from AT');
+  assert.ok(src.includes('❯'), 'accent prefix');
+  assert.ok(src.includes('min-h-[40px]') && src.includes('md:min-h-[20px]'), 'px-reserved height (no CLS)');
+  assert.ok(src.includes('border-b') && src.includes('shrink-0'), 'strip chrome');
+});
+
+test('intro: page composes ExploreIntro between header and main (UI-SPEC §1 order)', () => {
+  const page = read('src/app/explore/page.tsx');
+  const shell = read('src/components/explore/explore-shell.tsx');
+  assert.ok(page.includes('<ExploreIntro'), 'page renders the intro with data props');
+  assert.match(page, /name=\{portfolioData\.about\.name\}/, 'name from data (D-08)');
+  const pageIdx = page.indexOf('<ExploreIntro');
+  assert.ok(pageIdx > -1, 'intro composed at the page call site');
+  // region order: the shell renders header → intro → main → status bar
+  // ('<main\n' anchors to the JSX element, not the doc comment's `<main>`)
+  const shellOrder = [
+    shell.indexOf('<ExploreHeader'),
+    shell.indexOf('{intro}'),
+    shell.indexOf('<main\n'),
+    shell.indexOf('<ExploreStatusBar'),
+  ];
+  assert.ok(shellOrder.every((i) => i > -1), 'all four regions composed');
+  assert.ok(
+    shellOrder[0] < shellOrder[1] && shellOrder[1] < shellOrder[2] && shellOrder[2] < shellOrder[3],
+    'header → typewriter strip → main → status bar (UI-SPEC §1)',
+  );
+});
+
+// ---------------------------------------------------------------------------
 // Export-level invariants (require `npm run build` first)
 // ---------------------------------------------------------------------------
 
@@ -366,4 +419,15 @@ test('static export: theme script + toggle emitted into out/explore.html', () =>
   assert.ok(html.includes('portfolio-explore-theme'), 'before-paint script reads the explore key');
   assert.ok(html.includes('Switch to light theme'), 'theme toggle aria-label (SSR default dark)');
   assert.ok(html.includes('classList.remove("dark", "light")'), 'strips stale classes before paint');
+});
+
+test('static export: intro strip — sr-only h1 full name—title server-rendered', () => {
+  assert.ok(existsSync(exportHtml), 'out/explore.html missing — run `npm run build` first');
+  const html = readFileSync(exportHtml, 'utf8');
+  assert.ok(html.includes('<h1'), 'sr-only h1 emitted (a11y + no-JS contract, UI-SPEC §4)');
+  assert.ok(
+    html.includes('Anastasios Tilsizoglou — Senior Software Engineer in Test'),
+    'full real name—title from data (D-07)',
+  );
+  assert.ok(html.includes('Open section navigation'), 'drawer toggle aria-label (SSR)');
 });
