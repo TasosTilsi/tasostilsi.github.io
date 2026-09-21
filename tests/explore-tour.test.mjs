@@ -331,3 +331,90 @@ test('tour/visited storage keys confined to the data tier (D-05/D-06, RESEARCH �
     'tour/visited localStorage CALLS confined to use-explore-visited.ts',
   );
 });
+
+// ---------------------------------------------------------------------------
+// Plan 02 Task 1: tracer — ExploreTour overlay/card/ESC/header contract
+// (UI-SPEC §1/§4/§6/§7/§9/§10/§12 items 5/6/8/9)
+// ---------------------------------------------------------------------------
+
+const tourSrc = () => read('src/components/explore/explore-tour.tsx');
+
+// House comment-strip pattern (mirrors tests/explore-shell.test.mjs:202-203):
+// prose comments must never trip an absence assert.
+const stripComments = (src) =>
+  src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
+
+test('tour overlay: fixed z-40 wrapper, pointer-events split, never portaled (§12.5)', () => {
+  assert.ok(
+    existsSync(join(root, 'src/components/explore/explore-tour.tsx')),
+    'explore-tour.tsx missing — implement ExploreTour first',
+  );
+  const src = tourSrc();
+  for (const needle of ['fixed inset-0', 'z-40', 'pointer-events-none', 'pointer-events-auto', 'data-tour-overlay']) {
+    assert.ok(src.includes(needle), `overlay DOM contract: "${needle}" (§12.5)`);
+  }
+  assert.ok(!src.includes('createPortal'), 'the tour renders inside the shell root — NOT portaled (§12.5)');
+});
+
+test('tour dim fade: tour-dim-in keyframe at 150ms as a CSS animation — no transition on geometry (§10/§12.10)', () => {
+  const src = tourSrc();
+  assert.ok(src.includes('tour-dim-in'), 'the §10 open-fade keyframe is declared');
+  assert.ok(src.includes('150ms'), 'fade duration 150ms (§10)');
+  assert.ok(/@keyframes\s+tour-dim-in/.test(src), 'implemented as a CSS @keyframes animation (§12.10 permission)');
+  assert.ok(
+    !/transition/.test(stripComments(src)),
+    'no transition anywhere — geometry repositioning is instant; the fade is an animation, not a transition',
+  );
+});
+
+test('tour card: non-modal dialog semantics + focus contract (§9)', () => {
+  const src = tourSrc();
+  assert.ok(src.includes('role="dialog"'), 'card role="dialog"');
+  assert.ok(src.includes('aria-modal="false"'), 'honest non-modal — the dim never makes the page inert (§9)');
+  assert.ok(/tabIndex=\{\s*-1\s*\}/.test(src), 'card root tabIndex -1 (§9)');
+  assert.ok(src.includes('.focus({ preventScroll: true })'), 'focus lands on the card without scrolling (§9/OQ-9)');
+});
+
+test('tour card controls: 44px real-px touch targets govern over h-11 shorthand (§9 over §4)', () => {
+  const src = tourSrc();
+  assert.ok(src.includes('h-[44px] w-[44px]'), 'X control is a 44px square (§9 ≥44px real-px pin)');
+  assert.ok(
+    (src.match(/h-\[44px\] px-3/g) || []).length >= 2,
+    'Back AND Next are 44px-tall px-based ghosts (§9 governing over §4 h-11)',
+  );
+});
+
+test('tour ESC: document-capture keydown + stopImmediatePropagation (§9/E-12, §12.9)', () => {
+  const src = tourSrc();
+  assert.ok(src.includes('{ capture: true }'), 'ESC keydown registered on document in capture phase (§9)');
+  assert.ok(src.includes('stopImmediatePropagation'), 'one ESC press never double-dismisses tour + drawer (R-7)');
+});
+
+test('header: Tour → Theme → Drawer order, Compass icon, 44px px target (§12.8)', () => {
+  const src = read('src/components/explore/explore-header.tsx');
+  const tourIdx = src.indexOf('Start the guided tour');
+  const themeIdx = src.indexOf('Switch to light theme');
+  const drawerIdx = src.indexOf('Open section navigation');
+  assert.ok(tourIdx > -1, 'Tour button present');
+  assert.ok(themeIdx > -1 && drawerIdx > -1, 'existing theme/drawer pair untouched');
+  assert.ok(
+    tourIdx < themeIdx && themeIdx < drawerIdx,
+    'Tour leftmost, Theme middle, Drawer RIGHTMOST — phase-1 pin preserved (§12.8)',
+  );
+  assert.ok(src.includes('Compass'), 'lucide Compass icon (§5)');
+  assert.ok(src.includes('h-[44px]'), '44px px-based Tour touch target (§5)');
+});
+
+test('export: Tour button SSRs into out/explore.html, tour overlay does not (§12.6)', () => {
+  const exportHtmlPath = join(root, 'out/explore.html');
+  assert.ok(existsSync(exportHtmlPath), 'out/explore.html missing — run `npm run build` first');
+  const html = readFileSync(exportHtmlPath, 'utf8');
+  assert.ok(
+    html.includes('aria-label="Start the guided tour"'),
+    'the header Tour button is a client-boundary child and SSRs (§12.6)',
+  );
+  assert.ok(
+    !html.includes('data-tour-overlay'),
+    'the overlay is client-mount-only — absent from static HTML (§12.6, R-5)',
+  );
+});

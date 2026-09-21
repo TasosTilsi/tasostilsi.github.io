@@ -2,8 +2,9 @@
  * ExploreHeader — IDE header bar (UI-SPEC §3, D-01).
  *
  * Left: decorative window glyphs + truncating data-driven title.
- * Right cluster, in order: theme toggle, then the drawer toggle (RIGHTMOST,
- * UI-SPEC §3) — both real 44×44 px touch targets, ghost-styled, no
+ * Right cluster, in order: the Tour trigger (LEFTMOST, UI-SPEC §5 — re-opens
+ * the spotlight wizard, D-05), theme toggle, then the drawer toggle
+ * (RIGHTMOST, UI-SPEC §3) — all real 44×44 px touch targets, ghost-styled, no
  * transition classes on the theme swap (instant, UI-SPEC §9.1; icon is the
  * TARGET theme: Sun while dark → light, Moon while light). The drawer
  * toggle is passed as ExploreDrawer's SheetTrigger child — Radix supplies
@@ -14,7 +15,7 @@
  * the ≤640px html{font-size:14px} rem shrink (UI-SPEC §3/§11/§13) — never
  * convert to rem.
  */
-import { Menu, Moon, Sun } from 'lucide-react';
+import { Compass, Menu, Moon, Sun } from 'lucide-react';
 import { ExploreDrawer } from './explore-drawer';
 import { ExploreTheme } from './constants';
 
@@ -23,11 +24,13 @@ export function ExploreHeader({
   title,
   theme,
   onToggleTheme,
+  onOpenTour,
 }: {
   name: string;
   title: string;
   theme: ExploreTheme;
   onToggleTheme: () => void;
+  onOpenTour: () => void;
 }) {
   return (
     <header className="flex h-[52px] shrink-0 items-center gap-2 border-b bg-background px-4">
@@ -53,6 +56,19 @@ export function ExploreHeader({
       <span className="hidden min-w-0 flex-1 truncate text-sm text-foreground md:inline">
         {`${name} — ${title}`}
       </span>
+      {/* Tour trigger: LEFTMOST of the right cluster (UI-SPEC §5, D-05) —
+          re-opens / resets the wizard at step 1 for every visitor; the theme
+          + drawer pair below stays byte-identical so the drawer stays
+          RIGHTMOST (locked phase-1 pin). */}
+      <button
+        id="explore-tour-trigger"
+        type="button"
+        onClick={onOpenTour}
+        aria-label="Start the guided tour"
+        className="flex h-[44px] w-[44px] shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+      >
+        <Compass className="h-5 w-5" aria-hidden="true" />
+      </button>
       {/* Theme toggle: target-theme icon, 44px real px touch target */}
       <button
         type="button"
