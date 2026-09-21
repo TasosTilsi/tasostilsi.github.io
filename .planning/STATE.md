@@ -10,12 +10,12 @@ progress:
   total_phases: 5
   completed_phases: 0
   total_plans: 2
-  completed_plans: 2
+  completed_plans: 3
   percent: 0
 current_phase: 2
 current_phase_name: explore-content
-current_plan: 2
-last_updated: "2026-09-21T10:55:00.000Z"
+current_plan: 1
+last_updated: "2026-09-21T10:10:55.037Z"
 state_head: null
 last_activity: 2026-09-21
 stopped_at: null
