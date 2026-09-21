@@ -14,8 +14,8 @@ progress:
   percent: 0
 current_phase: 2
 current_phase_name: explore-content
-current_plan: 1
-last_updated: "2026-09-21T10:10:55.037Z"
+current_plan: 2
+last_updated: "2026-09-21T11:05:00.000Z"
 state_head: null
 last_activity: 2026-09-21
 stopped_at: null
@@ -37,6 +37,7 @@ _No active phase._
 - Phase 2: CONTEXT.md sealed — 8 decisions
 - Phase 2: planned — 2 plan(s) across 2 wave(s).
 - Phase 2: plan 01 executed — 3 tasks committed (PanelShell chrome + data spine, About/Contact/Experience bodies, TerminalPointer); full gate green (typecheck + build + 29 assertions).
+- Phase 2: plan 02 executed — 3 tasks committed (Projects body top-6, Skills body 36 grouped chips, total registry + transitional-body removal); full phase acceptance sweep green (typecheck + build + all UI-SPEC §15 verifier hooks, humor/pending counts 0).
 
 ### Blockers / Concerns
 _none_
