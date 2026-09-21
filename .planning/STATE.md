@@ -9,13 +9,13 @@ next_phases: [4]
 progress:
   total_phases: 5
   completed_phases: 0
-  total_plans: 4
-  completed_plans: 8
+  total_plans: 2
+  completed_plans: 9
   percent: 0
 current_phase: 4
 current_phase_name: explore-gamification
-current_plan: 4
-last_updated: "2026-09-21T22:40:19.108Z"
+current_plan: 1
+last_updated: "2026-09-21T22:46:30.654Z"
 state_head: null
 last_activity: 2026-09-21
 stopped_at: null
