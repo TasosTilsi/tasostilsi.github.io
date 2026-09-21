@@ -1,0 +1,12 @@
+[
+  {
+    "id": "JOB-01",
+    "kind": "subagent",
+    "plan": "EXPLORE-01-explore-shell-01",
+    "phase": 1,
+    "status": "done",
+    "started": "2026-09-21T06:55:50.708Z",
+    "result": "SUMMARY written",
+    "completed": "2026-09-21T07:10:22.488Z"
+  }
+]
