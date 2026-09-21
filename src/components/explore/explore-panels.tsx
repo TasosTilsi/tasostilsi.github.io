@@ -59,7 +59,7 @@ const SECTION_BODIES: Record<
   contact: ({ data }) => <ContactSection contact={data.about.contact} />,
   experience: ({ data }) => <ExperienceSection experience={data.experience} />,
   projects: ({ data }) => <ProjectsSection projects={data.projects} />,
-  skills: ({ data }) => <SkillsSection skills={data.skills} />,
+  skills: ({ data }) => <SkillsSection skills={data.skills} experience={data.experience} />,
 };
 
 export function ExplorePanels({ data }: { data: PortfolioData }) {

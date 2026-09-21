@@ -34,7 +34,7 @@ test('skills-section: SkillsChart first child, grouping adopted from viz-data (U
   const loopIdx = src.indexOf('groups.map(');
   assert.ok(loopIdx !== -1 && chartIdx < loopIdx, 'chart composed before the groups loop — first child');
   assert.ok(!src.includes('groups.push'), 'inline builder removed — single source (§10)');
-  assert.match(src, /import\s*\{\s*skillsGroupCounts\s*\}\s*from\s*'\.\.\/viz-data'/, 'skillsGroupCounts import');
+  assert.match(src, /import\s*\{[^}]*skillsGroupCounts[^}]*\}\s*from\s*'\.\.\/viz-data'/, 'skillsGroupCounts import');
   // Augment-only discipline (D-07): graceful-hide, chips, headers, pointer stay byte-stable.
   assert.ok(src.includes('groups.length === 0'), 'graceful-hide preserved');
   assert.ok(src.includes('font-normal pointer-events-none'), 'chip overrides untouched');
@@ -73,4 +73,62 @@ test('skills-chart: band order mechanism — probe-proven default, no order-flip
   // top→bottom JSON group order, so the default mechanism is correct and the
   // order-flipping prop must be absent from the code.
   assert.ok(!code.includes('reversed'), 'no reversed prop — default band order is top-first');
+});
+
+// ---------------------------------------------------------------------------
+// Task 2: treemap below the chart, corpus threaded server-side (D-08)
+// ---------------------------------------------------------------------------
+
+test('skills-treemap: client boundary, root guard, pinned anatomy (UI-SPEC §3)', () => {
+  const code = codeOf('src/components/explore/sections/skills-treemap.tsx');
+  assert.match(code, /['"]use client['"]/, 'client boundary (D-06)');
+  assert.ok(code.includes('Treemap'), 'recharts Treemap import');
+  assert.ok(code.includes('ResponsiveContainer'), 'ResponsiveContainer');
+  assert.ok(code.includes('isAnimationActive={false}'), 'animation off unconditionally (OQ-2)');
+  assert.ok(code.includes('depth === 0'), 'B-1 root guard — synthetic depth-0 root call returns null');
+  assert.ok(code.includes('pointerEvents="none"'), 'pointerEvents none on the cell group (§6)');
+  assert.ok(code.includes('height={120}'), 'fixed 120px height pin (375px-safe)');
+  assert.ok(code.includes('dataKey="count"'), 'count dataKey pin');
+  assert.ok(code.includes('fillOpacity={0.35}'), '0.35 wash pin (text contrast by construction)');
+  assert.ok(code.includes('clipPath'), 'per-cell clip overflow guard present (W-5)');
+  // label ladder rungs pinned: 64x40 name+count, 44x16 name-only
+  assert.ok(code.includes('>= 64') && code.includes('>= 44'), 'ladder size rungs (64×40, 44×16)');
+  for (const banned of ['Tooltip', 'onClick', 'onMouseEnter', 'matchMedia']) {
+    assert.ok(!code.includes(banned), `${banned} absent (D-04/§6)`);
+  }
+});
+
+test('skills-treemap: honesty caption + data-derived aria-label (§3/§9)', () => {
+  const src = read('src/components/explore/sections/skills-treemap.tsx');
+  assert.ok(src.includes('Mentions in role responsibilities'), 'honesty caption (both tokens pinned)');
+  const code = codeOf('src/components/explore/sections/skills-treemap.tsx');
+  assert.match(code, /aria-label=\{`Technology mentions across role responsibilities\. \$\{cells\.map\(/, 'aria-label composed from cells');
+  assert.ok(code.includes('${cell.name} ${cell.count}'), "the pinned 'name count' pair format (plan-04 export contract)");
+  assert.ok(!/count[=:]\s*\d/.test(code), 'no numeric mention-count literal (EXPLORE-07)');
+  assert.ok(code.includes('cells.length === 0'), 'E-13: zero-match cells hide the whole block');
+});
+
+test('skills-section: treemap composed second, corpus from techMentions (§1 ②/§10)', () => {
+  const src = read('src/components/explore/sections/skills-section.tsx');
+  const chartIdx = src.indexOf('<SkillsChart');
+  const treemapIdx = src.indexOf('<SkillsTreemap');
+  const loopIdx = src.indexOf('groups.map(');
+  assert.ok(treemapIdx !== -1 && treemapIdx < loopIdx, 'treemap before the groups loop');
+  assert.ok(chartIdx !== -1 && treemapIdx > chartIdx, 'treemap BETWEEN chart and groups loop (§1 ②)');
+  assert.match(src, /=\s*techMentions\(experience, skills\)/, 'cells computed server-side via techMentions');
+  assert.match(src, /experience:\s*PortfolioData\['experience'\]/, 'props extended with experience');
+  assert.ok(src.includes('<SkillsTreemap cells={cells} />'), 'cells passed as props — zero matching in the component (D-05)');
+});
+
+test('explore-panels: skills closure threads experience, every other closure byte-unchanged (D-07)', () => {
+  const src = read('src/components/explore/explore-panels.tsx');
+  const skillsIdx = src.indexOf('skills: ({ data })');
+  const skillsLine = src.slice(skillsIdx, src.indexOf(',', skillsIdx) + 1);
+  assert.ok(skillsLine.includes('skills={data.skills}'), 'skills slice unchanged');
+  assert.ok(skillsLine.includes('experience={data.experience}'), 'experience threaded for the treemap corpus (§10)');
+  // byte-unchanged registry neighbours (the registry is the data spine, not chrome)
+  assert.ok(src.includes('about: ({ data }) => <AboutSection about={data.about} />,'));
+  assert.ok(src.includes('contact: ({ data }) => <ContactSection contact={data.about.contact} />,'));
+  assert.ok(src.includes('experience: ({ data }) => <ExperienceSection experience={data.experience} />,'));
+  assert.ok(src.includes('projects: ({ data }) => <ProjectsSection projects={data.projects} />,'));
 });

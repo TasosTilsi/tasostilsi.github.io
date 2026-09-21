@@ -22,25 +22,37 @@
  * (UI-SPEC §11): a missing or empty group is skipped entirely, and with no
  * contentful group at all the body renders nothing — no fallback copy.
  *
- * Phase 3 augmentation (D-01, UI-SPEC §1 ①/§10): the bar chart composes as
- * the FIRST child, fed by viz-data's skillsGroupCounts — the SAME builder
- * logic adopted verbatim into the pure module (§10 single source: chart and
- * chips can never drift). Chips and headers below stay byte-identical.
+ * Phase 3 augmentation (D-01/D-08, UI-SPEC §1 ①②/§10): the bar chart
+ * composes as the FIRST child, the mention treemap as the SECOND, both fed
+ * by viz-data — skillsGroupCounts is the SAME builder logic adopted
+ * verbatim into the pure module (§10 single source: chart and chips can
+ * never drift), and the treemap cells come from techMentions over the
+ * experience slice threaded server-side through the panels adapter
+ * (UI-SPEC §10 corpus boundary). Chips and headers below stay byte-identical.
  */
 import { Badge } from '@/components/ui/badge';
 import type { PortfolioData } from '@/data/portfolio-main-data';
-import { skillsGroupCounts } from '../viz-data';
+import { skillsGroupCounts, techMentions } from '../viz-data';
 import { TerminalPointer } from './terminal-pointer';
 import { SkillsChart } from './skills-chart';
+import { SkillsTreemap } from './skills-treemap';
 
-export function SkillsSection({ skills }: { skills: PortfolioData['skills'] }) {
+export function SkillsSection({
+  skills,
+  experience,
+}: {
+  skills: PortfolioData['skills'];
+  experience: PortfolioData['experience'];
+}) {
   const groups = skillsGroupCounts(skills);
   if (groups.length === 0) {
     return null;
   }
+  const cells = techMentions(experience, skills);
   return (
     <div className="space-y-3">
       <SkillsChart rows={groups} />
+      <SkillsTreemap cells={cells} />
       {groups.map((group) => (
         <div key={group.id}>
           <p className="text-xs text-muted-foreground">{group.label}</p>
