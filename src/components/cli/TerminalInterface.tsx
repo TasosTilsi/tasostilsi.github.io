@@ -5,6 +5,7 @@ import { supermario } from "@/data/ascii-art-strings";
 import type { PortfolioData, Presentation, Project } from "@/data/portfolio-main-data";
 import portfolioDataJson from "@/data/portfolio-main-data.json";
 import React, { KeyboardEvent, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import UniversalModal from "./UniversalModal";
 import ResumeModal from "./ResumeModal";
 import {
@@ -57,6 +58,7 @@ export const TerminalInterface = () => {
   const { currentTheme: theme, setTheme, VALID_THEMES } = useCliTheme();
   const { triggerEasterEgg, EASTER_EGG_IDS, foundEasterEggs } = useEasterEggs();
   const { unlockAchievement, unlockedAchievements } = useAchievements();
+  const router = useRouter();
 
   const [history, setHistory] = useState<OutputLine[]>([
     { id: Date.now().toString(), type: "system", content: <WelcomeMessage /> },
@@ -129,7 +131,7 @@ export const TerminalInterface = () => {
   const processCommand = async (
     command: string
   ): Promise<
-    React.ReactNode | { openModal: "resume" } | { openModal: "presentation"; presentation: Presentation }
+    React.ReactNode | { openModal: "resume" } | { openModal: "presentation"; presentation: Presentation } | { navigate: string }
   > => {
     const [cmd, ...args] = command.toLowerCase().trim().split(" ");
     const allFlag = args.includes("-a") || args.includes("--all");
@@ -292,6 +294,8 @@ export const TerminalInterface = () => {
             </table>
           </div>
         );
+      case "explore":
+        return { navigate: "/explore" };
       case "":
         return null;
       default:
@@ -384,6 +388,28 @@ export const TerminalInterface = () => {
           }];
         });
         return; // Exit early as we handled history update manually
+      } else if (
+        result &&
+        typeof result === "object" &&
+        result !== null &&
+        "navigate" in result
+      ) {
+        // Announce the navigation first, then route after a short delay so the
+        // chrome line paints before the CLI unmounts (same idiom as the resume
+        // loading line above).
+        newHistoryLog.push({
+          id: Date.now().toString() + "-navigate",
+          type: "system",
+          content: (
+            <span className="text-accent">[ opening the visual tour... ]</span>
+          ),
+        });
+        setHistory((prev) => [...prev, ...newHistoryLog]);
+
+        await new Promise(resolve => setTimeout(resolve, 600));
+
+        router.push(result.navigate);
+        return; // Exit early — the route change unmounts the CLI surface
       } else if (
         result !== null &&
         (typeof result !== "object" ||

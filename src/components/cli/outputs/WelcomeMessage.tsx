@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import portfolioDataJson from '@/data/portfolio-main-data.json';
 import type { PortfolioData } from '@/data/portfolio-main-data';
 import { TypingEffect } from '../TypingEffect';
+import Link from 'next/link';
 
 const portfolioData = portfolioDataJson as PortfolioData;
 
@@ -60,6 +61,15 @@ export const WelcomeMessage = () => {
           </ul>
         </div>
       )}
+
+      {/* Visual tour link — the CLI's exit to /explore; unconditional so returning visitors see it too (D-01, OQ-3) */}
+      <div
+        style={{
+          fontFamily: "var(--font-jetbrains), var(--font-geist-mono), Menlo, Monaco, 'Courier New', monospace",
+        }}
+      >
+        <span className="text-accent">[</span> NEW <span className="text-accent">→</span> visual tour: <Link href="/explore" className="text-accent">explore</Link> <span className="text-accent">]</span>
+      </div>
       <br />
     </div>
   );
