@@ -88,5 +88,15 @@
     "started": "2026-09-21T22:46:33.416Z",
     "result": "SUMMARY written",
     "completed": "2026-09-21T22:59:07.005Z"
+  },
+  {
+    "id": "JOB-10",
+    "kind": "subagent",
+    "plan": "EXPLORE-05-explore-routing-01",
+    "phase": 5,
+    "status": "done",
+    "started": "2026-09-22T05:53:12.397Z",
+    "result": "SUMMARY written",
+    "completed": "2026-09-22T05:56:27.836Z"
   }
 ]

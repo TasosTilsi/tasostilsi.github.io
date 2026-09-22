@@ -9,13 +9,13 @@ next_phases: [5]
 progress:
   total_phases: 5
   completed_phases: 0
-  total_plans: 2
-  completed_plans: 10
+  total_plans: 3
+  completed_plans: 12
   percent: 0
 current_phase: 5
 current_phase_name: explore-routing
 current_plan: 2
-last_updated: "2026-09-22T05:53:09.631Z"
+last_updated: "2026-09-22T05:56:34.406Z"
 state_head: null
 last_activity: 2026-09-22
 stopped_at: null
