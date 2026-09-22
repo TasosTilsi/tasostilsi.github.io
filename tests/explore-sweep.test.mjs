@@ -27,6 +27,10 @@ import { fileURLToPath } from 'node:url';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const read = (p) => readFileSync(join(root, p), 'utf8');
 
+// Read-only import from the explore constants module — house precedent
+// (tests/explore-header.test.mjs:27, tests/explore-routing.test.mjs:38)
+import { EXPLORE_TOUR_FINISH } from '../src/components/explore/constants.ts';
+
 // ---------------------------------------------------------------------------
 // Type-P structural rows (Task 1)
 // ---------------------------------------------------------------------------
@@ -135,4 +139,65 @@ test('sweep rows CLI@375 vs CLI≥768 (P): mobile banner at 375, ASCII banner fr
     src.includes('sm:hidden'),
     'mobile banner div renders only below 640px (:39) — row CLI@375',
   );
+});
+
+// ---------------------------------------------------------------------------
+// Type-E export rows (Task 2 — require `npm run build` first; the wave's
+// single build point). Precedents: tests/explore-shell.test.mjs:378-433
+// (export existence + markers), tests/explore-visuals.test.mjs:622-625
+// (dependency-count pin).
+// ---------------------------------------------------------------------------
+
+test('sweep E-1 (E): all three routes still export statically', () => {
+  for (const route of ['out/index.html', 'out/explore.html', 'out/resume.html']) {
+    assert.ok(existsSync(join(root, route)), `${route} missing — run \`npm run build\` first`);
+  }
+});
+
+test('sweep E-2 (E): header Terminal link SSRs into out/explore.html — /explore → CLI leg at L3', () => {
+  const html = read('out/explore.html');
+  assert.ok(
+    html.includes('aria-label="Open the terminal"'),
+    'Terminal-link aria-label present in the exported HTML (explore-header.tsx SSRs)',
+  );
+  assert.ok(html.includes('href="/"'), 'the link target / present in the exported HTML');
+});
+
+test('sweep E-3 (E): CLI welcome is client-only — documents why the welcome link + command stay L2-only', () => {
+  const html = read('out/index.html');
+  assert.ok(
+    !html.includes('System initialized'),
+    'no SSR\'d CLI welcome content in out/index.html (RESEARCH §1.7 — TerminalInterface mounts ssr:false)',
+  );
+});
+
+test('sweep E-4 (E): zero new dependencies — package.json dependencies length stays 39 (D-05)', () => {
+  const pkg = JSON.parse(read('package.json'));
+  assert.equal(
+    Object.keys(pkg.dependencies).length,
+    39,
+    'dependency count pinned (precedent tests/explore-visuals.test.mjs:624)',
+  );
+});
+
+test('sweep E-5: two-way routing loop composite — all four legs in one assertion set', () => {
+  // leg 1: CLI welcome link → /explore (plan 01, D-01)
+  assert.ok(
+    read('src/components/cli/outputs/WelcomeMessage.tsx').includes('href="/explore"'),
+    'leg 1: welcome bracket link href="/explore"',
+  );
+  // leg 2: explore command → Next router, same tab (plan 01, D-02)
+  const ti = read('src/components/cli/TerminalInterface.tsx');
+  assert.ok(
+    ti.includes('{ navigate: "/explore" }') && ti.includes('router.push(result.navigate)'),
+    'leg 2: explore-command sentinel + router.push(result.navigate)',
+  );
+  assert.ok(!ti.includes('window.location'), 'leg 2 guard: no window.location in TerminalInterface');
+  // leg 3: header Terminal link → / (plan 02, D-03)
+  assert.ok(
+    read('src/components/explore/explore-header.tsx').includes('href="/"'),
+    'leg 3: header Terminal link href="/"',
+  );
+  // leg 4: tour finish card → / (phase 4, EXPLORE_TOUR_FINISH, constants.ts:89-94)
+  assert.equal(EXPLORE_TOUR_FINISH.linkHref, '/', 'leg 4: finish-card linkHref === "/"');
 });
