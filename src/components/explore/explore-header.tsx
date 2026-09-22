@@ -3,19 +3,20 @@
  *
  * Left: decorative window glyphs + truncating data-driven title.
  * Right cluster, in order: the Tour trigger (LEFTMOST, UI-SPEC §5 — re-opens
- * the spotlight wizard, D-05), theme toggle, then the drawer toggle
- * (RIGHTMOST, UI-SPEC §3) — all real 44×44 px touch targets, ghost-styled, no
- * transition classes on the theme swap (instant, UI-SPEC §9.1; icon is the
- * TARGET theme: Sun while dark → light, Moon while light). The drawer
- * toggle is passed as ExploreDrawer's SheetTrigger child — Radix supplies
- * aria-expanded/aria-controls and focus return (EXPLORE-01b, plan 02).
+ * the spotlight wizard, D-05), theme toggle, drawer toggle, then the
+ * Terminal link — rightmost since phase-5 (D-03) — all real 44×44 px touch
+ * targets, ghost-styled, no transition classes on the theme swap (instant,
+ * UI-SPEC §9.1; icon is the TARGET theme: Sun while dark → light, Moon while
+ * light). The drawer toggle is passed as ExploreDrawer's SheetTrigger child —
+ * Radix supplies aria-expanded/aria-controls and focus return (EXPLORE-01b).
  *
  * Toggle state comes from ExploreShell's single useExploreTheme instance
  * via props. The px-based h-[52px] bar and h-[44px] buttons are immune to
  * the ≤640px html{font-size:14px} rem shrink (UI-SPEC §3/§11/§13) — never
  * convert to rem.
  */
-import { Compass, Menu, Moon, Sun } from 'lucide-react';
+import Link from 'next/link';
+import { Compass, Menu, Moon, Sun, Terminal } from 'lucide-react';
 import { ExploreDrawer } from './explore-drawer';
 import { ExploreTheme } from './constants';
 
@@ -84,8 +85,8 @@ export function ExploreHeader({
           <Moon className="h-5 w-5" aria-hidden="true" />
         )}
       </button>
-      {/* Drawer toggle: rightmost control (UI-SPEC §3) — SheetTrigger supplies
-          aria-expanded/aria-controls and focus return; no manual a11y attrs */}
+      {/* Drawer toggle: penultimate right-cluster control (the Terminal link
+          after it is rightmost, phase-5 D-03) — SheetTrigger supplies a11y attrs */}
       <ExploreDrawer
         trigger={
           <button
@@ -97,6 +98,15 @@ export function ExploreHeader({
           </button>
         }
       />
+      {/* Terminal link: rightmost (phase-5, D-03) — Next Link back to the CLI,
+          44px ghost recipe copied verbatim, same-tab navigation */}
+      <Link
+        href="/"
+        aria-label="Open the terminal"
+        className="flex h-[44px] w-[44px] shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+      >
+        <Terminal className="h-5 w-5" aria-hidden="true" />
+      </Link>
     </header>
   );
 }
