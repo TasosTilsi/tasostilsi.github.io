@@ -241,16 +241,17 @@ test('drawer: composes Sheet side="left" with portal-safe explore-shell class', 
   assert.ok(!code.includes('max-w-'), 'no width overrides — default left variant pinned');
 });
 
-test('drawer: 5 anchor items from EXPLORE_SECTIONS, 44px targets, decorative chart digits', () => {
+test('drawer: 4 anchor items from EXPLORE_SECTIONS, 44px targets, decorative chart digits', () => {
   const src = read('src/components/explore/explore-drawer.tsx');
   assert.ok(src.includes('EXPLORE_SECTIONS'), 'items derive from the locked constant');
   assert.ok(src.includes('`#${section.id}`'), 'anchor hrefs derived from section ids');
   assert.ok(src.includes('min-h-[44px]'), 'real px touch targets (EXPLORE-06)');
-  assert.ok(src.includes('padStart(2'), 'leading index digits 01…05');
+  assert.ok(src.includes('padStart(2'), 'leading index digits 01…04');
   assert.ok(src.includes('aria-hidden'), 'digits decorative (W-3 fix)');
-  for (let i = 1; i <= 5; i++) {
+  for (let i = 1; i <= 4; i++) {
     assert.ok(src.includes(`text-chart-${i}`), `digit accent chart-${i}`);
   }
+  assert.ok(!src.includes('text-chart-5'), 'no chart-5 digit — 4 sections after the merge (REV-04/E-14)');
   assert.ok(src.includes('hover:bg-sidebar-accent'), 'item hover state (UI-SPEC §5)');
   assert.ok(src.includes('tabular-nums'), 'digit numerals');
 });
