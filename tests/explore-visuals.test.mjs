@@ -341,6 +341,72 @@ test('cross-cutting: scoped light-theme chart overrides pinned, chart-1 absent f
 });
 
 // ---------------------------------------------------------------------------
+// Phase EXPLORE-07 plan 03: REV-11 motion falsifiability (UI-SPEC §10.3-8) —
+// source greps over globals.css + the section files. Written RED-first per
+// the plan's red/green discipline: the pins assert the target contract
+// BEFORE the CSS/class usage lands (the panel-grid hook and the exp-lift
+// usage already exist from plan 02 — those pins hold immediately; every CSS
+// pin is RED until this plan's globals.css block lands).
+// ---------------------------------------------------------------------------
+
+// The motion region in globals.css: from the entrance keyframes to the
+// reduced-motion guard. Scoping assertions run over THIS region only — the
+// pre-existing CLI cursor blink (@keyframes blink, globals.css:251) lives
+// outside it and is not an explore surface.
+const motionRegion = (lines, fromIdx, toIdx) => lines.slice(fromIdx, toIdx);
+
+test('motion: panel-grid stagger entrance — keyframes, shorthand, source-ordered delays, guard-covered (REV-11/D-04/M1, UI-SPEC §10.3)', () => {
+  const css = read('src/app/globals.css');
+  const lines = css.split('\n');
+
+  // §10.3: the keyframes + the .panel-grid > * animation shorthand.
+  assert.ok(
+    (css.match(/explore-panel-in/g) || []).length >= 2,
+    'explore-panel-in appears ≥ 2 times (keyframes declaration + shorthand usage)',
+  );
+  const shorthandLine = lines.findIndex((l) =>
+    l.includes('animation: explore-panel-in 240ms cubic-bezier(0.25, 1, 0.5, 1) backwards'),
+  );
+  assert.ok(
+    shorthandLine > -1,
+    'the stagger shorthand names explore-panel-in, 240ms, the pinned curve cubic-bezier(0.25, 1, 0.5, 1), backwards fill',
+  );
+  const keyframesLine = lines.findIndex((l) => l.includes('@keyframes explore-panel-in'));
+  assert.ok(keyframesLine > -1, '@keyframes explore-panel-in exists');
+  assert.match(
+    css,
+    /@keyframes explore-panel-in\s*\{[\s\S]*?translateY\(8px\)[\s\S]*?translateY\(0\)/,
+    'the keyframes rise from opacity 0 / translateY(8px) to translateY(0)',
+  );
+  assert.ok(keyframesLine < shorthandLine, 'keyframes declared before the shorthand that names them');
+
+  // R4 (MDN animation): the shorthand resets animation-delay — the nth-child
+  // delay rules MUST sit after the shorthand line in source order or the
+  // 40ms cascade flattens to simultaneous.
+  const delayLines = [40, 80, 120].map((ms, i) => {
+    const idx = lines.findIndex((l) => l.includes(`:nth-child(${i + 2}) { animation-delay: ${ms}ms; }`));
+    assert.ok(idx > -1, `the nth-child(${i + 2}) delay rule ${ms}ms exists`);
+    assert.ok(idx > shorthandLine, `the ${ms}ms delay rule sits AFTER the shorthand line (source order, R4)`);
+    return idx;
+  });
+  assert.ok(delayLines[0] < delayLines[1] && delayLines[1] < delayLines[2], 'delay rules ordered 40 → 80 → 120 (DOM order)');
+
+  // §10.8: every rule in the new motion region is scoped under .explore-shell
+  // (selector-level check; @keyframes is name-scoped and exempt).
+  const guardIdx = lines.findIndex((l) => l.includes('@media (prefers-reduced-motion: reduce)'));
+  assert.ok(guardIdx > delayLines[2], 'the reduced-motion guard block sits AFTER the motion block — it stays the file tail');
+  for (const l of motionRegion(lines, keyframesLine, guardIdx)) {
+    if (l.trim().endsWith('{') && !l.trim().startsWith('@keyframes')) {
+      assert.ok(l.includes('.explore-shell'), `motion rule scoped under .explore-shell: ${l.trim()}`);
+    }
+  }
+
+  // The stagger targets the panel-grid container plan 02 planted (§10.3).
+  const panels = read('src/components/explore/explore-panels.tsx');
+  assert.ok(panels.includes('panel-grid'), 'panel-grid class on the panels container (plan 02 hook — children in DOM order)');
+});
+
+// ---------------------------------------------------------------------------
 // Plan 04 Task 2: Layer-3 export-level invariants — hold against the static
 // export (out/) produced by `npm run build`; they fail with a build hint
 // until then (suite convention). Post-removal the page is chart-free —
