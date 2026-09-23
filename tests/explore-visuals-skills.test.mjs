@@ -1,18 +1,26 @@
 /**
- * Red/green acceptance tests for plan EXPLORE-03-explore-visuals-02 (skills slice).
+ * Red/green acceptance tests for plan EXPLORE-06-explore-revision-04 task 2
+ * (skills slice — REV-05/D-06).
  *
- * Runner: node --test tests/explore-visuals-skills.test.mjs  (Node built-in, zero npm deps — D-09)
+ * Runner: node --test tests/explore-visuals-skills.test.mjs  (Node built-in,
+ * zero npm deps — D-09).
  *
- * This is plan-02's source-invariant carrier. Export-level assertions
- * (hydration shells, printed values in the built HTML) belong to plan 04's
- * carrier, run chronologically last on the settled wave-2 tree.
- *
- * Extended per task: Task 2 (treemap + corpus thread), Task 3 (light-theme
- * chart overrides).
+ * Rewritten to the POST-REMOVAL contract (the pre-removal suite asserted the
+ * recharts bar chart + treemap anatomy; both were removed with D-06):
+ *   • the Skills panel is competency + proof cards FIRST over the surviving
+ *     grouped chips + TerminalPointer (U-2 adjudication on record: D-06
+ *     removes ONLY the BarChart + Treemap; the chips are the only /explore
+ *     rendering of the full hard-skills lists and stay);
+ *   • the chart, the treemap and the techMentions mention machinery are gone
+ *     atomically with their files/tests (stale-test discipline, D-06);
+ *   • the panels adapter's skills closure carries competencies and no
+ *     experience prop (the treemap corpus prop reverts);
+ *   • the phase-3 B-1 chart-2/3 override pins survive (the CSS tokens stay
+ *     live for the Gantt/panel accents).
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -24,125 +32,130 @@ const codeOf = (p) =>
   read(p).replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
 
 // ---------------------------------------------------------------------------
-// Task 1: tracer — bar chart composed first, grouping single-sourced
+// Competency cards (REV-05/D-06) — the panel's primary rendering
 // ---------------------------------------------------------------------------
 
-test('skills-section: SkillsChart first child, grouping adopted from viz-data (UI-SPEC §10 single source)', () => {
+test('skills-section: competency cards compose FIRST — cards block before the groups loop (§4.2 + U-2 adjudication)', () => {
   const src = read('src/components/explore/sections/skills-section.tsx');
-  const chartIdx = src.indexOf('<SkillsChart');
-  assert.ok(chartIdx !== -1, 'SkillsChart composed (UI-SPEC §1 ①)');
+  const cardsIdx = src.indexOf('competencies.map(');
+  assert.ok(cardsIdx !== -1, 'the competency cards block is composed');
   const loopIdx = src.indexOf('groups.map(');
-  assert.ok(loopIdx !== -1 && chartIdx < loopIdx, 'chart composed before the groups loop — first child');
-  assert.ok(!src.includes('groups.push'), 'inline builder removed — single source (§10)');
-  assert.match(src, /import\s*\{[^}]*skillsGroupCounts[^}]*\}\s*from\s*'\.\.\/viz-data'/, 'skillsGroupCounts import');
-  // Augment-only discipline (D-07): graceful-hide, chips, headers, pointer stay byte-stable.
-  assert.ok(src.includes('groups.length === 0'), 'graceful-hide preserved');
-  assert.ok(src.includes('font-normal pointer-events-none'), 'chip overrides untouched');
-  assert.ok(src.includes('<TerminalPointer command="skills" />'), 'terminal pointer untouched');
+  assert.ok(loopIdx !== -1 && cardsIdx < loopIdx, 'cards block composed BEFORE the groups chips loop');
+  // U-2 adjudication (recorded override of UI-SPEC §4.1's REMOVED default):
+  // the chips + headers + pointer survive below the cards.
+  assert.ok(src.includes('font-normal pointer-events-none'), 'chip overrides untouched (U-2)');
+  assert.ok(src.includes('<TerminalPointer command="skills" />'), 'terminal pointer untouched (U-2)');
+  assert.match(src, /import\s*\{[^}]*skillsGroupCounts[^}]*\}\s*from\s*'\.\.\/viz-data'/, 'chips grouping still single-sourced (§10)');
+  assert.ok(src.includes('groups.length === 0'), 'chips graceful-hide preserved');
 });
 
-test('skills-chart: client boundary + pinned anatomy (UI-SPEC §2)', () => {
-  const code = codeOf('src/components/explore/sections/skills-chart.tsx');
-  assert.match(code, /['"]use client['"]/, 'client boundary (D-06)');
-  assert.ok(code.includes("from 'recharts'"), 'recharts import');
-  assert.ok(code.includes('ResponsiveContainer'), 'ResponsiveContainer (SSG shell + scaling)');
-  assert.ok(code.includes('isAnimationActive={false}'), 'animation off unconditionally (OQ-2)');
-  for (const banned of ['Tooltip', 'CartesianGrid', 'matchMedia']) {
-    assert.ok(!code.includes(banned), `${banned} absent (D-04/OQ-2)`);
-  }
-  assert.ok(code.includes('layout="vertical"'), 'vertical layout pin');
-  assert.ok(code.includes('height={192}'), 'fixed height reserves the SSG box — no CLS (OQ-4)');
-  assert.ok(code.includes('width={88}'), 'YAxis width 88 pin (longest label fits)');
-  assert.ok(code.includes('barSize={12}'), 'barSize pin');
-  assert.ok(code.includes('position="right"'), 'LabelList right position pin');
-});
-
-test('skills-chart: data-derived aria-label, zero hardcoded counts/labels (EXPLORE-07/W-2)', () => {
-  const code = codeOf('src/components/explore/sections/skills-chart.tsx');
-  assert.match(code, /aria-label=\{`Skills by category\. \$\{rows\.map\(/, 'aria-label composed at render time from rows');
-  assert.ok(code.includes('${row.label} ${row.count}'), "the pinned 'label count' pair format (plan-04 export contract)");
-  assert.ok(!/count[=:]\s*\d/.test(code), 'no numeric count literal');
-  assert.ok(!code.includes('Soft Skills'), 'no hardcoded group label — chart mirrors chips');
-});
-
-test('skills-chart: band order mechanism — probe-proven default, no order-flipping prop (R-7 resolved)', () => {
-  const code = codeOf('src/components/explore/sections/skills-chart.tsx');
-  // SSR probe on installed recharts 2.15.4 (deviation record in SUMMARY):
-  // vertical layout default renders row 1 at TOP (label y≈19 → row 6 y≈176);
-  // the order-flipping prop INVERTS (row 1 at y≈176). The contract wants
-  // top→bottom JSON group order, so the default mechanism is correct and the
-  // order-flipping prop must be absent from the code.
-  assert.ok(!code.includes('reversed'), 'no reversed prop — default band order is top-first');
-});
-
-// ---------------------------------------------------------------------------
-// Task 2: treemap below the chart, corpus threaded server-side (D-08)
-// ---------------------------------------------------------------------------
-
-test('skills-treemap: client boundary, root guard, pinned anatomy (UI-SPEC §3)', () => {
-  const code = codeOf('src/components/explore/sections/skills-treemap.tsx');
-  assert.match(code, /['"]use client['"]/, 'client boundary (D-06)');
-  assert.ok(code.includes('Treemap'), 'recharts Treemap import');
-  assert.ok(code.includes('ResponsiveContainer'), 'ResponsiveContainer');
-  assert.ok(code.includes('isAnimationActive={false}'), 'animation off unconditionally (OQ-2)');
-  assert.ok(code.includes('depth === 0'), 'B-1 root guard — synthetic depth-0 root call returns null');
-  assert.ok(code.includes('pointerEvents="none"'), 'pointerEvents none on the cell group (§6)');
-  assert.ok(code.includes('height={120}'), 'fixed 120px height pin (375px-safe)');
-  assert.ok(code.includes('dataKey="count"'), 'count dataKey pin');
-  assert.ok(code.includes('fillOpacity={0.35}'), '0.35 wash pin (text contrast by construction)');
-  assert.ok(code.includes('clipPath'), 'per-cell clip overflow guard present (W-5)');
-  // label ladder rungs pinned: 64x40 name+count, 44x16 name-only
-  assert.ok(code.includes('>= 64') && code.includes('>= 44'), 'ladder size rungs (64×40, 44×16)');
-  for (const banned of ['Tooltip', 'onClick', 'onMouseEnter', 'matchMedia']) {
-    assert.ok(!code.includes(banned), `${banned} absent (D-04/§6)`);
+test('skills-section: zero hardcoded competency strings — the nine docx segments appear in data only (EXPLORE-07)', () => {
+  const data = JSON.parse(read('src/data/portfolio-main-data.json'));
+  const code = codeOf('src/components/explore/sections/skills-section.tsx');
+  // The nine docx segments (resume-docx-extraction line 7)…
+  const docxSegments = [
+    'Test Automation Architecture & Framework Design',
+    'Playwright, Selenium, Rest Assured, WebdriverIO',
+    'Java, JavaScript, TypeScript',
+    'CI/CD (Jenkins, Docker, Bitbucket)',
+    'AI-Driven QA (MCP, RAG, Prompt Engineering, Agentic AI)',
+    'NPM Module & Platform Architecture',
+    'Quality Dashboards & Reporting',
+    'Cross-Team Technical Leadership & Mentorship',
+    'Performance & Load Testing (ReadyAPI, LoadUI, Postman)',
+  ];
+  // …plus every name/proof the refreshed data actually carries.
+  const dataStrings = data.core_competencies.flatMap((c) => [c.name, c.proof]);
+  assert.ok(dataStrings.length >= 16, 'sanity: 8 clusters × name+proof in the data');
+  for (const literal of [...docxSegments, ...dataStrings]) {
+    assert.ok(
+      !code.includes(literal),
+      `competency literal "${literal}" lives in the JSON, never in the component (EXPLORE-07)`,
+    );
   }
 });
 
-test('skills-treemap: honesty caption + data-derived aria-label (§3/§9)', () => {
-  const src = read('src/components/explore/sections/skills-treemap.tsx');
-  assert.ok(src.includes('Mentions in role responsibilities'), 'honesty caption (both tokens pinned)');
-  const code = codeOf('src/components/explore/sections/skills-treemap.tsx');
-  assert.match(code, /aria-label=\{`Technology mentions across role responsibilities\. \$\{cells\.map\(/, 'aria-label composed from cells');
-  assert.ok(code.includes('${cell.name} ${cell.count}'), "the pinned 'name count' pair format (plan-04 export contract)");
-  assert.ok(!/count[=:]\s*\d/.test(code), 'no numeric mention-count literal (EXPLORE-07)');
-  assert.ok(code.includes('cells.length === 0'), 'E-13: zero-match cells hide the whole block');
-});
-
-test('skills-section: treemap composed second, corpus from techMentions (§1 ②/§10)', () => {
+test('skills-section: card anatomy pinned — ul/li grid (lg density), chip accent, verbatim proof (§4.2)', () => {
   const src = read('src/components/explore/sections/skills-section.tsx');
-  const chartIdx = src.indexOf('<SkillsChart');
-  const treemapIdx = src.indexOf('<SkillsTreemap');
-  const loopIdx = src.indexOf('groups.map(');
-  assert.ok(treemapIdx !== -1 && treemapIdx < loopIdx, 'treemap before the groups loop');
-  assert.ok(chartIdx !== -1 && treemapIdx > chartIdx, 'treemap BETWEEN chart and groups loop (§1 ②)');
-  assert.match(src, /=\s*techMentions\(experience, skills\)/, 'cells computed server-side via techMentions');
-  assert.match(src, /experience:\s*PortfolioData\['experience'\]/, 'props extended with experience');
-  assert.ok(src.includes('<SkillsTreemap cells={cells} />'), 'cells passed as props — zero matching in the component (D-05)');
+  const code = codeOf('src/components/explore/sections/skills-section.tsx');
+  assert.match(code, /className="grid grid-cols-1 gap-2 lg:grid-cols-2"/, 'density keys on lg, never md/sm (§2.3/§4.2)');
+  assert.match(code, /<ul[\s\S]*competencies\.map\(/s, 'the card grid is a <ul> — countable list (§4.2)');
+  assert.match(code, /<li key=/, 'one <li> per cluster');
+  assert.match(code, /rounded-md border border-border p-3/, 'card container pin');
+  assert.match(code, /<Badge\s+variant="outline"\s+className="font-normal pointer-events-none text-chart-3 border-chart-3\/40"\s*>/, 'name chip: outline Badge + font-normal/pointer-events-none + chart-3 text + 40% border (§4.2/U-3)');
+  assert.match(code, /text-xs leading-relaxed text-muted-foreground/, 'proof pin — verbatim from data, never clipped');
+  // No slice, no count assumption — the expected-8 is the data's job (§4.2).
+  assert.ok(!code.includes('slice('), 'no slice on core_competencies — data-driven count');
+  assert.ok(!/[^\w]8[^\w]/.test(code.replace(/\s/g, ' ')), 'no hardcoded 8 — the count renders from the data');
+  // Graceful-hide: empty competencies renders no cards block, chips stay independent.
+  assert.ok(code.includes('competencies.length > 0'), 'cards block gated on data (graceful-hide, no fallback copy)');
+  // The proof renders the data field directly.
+  assert.match(code, /\{competency\.proof\}/, 'proof renders the data field verbatim');
 });
 
-test('explore-panels: skills closure threads experience, every other closure byte-unchanged (D-07)', () => {
+// ---------------------------------------------------------------------------
+// Removal contract — chart, treemap, mention machinery (D-06)
+// ---------------------------------------------------------------------------
+
+test('removal: skills-chart.tsx and skills-treemap.tsx do not exist (D-06)', () => {
+  assert.equal(existsSync(join(root, 'src/components/explore/sections/skills-chart.tsx')), false, 'bar chart deleted');
+  assert.equal(existsSync(join(root, 'src/components/explore/sections/skills-treemap.tsx')), false, 'treemap deleted');
+});
+
+test('removal: no recharts import anywhere under src/components/explore/ (D-06/OQ-2)', () => {
+  const files = readdirSync(join(root, 'src/components/explore'), { recursive: true })
+    .filter((f) => /\.(tsx|ts)$/.test(f));
+  assert.ok(files.length > 0, 'sanity: the explore tree is non-empty');
+  for (const rel of files) {
+    const src = read(join('src/components/explore', rel));
+    assert.ok(!/from ['"]recharts['"]/.test(src), `src/components/explore/${rel}: no recharts import`);
+  }
+});
+
+test('removal: viz-data no longer exports techMentions/TreemapCell — chips machinery survives (D-06/OQ-10)', () => {
+  const viz = codeOf('src/components/explore/viz-data.ts');
+  assert.ok(!viz.includes('techMentions'), 'mention engine deleted');
+  assert.ok(!viz.includes('TreemapCell'), 'treemap cell type deleted');
+  assert.ok(!viz.includes('escapeRegExp'), 'mention helper deleted');
+  assert.ok(!viz.includes('WORD_CHAR_PATTERN'), 'mention helper deleted');
+  assert.ok(!viz.includes('countOccurrences'), 'mention helper deleted');
+  assert.ok(viz.includes('export function skillsGroupCounts'), 'chips grouping survives (U-2)');
+  assert.ok(viz.includes('export function skillGroupFill'), 'shared fill map survives (U-2)');
+});
+
+// ---------------------------------------------------------------------------
+// Adapter + chrome copy
+// ---------------------------------------------------------------------------
+
+test('explore-panels: skills closure carries competencies={data.core_competencies}, no experience prop (OQ-10)', () => {
   const src = read('src/components/explore/explore-panels.tsx');
-  const skillsIdx = src.indexOf('skills: ({ data })');
-  const skillsLine = src.slice(skillsIdx, src.indexOf(',', skillsIdx) + 1);
-  assert.ok(skillsLine.includes('skills={data.skills}'), 'skills slice unchanged');
-  assert.ok(skillsLine.includes('experience={data.experience}'), 'experience threaded for the treemap corpus (§10)');
-  // byte-unchanged registry neighbours (the registry is the data spine, not chrome)
-  assert.ok(src.includes('about: ({ data }) => <AboutSection about={data.about} />,'));
   assert.ok(
-    !src.includes('contact: ({ data })'),
-    'no contact closure — Contact merged into AboutSection (REV-04/D-05)',
+    src.includes('skills: ({ data }) => <SkillsSection skills={data.skills} competencies={data.core_competencies} />,'),
+    'skills closure: skills slice + competencies threaded, experience prop reverted',
   );
+  assert.ok(src.includes('about: ({ data }) => <AboutSection about={data.about} />,'));
+  assert.ok(!src.includes('contact: ({ data })'), 'no contact closure — Contact merged into AboutSection (REV-04/D-05)');
   assert.ok(src.includes('experience: ({ data }) => <ExperienceSection experience={data.experience} />,'));
   assert.ok(src.includes('projects: ({ data }) => <ProjectsSection projects={data.projects} />,'));
+  assert.equal((src.match(/\w+: \(\{ data \}\) => </g) || []).length, 4, 'exactly four adapter closures (D-04/D-07)');
+});
+
+test('constants: skills tour step names the cards, no treemap copy anywhere (checker fix)', () => {
+  const code = codeOf('src/components/explore/constants.ts');
+  assert.ok(
+    code.includes('Competency cards with the quantified proof behind each — full inventory below.'),
+    'the skills step body names the competency cards (zero invented facts)',
+  );
+  assert.ok(!/treemap/i.test(code), 'no treemap copy survives in the chrome constants');
 });
 
 // ---------------------------------------------------------------------------
-// Task 3: scoped light-theme chart-2/chart-3 overrides (UI-SPEC §2 B-1)
+// Phase-3 B-1 carry-over — the chart tokens stay live for the surviving
+// server-rendered accents (career-span bg-chart-2, panel chips)
 // ---------------------------------------------------------------------------
 
 test('globals.css: light shell carries the pinned chart-2/chart-3 overrides exactly once (B-1)', () => {
   const css = read('src/app/globals.css');
-  // Inside .light .explore-shell, with the pinned recomputed-contrast values.
   assert.match(
     css,
     /\.light \.explore-shell\s*\{[^}]*--chart-2: 160 65% 32%;/s,

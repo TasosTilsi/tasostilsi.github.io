@@ -95,7 +95,7 @@ export const EXPLORE_TOUR_FINISH = {
 const EXPLORE_TOUR_STEP_BODIES = [
   "The short version of who's typing — bio, role, location, every contact channel, and the resume export.",
   "Roles in order, with the career-span chart on top for the shape of it.",
-  "Skills by category, then the treemap of what the actual work proves — full inventory below.",
+  "Competency cards with the quantified proof behind each — full inventory below.",
   "Stat tiles up top, six projects underneath.",
 ] as const;
 

@@ -3,8 +3,14 @@
  *  • plan 01: Layer-1 unit suite of the pure viz-data module (D-05/D-08).
  *  • plan 04: Layer-2 cross-cutting source invariants over the settled
  *    wave-2 tree (client boundary, motion, interaction, parsing site,
- *    literals, keywords, registry spine, dependencies, css) and Layer-3
- *    export-level invariants against out/explore.html after `npm run build`.
+ *    literals, registry spine, dependencies, css) and Layer-3 export-level
+ *    invariants against out/explore.html after `npm run build`.
+ *  • phase EXPLORE-06 plan 04: rewritten to the post-removal contract — the
+ *    recharts charts, the treemap and the techMentions mention machinery are
+ *    deleted (D-06), the Skills panel is competency cards over the surviving
+ *    chips (U-2), the Projects panel carries the year-grid calendar (D-07),
+ *    and the buildCareerSpan Smartup fixture follows plan 01's U-4 3-role
+ *    refresh.
  *
  * Runner: node --test tests/explore-visuals.test.mjs (no npm test script
  * exists — run directly).
@@ -31,8 +37,8 @@ import {
   skillGroupFill,
   skillsGroupCounts,
   projectStats,
-  techMentions,
   buildCareerSpan,
+  buildProjectCalendar,
 } from '../src/components/explore/viz-data.ts';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -228,130 +234,6 @@ test('projectStats: activeYearsSpan null when no date carries a year (E-9)', () 
   assert.strictEqual(stats.activeYearsSpan, null);
   assert.strictEqual(stats.linked, 1);
 });
-// ---------------------------------------------------------------------------
-// Task 3: techMentions — the D-08 whole-word mention engine
-// ---------------------------------------------------------------------------
-
-test('techMentions: exact cells from the real corpus — 4 cells / 5 mentions (UI-SPEC §0)', () => {
-  const cells = techMentions(data.experience, data.skills);
-  assert.deepStrictEqual(cells, [
-    { name: 'Java', count: 1, fill: 'hsl(var(--chart-2))' },
-    { name: 'CI/CD', count: 2, fill: 'hsl(var(--chart-4))' },
-    { name: 'MCP', count: 1, fill: 'hsl(var(--chart-5))' },
-    { name: 'RAG', count: 1, fill: 'hsl(var(--chart-5))' },
-  ], 'flattened keyword-set order (JSON group order, ties by first occurrence) — W-1 pin');
-});
-
-test('techMentions: zero-invented — every cell name is a JSON technology name', () => {
-  const cells = techMentions(data.experience, data.skills);
-  const jsonNames = [
-    ...data.skills.soft_skills,
-    ...Object.values(data.skills.hard_skills).flat(),
-    ...data.skills.languages,
-  ];
-  assert.ok(cells.length > 0, 'sanity: the real corpus yields cells');
-  for (const cell of cells) {
-    assert.ok(jsonNames.includes(cell.name), `cell "${cell.name}" is a JSON technology name`);
-  }
-});
-
-// Minimal fixture skills for boundary cases (contentful positions:
-// Languages 0 → chart-1, Infrastructure 1 → chart-2, Innovation 2 → chart-3).
-const fixtureSkills = {
-  soft_skills: [],
-  hard_skills: {
-    Languages: ['Java', 'JS', 'C++'],
-    Infrastructure: ['CI/CD'],
-    Innovation: ['AI Agents', 'MCP'],
-  },
-  languages: [],
-};
-
-test('techMentions: "Javascript" matches neither "Java" nor "JS"', () => {
-  const cells = techMentions(
-    [{
-      title: 'T', company: 'C', duration: 'd', isTechRelated: true,
-      responsibilities: ['Maintained existing projects (Android, Javascript).'],
-    }],
-    fixtureSkills,
-  );
-  assert.deepStrictEqual(cells, []);
-});
-
-test('techMentions: "AI agent skills" does not match "AI Agents" — plural differs', () => {
-  const cells = techMentions(
-    [{
-      title: 'T', company: 'C', duration: 'd', isTechRelated: true,
-      responsibilities: ['Deployed AI agent skills across engineering teams.'],
-    }],
-    fixtureSkills,
-  );
-  assert.deepStrictEqual(cells, []);
-});
-
-test('techMentions: positive control — the exact phrase "AI Agents" does match', () => {
-  const cells = techMentions(
-    [{
-      title: 'T', company: 'C', duration: 'd', isTechRelated: true,
-      responsibilities: ['We use AI Agents daily.'],
-    }],
-    fixtureSkills,
-  );
-  assert.deepStrictEqual(cells, [{ name: 'AI Agents', count: 1, fill: 'hsl(var(--chart-3))' }]);
-});
-
-test('techMentions: "C++" — escaped special chars match cleanly, no bogus trailing boundary', () => {
-  const cells = techMentions(
-    [{
-      title: 'T', company: 'C', duration: 'd', isTechRelated: true,
-      responsibilities: ['Wrote systems code in C++ daily.'],
-    }],
-    fixtureSkills,
-  );
-  assert.deepStrictEqual(cells, [{ name: 'C++', count: 1, fill: 'hsl(var(--chart-1))' }]);
-});
-
-test('techMentions: a name repeated within one bullet counts each occurrence', () => {
-  const cells = techMentions(
-    [
-      {
-        title: 'T', company: 'C', duration: 'd', isTechRelated: true,
-        responsibilities: ['MCP servers and MCP clients working together.'],
-      },
-      {
-        // entry with NO responsibilities — contributes nothing
-        title: 'T2', company: 'C2', duration: 'd2', isTechRelated: false,
-      },
-    ],
-    fixtureSkills,
-  );
-  assert.deepStrictEqual(cells, [{ name: 'MCP', count: 2, fill: 'hsl(var(--chart-3))' }]);
-});
-
-test('techMentions: empty experience or zero-match corpus → empty array (E-13)', () => {
-  assert.deepStrictEqual(techMentions([], data.skills), []);
-  assert.deepStrictEqual(
-    techMentions(
-      [{
-        title: 'T', company: 'C', duration: 'd', isTechRelated: true,
-        responsibilities: ['Nothing relevant here.'],
-      }],
-      fixtureSkills,
-    ),
-    [],
-  );
-});
-
-test('techMentions: duplicate name across groups aggregates, color from first group (E-17)', () => {
-  const cells = techMentions(
-    [{
-      title: 'T', company: 'C', duration: 'd', isTechRelated: true,
-      responsibilities: ['Java everywhere.'],
-    }],
-    { soft_skills: [], hard_skills: { Languages: ['Java'], Testing: ['Java'] }, languages: [] },
-  );
-  assert.deepStrictEqual(cells, [{ name: 'Java', count: 1, fill: 'hsl(var(--chart-1))' }]);
-});
 
 // ---------------------------------------------------------------------------
 // Task 4: buildCareerSpan — Gantt geometry with injectable now (D-02)
@@ -368,7 +250,7 @@ test('buildCareerSpan: 7 rows in JSON order, WashPark at 0%, Chubb reaches 100%'
       ['Chubb', 'Senior Software Engineer in Test', 'Sept 2023 — Present', true],
       ['Upstream Systems', 'Software Engineer in Test', 'Sept 2022 — Aug 2023', true],
       ['Netcompany-Intrasoft', 'Software Engineer in Test', 'June 2019 — Sept 2022', true],
-      ['Smartup PCC', 'Android Developer', 'November 2017 - April 2018', true],
+      ['Smartup PCC', 'Android Developer', 'November 2017 - April 2018', false],
       ['Sweet Corner', 'Barista', 'May 2018 - June 2018', false],
       ['Mini Market at University Campus of AUTH', 'Storekeeper', 'June 2017 - July 2017', false],
       ['WashPark', 'Washer', 'March 2017 - June 2017', false],
@@ -472,12 +354,9 @@ test('buildCareerSpan: start==end entry still yields a row (E-5)', () => {
 const codeOf = (p) =>
   read(p).replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
 
-const clientChartFiles = [
-  'src/components/explore/sections/skills-chart.tsx',
-  'src/components/explore/sections/skills-treemap.tsx',
-];
 const serverSlices = [
   'src/components/explore/sections/career-span-chart.tsx',
+  'src/components/explore/sections/projects-calendar.tsx',
   'src/components/explore/sections/project-stat-tiles.tsx',
 ];
 const sectionBodies = [
@@ -485,28 +364,28 @@ const sectionBodies = [
   'src/components/explore/sections/experience-section.tsx',
   'src/components/explore/sections/projects-section.tsx',
 ];
-const phaseTouchedComponents = [...clientChartFiles, ...serverSlices, ...sectionBodies];
+const phaseTouchedComponents = [...serverSlices, ...sectionBodies];
 
-test('cross-cutting: client boundary — "use client" ONLY in the two recharts slices (D-06)', () => {
-  for (const p of clientChartFiles) {
-    const code = codeOf(p);
-    assert.match(code, /['"]use client['"]/, `${p}: client boundary present (D-06)`);
-    assert.ok(code.includes("from 'recharts'"), `${p}: recharts import`);
+test('cross-cutting: client boundary — the Skills panel is 100% server-rendered, recharts gone (D-06, plan 04 rewrite)', () => {
+  // Post-removal contract: the two recharts slices are DELETED (their files
+  // must not exist) and no explore file imports recharts or carries a client
+  // directive among the panel-body slices.
+  for (const deleted of ['src/components/explore/sections/skills-chart.tsx', 'src/components/explore/sections/skills-treemap.tsx']) {
+    assert.equal(existsSync(join(root, deleted)), false, `${deleted}: deleted with the recharts removal (D-06)`);
+  }
+  const files = readdirSync(join(root, 'src/components/explore'), { recursive: true })
+    .filter((f) => /\.(tsx|ts)$/.test(f));
+  for (const rel of files) {
+    const src = read(join('src/components/explore', rel));
+    assert.ok(!/from ['"]recharts['"]/.test(src), `src/components/explore/${rel}: no recharts import (D-06/OQ-2)`);
   }
   for (const p of [...serverSlices, ...sectionBodies, 'src/components/explore/explore-panels.tsx']) {
     const code = codeOf(p);
     assert.ok(!code.includes('use client'), `${p}: no client directive — server component (D-06)`);
-    assert.ok(!/from ['"]recharts['"]/.test(code), `${p}: no recharts import (D-06)`);
   }
 });
 
-test('cross-cutting: motion — isAnimationActive={false} in both chart files, never true under explore, no matchMedia in the phase-touched files (OQ-2)', () => {
-  for (const p of clientChartFiles) {
-    assert.ok(
-      codeOf(p).includes('isAnimationActive={false}'),
-      `${p}: animation off unconditionally (UI-SPEC §7)`,
-    );
-  }
+test('cross-cutting: motion — never isAnimationActive={true} under explore, no matchMedia in the phase-touched files (OQ-2, plan 04 rewrite)', () => {
   const exploreFiles = readdirSync(join(root, 'src/components/explore'), { recursive: true })
     .filter((f) => /\.(tsx|ts)$/.test(f));
   for (const rel of exploreFiles) {
@@ -517,17 +396,17 @@ test('cross-cutting: motion — isAnimationActive={false} in both chart files, n
     );
   }
   // explore-intro.tsx keeps its own pre-existing matchMedia — out of scope
-  // and untouched; the seven phase-touched files gain none.
+  // and untouched; the phase-touched files gain none.
   for (const p of phaseTouchedComponents) {
     assert.ok(
       !codeOf(p).includes('matchMedia'),
-      `${p}: no matchMedia — charts are unconditionally static (OQ-2)`,
+      `${p}: no matchMedia — panels are unconditionally static (OQ-2)`,
     );
   }
 });
 
-test('cross-cutting: interaction-free charts — no Tooltip/grid/handlers in any of the four chart components (D-04/§6)', () => {
-  for (const p of [...clientChartFiles, ...serverSlices]) {
+test('cross-cutting: interaction-free charts — no Tooltip/grid/handlers in any chart-like component (D-04/§6)', () => {
+  for (const p of serverSlices) {
     const code = codeOf(p);
     for (const banned of ['Tooltip', 'CartesianGrid', 'onClick', 'onMouseEnter', 'onMouseLeave']) {
       assert.ok(!code.includes(banned), `${p}: ${banned} absent (D-04/§6)`);
@@ -535,7 +414,7 @@ test('cross-cutting: interaction-free charts — no Tooltip/grid/handlers in any
   }
 });
 
-test('cross-cutting: viz-data is the SOLE parsing site — the seven component files parse nothing inline (D-05)', () => {
+test('cross-cutting: viz-data is the SOLE parsing site — the component files parse nothing inline (D-05)', () => {
   for (const p of phaseTouchedComponents) {
     const code = codeOf(p);
     for (const banned of ['new Date(', 'getFullYear', 'getMonth', '.match(', 'RegExp(', 'parseDuration(']) {
@@ -548,8 +427,8 @@ test('cross-cutting: viz-data is the SOLE parsing site — the seven component f
     'skillGroupFill',
     'skillsGroupCounts',
     'projectStats',
-    'techMentions',
     'buildCareerSpan',
+    'buildProjectCalendar',
     'YEAR_PATTERN',
   ]) {
     assert.ok(viz.includes(site), `viz-data.ts hosts ${site} — the one data-shaping module (D-05)`);
@@ -558,11 +437,7 @@ test('cross-cutting: viz-data is the SOLE parsing site — the seven component f
 
 test('cross-cutting: zero stat literals — no standalone 14/9/2016/2026 drives a rendered value (EXPLORE-07/OQ-1/U-1)', () => {
   const stripAll = (p) => read(p).replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/[^\n]*/g, '');
-  // Full banned set over every component where a stray number could be a
-  // stat. skills-treemap is exempt from the standalone-9 check ONLY for its
-  // documented chrome font constants (COUNT_FONT = 9 — a label size, never a
-  // stat); its data-side invariant is the count[=:] shape assertion below.
-  for (const p of phaseTouchedComponents.filter((f) => !f.includes('skills-treemap'))) {
+  for (const p of phaseTouchedComponents) {
     const code = stripAll(p);
     for (const literal of ['14', '9', '2016', '2026']) {
       assert.ok(
@@ -571,14 +446,9 @@ test('cross-cutting: zero stat literals — no standalone 14/9/2016/2026 drives 
       );
     }
   }
-  const treemap = stripAll('src/components/explore/sections/skills-treemap.tsx');
-  for (const literal of ['14', '2016', '2026']) {
-    assert.ok(
-      !new RegExp(`(?<![\\w.])${literal}(?![\\w.])`).test(treemap),
-      `treemap: no standalone literal ${literal} driving a rendered value (EXPLORE-07)`,
-    );
-  }
-  for (const p of clientChartFiles) {
+  // The deleted treemap's exemption and the client-chart count check both
+  // left with the files — the surviving components carry no count literals.
+  for (const p of phaseTouchedComponents) {
     assert.ok(
       !/count[=:]\s*\d/.test(codeOf(p)),
       `${p}: no numeric count literal — counts arrive via props (EXPLORE-07)`,
@@ -586,27 +456,11 @@ test('cross-cutting: zero stat literals — no standalone 14/9/2016/2026 drives 
   }
 });
 
-test('cross-cutting: treemap keywords zero-invented — the component holds no JSON technology-name literal (D-08)', () => {
-  const code = codeOf('src/components/explore/sections/skills-treemap.tsx');
-  const jsonNames = [
-    ...data.skills.soft_skills,
-    ...Object.values(data.skills.hard_skills).flat(),
-    ...data.skills.languages,
-  ];
-  assert.ok(jsonNames.length > 0, 'sanity: the JSON keyword set is non-empty');
-  for (const name of jsonNames) {
-    assert.ok(
-      !code.includes(`'${name}'`) && !code.includes(`"${name}"`),
-      `no hand-written "${name}" keyword in the treemap component — cells come from viz-data (D-08)`,
-    );
-  }
-});
-
-test('cross-cutting: registry spine — four total closures after the About+Contact merge, skills threads the corpus (D-04/D-05/D-07)', () => {
+test('cross-cutting: registry spine — four total closures after the merge, skills carries competencies (D-04/D-05/D-07, plan 04)', () => {
   const src = read('src/components/explore/explore-panels.tsx');
   assert.ok(
-    src.includes('skills: ({ data }) => <SkillsSection skills={data.skills} experience={data.experience} />,'),
-    'skills closure threads experience={data.experience} for the treemap corpus (§10) — plan 04 reverts it',
+    src.includes('skills: ({ data }) => <SkillsSection skills={data.skills} competencies={data.core_competencies} />,'),
+    'skills closure threads competencies={data.core_competencies} — the treemap corpus prop reverted (OQ-10)',
   );
   assert.ok(src.includes('about: ({ data }) => <AboutSection about={data.about} />,'));
   assert.ok(
@@ -682,58 +536,61 @@ test('cross-cutting: scoped light-theme chart overrides pinned, chart-1 absent f
 // ---------------------------------------------------------------------------
 // Plan 04 Task 2: Layer-3 export-level invariants — hold against the static
 // export (out/) produced by `npm run build`; they fail with a build hint
-// until then (suite convention). Only the two recharts skills charts are
-// hydration shells in the static HTML (OQ-4 — no SVG until measured); the
-// Gantt and the tiles are fully server-rendered and must appear complete.
+// until then (suite convention). Post-removal the page is recharts-free —
+// every panel (Gantt, calendar, tiles, cards, chips) is fully
+// server-rendered and must appear complete in the static HTML.
 // Manual checks deliberately NOT asserted here (static HTML cannot carry
-// them): §12.2 rendered bar row order, §12.3 treemap area ∝ mentions,
-// §12.8 375px no-scroll, §12.9 both-theme legibility — listed for the verify
-// step's human pass.
+// them): rendered calendar bar placement fidelity, 375px no-scroll,
+// both-theme legibility — listed for the verify step's human pass.
 // ---------------------------------------------------------------------------
 
 const exportHtmlPath = join(root, 'out/explore.html');
 const readExport = () => readFileSync(exportHtmlPath, 'utf8');
 const escapeRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-test('export: /explore carries the recharts hydration shells + treemap caption (OQ-4)', () => {
+test('export: /explore is recharts-free — zero hydration shells after the chart/treemap removal (OQ-4, plan 04)', () => {
   assert.ok(existsSync(exportHtmlPath), 'out/explore.html missing — run `npm run build` first');
   const html = readExport();
   const shells = (html.match(/recharts-responsive-container/g) || []).length;
-  assert.ok(shells >= 2, `bar + treemap hydration shells present — found ${shells} (OQ-4)`);
-  assert.ok(
-    html.includes('Mentions in role responsibilities'),
-    'treemap honesty caption server-rendered (§3)',
-  );
+  assert.equal(shells, 0, `zero recharts hydration shells — found ${shells} (the charts are deleted, D-06)`);
 });
 
-test('export: bar chart aria-label enumerates every JSON-derived label count pair', () => {
+test('export: competency cards render every cluster name + proof from the refreshed data (REV-05)', () => {
   assert.ok(existsSync(exportHtmlPath), 'out/explore.html missing — run `npm run build` first');
-  const html = readExport();
-  const pairs = skillsGroupCounts(data.skills).map((row) => `${row.label} ${row.count}`);
-  assert.ok(
-    html.includes(`Skills by category. ${pairs[0]}`),
-    'pinned aria-label format opens with the first pair',
-  );
-  for (const pair of pairs) {
+  // React escapes & and quotes in text nodes — decode the common entities
+  // before matching (verify-script convention from plan 03).
+  const html = readExport()
+    .replace(/&amp;/g, '&')
+    .replace(/&#39;/g, "'")
+    .replace(/&quot;/g, '"')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>');
+  for (const competency of data.core_competencies) {
     assert.ok(
-      html.includes(pair),
-      `bar aria-label carries "${pair}" — derived from the JSON at test time (OQ-3)`,
+      html.includes(competency.name),
+      `competency name "${competency.name}" server-rendered (derived from the JSON)`,
+    );
+    assert.ok(
+      html.includes(competency.proof),
+      `proof line for "${competency.name}" server-rendered verbatim`,
     );
   }
 });
 
-test('export: treemap aria-label enumerates every techMentions name count pair', () => {
+test('export: year-grid calendar server-rendered — aria label + project rows + year ticks (REV-06)', () => {
   assert.ok(existsSync(exportHtmlPath), 'out/explore.html missing — run `npm run build` first');
   const html = readExport();
-  const cells = techMentions(data.experience, data.skills);
-  assert.ok(cells.length > 0, 'sanity: the corpus yields cells');
-  const pairs = cells.map((cell) => `${cell.name} ${cell.count}`);
   assert.ok(
-    html.includes(`Technology mentions across role responsibilities. ${pairs[0]}`),
-    'pinned aria-label format opens with the first pair',
+    html.includes('Projects calendar — '),
+    'the calendar aria-label prefix server-rendered (§5.3)',
   );
-  for (const pair of pairs) {
-    assert.ok(html.includes(pair), `treemap aria-label carries "${pair}" (derived at test time)`);
+  // Every project renders its calendar row (name + verbatim date), the same
+  // set the cards render — the count matches the data (R-4: JSON order).
+  for (const project of data.projects) {
+    assert.ok(html.includes(project.name), `calendar row "${project.name}" server-rendered`);
+    if (project.date) {
+      assert.ok(html.includes(project.date), `calendar date "${project.date}" for "${project.name}" verbatim`);
+    }
   }
 });
 

@@ -145,19 +145,23 @@ test('welcome copy: the lap covers FOUR sections after the merge (D-05/OQ-9)', (
   );
 });
 
-test('step bodies: merged-panel about copy live, skills/projects copy untouched until plan 04 (D-05/W-3a)', () => {
+test('step bodies: merged-panel about copy live, skills copy renewed to the cards, projects intact (D-05/W-3a; plan 04 flipped the skills copy)', () => {
   const about = EXPLORE_TOUR_STEPS[1].body;
   assert.ok(
     about.includes('bio') && about.includes('contact channel') && about.includes('resume export'),
     'about step body describes the merged panel (bio + role + location + channels + resume export)',
   );
   assert.ok(
-    EXPLORE_TOUR_STEPS[3].body.includes('treemap'),
-    'skills step copy untouched until plan 04 owns it atomically with the removal',
+    EXPLORE_TOUR_STEPS[3].body.includes('Competency cards'),
+    'skills step copy names the competency cards — plan 04 owns it atomically with the removal',
+  );
+  assert.ok(
+    !EXPLORE_TOUR_STEPS[3].body.includes('treemap'),
+    'no treemap copy survives in the skills step (D-06)',
   );
   assert.ok(
     EXPLORE_TOUR_STEPS[4].body.includes('projects'),
-    'projects step copy untouched until plan 04',
+    'projects step copy untouched by plan 04',
   );
   for (const step of EXPLORE_TOUR_STEPS) {
     assert.ok(

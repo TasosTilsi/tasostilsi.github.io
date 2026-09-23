@@ -1,58 +1,68 @@
 /**
- * SkillsSection — Skills panel body (D-01, D-04, UI-SPEC §6).
+ * SkillsSection — Skills panel body (D-06, plan EXPLORE-06 REV-05).
  *
- * The JSON's own grouping, in JSON key order with no sorting and no
- * re-shaping — the soft-skill group first, then each hard-skill category in
- * insertion order labelled by its key verbatim, then the spoken-languages
- * group — now lives in viz-data's skillsGroupCounts (§10 single source; see
- * the phase-3 note below). Group headers are prettified chrome labels — a
- * structural key→label map allowed per §17.4 (W-5 resolved); the two
- * 'Languages' rows stay separate groups keyed by their distinct JSON paths,
- * order carrying the disambiguation.
+ * PRIMARY rendering: the competency + proof cards (§4.2) — one card per
+ * core_competencies cluster, each an accent chip (the outline-variant Badge
+ * carrying the Skills panel accent identity: chart-3 text + 40%-alpha
+ * chart-3 border) with the cluster name plus the one-line quantified proof
+ * beneath, both verbatim from the refreshed data. Density keys on lg —
+ * never md/sm (§2.3: the panel body is ≈320px at md, too narrow for two
+ * cards; at lg 8 cards = 4×2, zero empty cells).
  *
- * Chips are the existing outline-variant Badge with two mandatory
- * className overrides (D-04, §17.2): the chip font weight is neutralized
- * (the base weight is too heavy at chip density) and pointer events are
- * suppressed (the primitive's other variants carry hover styles and CSS
- * :hover fires on divs — §10 pins chips static, no cursor change, not
- * focusable). Every group renders as-is — no cap (CONTEXT discretion).
+ * SURVIVING body (U-2 adjudication on record): D-06 removes ONLY the bar
+ * chart + treemap — the grouped chips (soft_skills / hard_skills
+ * categories / languages, the only /explore rendering of the full
+ * hard-skills lists) and their headers stay byte-identical below the cards,
+ * still fed by viz-data's skillsGroupCounts (§10 single source), with the
+ * two mandatory chip className overrides (§17.2): neutral font weight and
+ * suppressed pointer events (§10 pins chips static). The TerminalPointer
+ * stays at the body end.
+ *
+ * The old bar chart, mention treemap and the techMentions corpus prop are
+ * GONE (D-06) — the section imports no chart library and no mention
+ * machinery; the server-side experience prop reverted with them (OQ-10).
  *
  * Server component (UI-SPEC §2): no client directive, no hooks — copy
  * arrives entirely from the portfolio data via props (D-07). Graceful-hide
- * (UI-SPEC §11): a missing or empty group is skipped entirely, and with no
- * contentful group at all the body renders nothing — no fallback copy.
- *
- * Phase 3 augmentation (D-01/D-08, UI-SPEC §1 ①②/§10): the bar chart
- * composes as the FIRST child, the mention treemap as the SECOND, both fed
- * by viz-data — skillsGroupCounts is the SAME builder logic adopted
- * verbatim into the pure module (§10 single source: chart and chips can
- * never drift), and the treemap cells come from techMentions over the
- * experience slice threaded server-side through the panels adapter
- * (UI-SPEC §10 corpus boundary). Chips and headers below stay byte-identical.
+ * (UI-SPEC §11): empty competencies renders no cards block while the chips
+ * block stays independent; with no contentful group either the body renders
+ * nothing — no fallback copy.
  */
 import { Badge } from '@/components/ui/badge';
 import type { PortfolioData } from '@/data/portfolio-main-data';
-import { skillsGroupCounts, techMentions } from '../viz-data';
+import { skillsGroupCounts } from '../viz-data';
 import { TerminalPointer } from './terminal-pointer';
-import { SkillsChart } from './skills-chart';
-import { SkillsTreemap } from './skills-treemap';
 
 export function SkillsSection({
   skills,
-  experience,
+  competencies,
 }: {
   skills: PortfolioData['skills'];
-  experience: PortfolioData['experience'];
+  competencies: PortfolioData['core_competencies'];
 }) {
   const groups = skillsGroupCounts(skills);
-  if (groups.length === 0) {
+  if (groups.length === 0 && competencies.length === 0) {
     return null;
   }
-  const cells = techMentions(experience, skills);
   return (
     <div className="space-y-3">
-      <SkillsChart rows={groups} />
-      <SkillsTreemap cells={cells} />
+      {competencies.length > 0 && (
+        <ul className="grid grid-cols-1 gap-2 lg:grid-cols-2">
+          {competencies.map((competency) => (
+            <li key={competency.name} className="rounded-md border border-border p-3">
+              <Badge
+                variant="outline"
+                className="font-normal pointer-events-none text-chart-3 border-chart-3/40"
+              >
+                {competency.name}
+              </Badge>
+              <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
+                {competency.proof}
+              </p>
+            </li>
+          ))}
+        </ul>
+      )}
       {groups.map((group) => (
         <div key={group.id}>
           <p className="text-xs text-muted-foreground">{group.label}</p>
