@@ -16,6 +16,6 @@
 - [x] REV-02: The /resume page is rebuilt to the docx structure — SUMMARY → CORE COMPETENCIES → PROFESSIONAL EXPERIENCE (quantified bullets) → PROJECTS → EDUCATION → CERTIFICATIONS → SELECTED WRITING — print-optimized.
 - [x] REV-03: The static PDF export (scripts/generate-static-resume.js → public/resume-export.html) is rebuilt to the same docx structure, replacing its hardcoded sections.
 - [x] REV-04: The About and Contact panels merge into one panel on /explore, reclaiming the empty space the oversized About section left, with the panel grid rebalanced.
-- [ ] REV-05: The Skills panel's bar chart and treemap are replaced by competency + proof cards — 8 core-competency clusters, each with a one-line quantified proof drawn from the refreshed data.
-- [ ] REV-06: The Projects panel gains a year-grid bars calendar (year columns, project bars spanning their active months) alongside the existing cards.
+- [x] REV-05: The Skills panel's bar chart and treemap are replaced by competency + proof cards — 8 core-competency clusters, each with a one-line quantified proof drawn from the refreshed data.
+- [x] REV-06: The Projects panel gains a year-grid bars calendar (year columns, project bars spanning their active months) alongside the existing cards.
 - [x] REV-07: The Experience showcase is redesigned per the user's reference screenshot (layout description pending from the user — this requirement is scoped when the description arrives; the current text timeline + Gantt remain until then).
