@@ -528,6 +528,10 @@ body {
   --sidebar-border: 220 10% 18%;
   --sidebar-ring: 215 90% 64%;
   --radius: 0.25rem;
+  /* REV-11 hover bloom (OQ-A, UI-SPEC §6.4): the ONLY token addition —
+     hsl-tinted to the shell's own background hue (redesign skill: no
+     generic black shadows). The light block carries its slate tint. */
+  --panel-shadow-hover: 0 6px 16px -4px hsl(220 13% 5% / 0.55);
 }
 
 /* Light IDE theme override — activates when <html> carries .light (UI-SPEC §9.3).
@@ -576,6 +580,9 @@ body {
   --chart-2: 160 65% 32%;
   --chart-3: 30 75% 38%;
   --chart-4: 280 65% 40%;
+  /* Light-side hover bloom — slate tint (220 20% 20%), never pure black
+     (UI-SPEC §6.4/OQ-A; the ONLY addition to this block). */
+  --panel-shadow-hover: 0 6px 16px -4px hsl(220 20% 20% / 0.15);
 }
 
 /* REV-11 entrance — the ONE choreography (UI-SPEC §6.2, D-04/editorial-calm).
@@ -598,6 +605,39 @@ body {
 .explore-shell .panel-grid > *:nth-child(2) { animation-delay: 40ms; }
 .explore-shell .panel-grid > *:nth-child(3) { animation-delay: 80ms; }
 .explore-shell .panel-grid > *:nth-child(4) { animation-delay: 120ms; }
+
+/* REV-11 hover/focus vocabulary (UI-SPEC §6.2/§6.4/§7, D-04/editorial-calm)
+   — the closed M2/M3 set; nothing else animates. Scoped under .explore-shell
+   so the guard below suppresses every transition. Animated properties:
+   transform + box-shadow only, never top/left/width/height (taste §6.A). */
+.explore-shell .exp-lift {
+  transition: transform 220ms cubic-bezier(0.25, 1, 0.5, 1),
+    box-shadow 220ms cubic-bezier(0.25, 1, 0.5, 1);
+}
+.explore-shell .exp-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--panel-shadow-hover);
+}
+/* Keyboard parity (B-1 resolution): the bloom composes AFTER the ring layers
+   — the §14 ring stays intact, the bloom rides with it, never replaces it. */
+.explore-shell .exp-lift:focus-visible {
+  transform: translateY(-2px);
+  box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow),
+    var(--panel-shadow-hover);
+}
+/* Press-settle (U-4/W-5): declared AFTER the hover rule — source order
+   overrides it while the control is pressed, settling to translateY(0)
+   with the same 220ms curve from the base rule. */
+.explore-shell .exp-lift:active {
+  transform: translateY(0);
+}
+.explore-shell .exp-nudge {
+  transition: transform 220ms cubic-bezier(0.25, 1, 0.5, 1);
+}
+.explore-shell a:hover .exp-nudge,
+.explore-shell a:focus-visible .exp-nudge {
+  transform: translateX(2px);
+}
 
 /* Reduced-motion guard (UI-SPEC §12) — the ONLY motion-suppression mechanism of
    this phase. Covers the in-flow shell (marker-class descendants) and the

@@ -4,8 +4,13 @@
  * Top-6 mini-cards in JSON order (the resume-modal cap precedent), each a
  * single anchor when linked — name with the ↗ arrow plus an optional date
  * tag, opening externally in a new tab — with the full description
- * wrapping and never clipped (§17.5). Hover moves ONLY the name and arrow
- * to the accent color, via the group class on the anchor (W-2 pin). The
+ * wrapping and never clipped (§17.5). Hover moves the name and arrow
+ * to the accent color via the group class on the anchor (W-2 pin), and the
+ * EXPLORE-07 M2 vocabulary lifts the linked card 2px with the hsl-tinted
+ * bloom (the lift hook class on the linked anchor; globals.css owns every
+ * motion declaration, D-04).
+ * The unlinked div card stays static — hover must never promise
+ * interactivity (§3.2/W-2). The
  * secondary source link stays out of the card — one link per card (§17.11)
  * — and remains reachable through the terminal pointer below (D-02).
  *
@@ -77,7 +82,7 @@ export function ProjectsSection({
             href={project.link}
             target="_blank"
             rel="noopener noreferrer"
-            className="group block rounded-md border border-border p-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ring-offset-background"
+            className="group block rounded-md border border-border p-3 exp-lift focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ring-offset-background"
           >
             {header}
             {body}

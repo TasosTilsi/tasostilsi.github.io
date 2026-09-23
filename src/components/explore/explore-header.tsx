@@ -5,9 +5,11 @@
  * Right cluster, in order: the Tour trigger (LEFTMOST, UI-SPEC §5 — re-opens
  * the spotlight wizard, D-05), theme toggle, drawer toggle, then the
  * Terminal link — rightmost since phase-5 (D-03) — all real 44×44 px touch
- * targets, ghost-styled, no transition classes on the theme swap (instant,
- * UI-SPEC §9.1; icon is the TARGET theme: Sun while dark → light, Moon while
- * light). The drawer toggle is passed as ExploreDrawer's SheetTrigger child —
+ * targets, ghost-styled, press feedback via the active-state muted tint on
+ * all four controls (EXPLORE-07 U-4); the theme swap itself stays instant —
+ * never animated (UI-SPEC §9.1; icon is the TARGET theme: Sun while dark →
+ * light, Moon while light).
+ * The drawer toggle is passed as ExploreDrawer's SheetTrigger child —
  * Radix supplies aria-expanded/aria-controls and focus return (EXPLORE-01b).
  *
  * Toggle state comes from ExploreShell's single useExploreTheme instance
@@ -66,7 +68,7 @@ export function ExploreHeader({
         type="button"
         onClick={onOpenTour}
         aria-label="Start the guided tour"
-        className="flex h-[44px] w-[44px] shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        className="flex h-[44px] w-[44px] shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background active:bg-muted/80"
       >
         <Compass className="h-5 w-5" aria-hidden="true" />
       </button>
@@ -77,7 +79,7 @@ export function ExploreHeader({
         aria-label={
           theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'
         }
-        className="flex h-[44px] w-[44px] shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        className="flex h-[44px] w-[44px] shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background active:bg-muted/80"
       >
         {theme === 'dark' ? (
           <Sun className="h-5 w-5" aria-hidden="true" />
@@ -92,7 +94,7 @@ export function ExploreHeader({
           <button
             type="button"
             aria-label="Open section navigation"
-            className="flex h-[44px] w-[44px] shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            className="flex h-[44px] w-[44px] shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background active:bg-muted/80"
           >
             <Menu className="h-5 w-5" aria-hidden="true" />
           </button>
@@ -103,7 +105,7 @@ export function ExploreHeader({
       <Link
         href="/"
         aria-label="Open the terminal"
-        className="flex h-[44px] w-[44px] shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        className="flex h-[44px] w-[44px] shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background active:bg-muted/80"
       >
         <Terminal className="h-5 w-5" aria-hidden="true" />
       </Link>

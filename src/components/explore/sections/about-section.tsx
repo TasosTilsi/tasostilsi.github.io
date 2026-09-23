@@ -12,6 +12,13 @@
  * anywhere (D-05), no name repetition (the header bar and intro strip carry
  * it), no TerminalPointer on the merged panel (§3.2 item 6).
  *
+ * EXPLORE-07 micro-motion (REV-11/D-04): every motion declaration lives in
+ * globals.css under .explore-shell — the channel icons and the resume
+ * ArrowRight carry the exp-nudge hook (M3: row hover + row focus, 2px
+ * translateX), and both underlined labels carry group-focus-visible:underline
+ * for M5 keyboard parity alongside the pre-existing hover underline (M4,
+ * instant by design). No new focusables, tab order unchanged.
+ *
  * Server component (UI-SPEC §2): no client directive, no hooks — copy arrives
  * entirely from the portfolio data via props (D-07). No Medium brand icon
  * exists in lucide-react 0.475.0, so that channel uses the §8 substitute
@@ -98,10 +105,10 @@ export function AboutSection({ about }: { about: PortfolioData['about'] }) {
             <>
               <channel.Icon
                 aria-hidden="true"
-                className="h-4 w-4 shrink-0 text-muted-foreground"
+                className="h-4 w-4 shrink-0 text-muted-foreground exp-nudge"
               />
               <span className="min-w-0 flex-1">
-                <span className="block text-sm text-foreground group-hover:underline">
+                <span className="block text-sm text-foreground group-hover:underline group-focus-visible:underline">
                   {channel.label}
                 </span>
                 <span className="block break-all text-xs text-muted-foreground">
@@ -134,8 +141,8 @@ export function AboutSection({ about }: { about: PortfolioData['about'] }) {
         className="mt-3 group flex min-h-[44px] items-center gap-2 rounded-md border border-border px-3 text-sm font-medium text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ring-offset-background"
       >
         <FileText aria-hidden="true" className="h-4 w-4" />
-        <span className="group-hover:underline">Full resume</span>
-        <ArrowRight aria-hidden="true" className="h-4 w-4" />
+        <span className="group-hover:underline group-focus-visible:underline">Full resume</span>
+        <ArrowRight aria-hidden="true" className="h-4 w-4 exp-nudge" />
       </Link>
     </div>
   );

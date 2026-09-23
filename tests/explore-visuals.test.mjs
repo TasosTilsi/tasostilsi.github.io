@@ -406,6 +406,166 @@ test('motion: panel-grid stagger entrance — keyframes, shorthand, source-order
   assert.ok(panels.includes('panel-grid'), 'panel-grid class on the panels container (plan 02 hook — children in DOM order)');
 });
 
+test('motion: hover/focus/active vocabulary — lift+bloom, nudge, underline parity, press-settle (REV-11/D-04/M2-M5, U-4/U-5/OQ-A, UI-SPEC §10.4-8)', () => {
+  const css = read('src/app/globals.css');
+  const lines = css.split('\n');
+
+  // §10.5 / OQ-A: --panel-shadow-hover defined once per theme block, hsl-tinted
+  // to the background hue (redesign skill: no generic black shadows).
+  assert.match(
+    css,
+    /^\.explore-shell\s*\{[^}]*--panel-shadow-hover: 0 6px 16px -4px hsl\(220 13% 5% \/ 0\.55\);/m,
+    'dark shell defines the bg-hue-tinted hover shadow',
+  );
+  assert.match(
+    css,
+    /\.light \.explore-shell\s*\{[^}]*--panel-shadow-hover: 0 6px 16px -4px hsl\(220 20% 20% \/ 0\.15\);/s,
+    'light shell defines the slate-tinted hover shadow — never pure black',
+  );
+
+  // M2: lift + bloom — transition on transform + box-shadow ONLY, 220ms,
+  // the pinned editorial-calm curve (taste §6.A; D-04 200-280ms window).
+  assert.match(
+    css,
+    /\.explore-shell \.exp-lift \{\s*\n\s*transition: transform 220ms cubic-bezier\(0\.25, 1, 0\.5, 1\),\s*\n\s*box-shadow 220ms cubic-bezier\(0\.25, 1, 0\.5, 1\);/,
+    'exp-lift transitions transform + box-shadow at 220ms with the pinned curve',
+  );
+  assert.match(
+    css,
+    /\.explore-shell \.exp-lift:hover \{[\s\S]*?transform: translateY\(-2px\);[\s\S]*?box-shadow: var\(--panel-shadow-hover\);/,
+    'hover lifts 2px with the token bloom',
+  );
+  // Keyboard parity (B-1 resolution): the bloom composes AFTER the ring
+  // layers — the §14 ring stays intact, the bloom rides with it.
+  assert.match(
+    css,
+    /\.explore-shell \.exp-lift:focus-visible \{[\s\S]*?box-shadow: var\(--tw-ring-offset-shadow\), var\(--tw-ring-shadow\),\s*var\(--panel-shadow-hover\);/,
+    'focus-visible composes the three-layer ring + bloom shadow',
+  );
+  // U-4/W-5 press-settle: :active source-ordered AFTER the :hover rule.
+  const hoverIdx = lines.findIndex((l) => l.includes('.explore-shell .exp-lift:hover'));
+  const activeIdx = lines.findIndex((l) => l.includes('.explore-shell .exp-lift:active'));
+  assert.ok(hoverIdx > -1, 'the .exp-lift:hover rule exists');
+  assert.ok(activeIdx > hoverIdx, 'the :active press-settle rule is source-ordered AFTER :hover (source-order override)');
+  assert.match(css, /\.explore-shell \.exp-lift:active \{[\s\S]*?transform: translateY\(0\);/, 'press settles to translateY(0)');
+
+  // M3: icon nudge — row hover + row focus via the a-scoped trigger rules.
+  assert.match(
+    css,
+    /\.explore-shell \.exp-nudge \{\s*\n\s*transition: transform 220ms cubic-bezier\(0\.25, 1, 0\.5, 1\);/,
+    'exp-nudge transitions transform at 220ms with the pinned curve',
+  );
+  assert.match(
+    css,
+    /\.explore-shell a:hover \.exp-nudge,\s*\n\s*\.explore-shell a:focus-visible \.exp-nudge \{\s*\n\s*transform: translateX\(2px\);/,
+    'a:hover / a:focus-visible nudge the exp-nudge icon 2px',
+  );
+
+  // Durations: every transition duration in the motion region sits in the
+  // 200-280ms window (animation-delay values are delays, not durations).
+  const guardIdx2 = lines.findIndex((l) => l.includes('@media (prefers-reduced-motion: reduce)'));
+  const keyframesLine2 = lines.findIndex((l) => l.includes('@keyframes explore-panel-in'));
+  for (const l of motionRegion(lines, keyframesLine2, guardIdx2)) {
+    if (l.includes('transition:')) {
+      for (const m of l.matchAll(/(\d+)ms/g)) {
+        const ms = Number(m[1]);
+        assert.ok(ms >= 200 && ms <= 280, `transition duration ${ms}ms within the 200-280ms editorial-calm window`);
+      }
+    }
+  }
+  // The stagger shorthand keeps its M1 pin: 240ms + curve + backwards fill.
+  assert.ok(
+    css.includes('explore-panel-in 240ms cubic-bezier(0.25, 1, 0.5, 1) backwards'),
+    'the stagger shorthand keeps 240ms + pinned curve + backwards fill',
+  );
+
+  // §10.4 class usage:
+  // Projects — exp-lift on the LINKED anchor ONLY; the unlinked div stays
+  // static (hover must never promise interactivity, §3.2/W-2).
+  const projects = read('src/components/explore/sections/projects-section.tsx');
+  assert.equal(
+    (projects.match(/exp-lift/g) || []).length,
+    1,
+    'exp-lift appears exactly once in projects-section — the linked anchor only',
+  );
+  const liftLine = projects.split('\n').find((l) => l.includes('exp-lift'));
+  assert.ok(liftLine, 'the linked card anchor line carries exp-lift');
+  assert.ok(liftLine.includes('group block rounded-md border border-border p-3'), 'exp-lift rides the linked card anchor shell');
+  assert.ok(liftLine.includes('focus-visible:ring'), 'the linked anchor keeps its §14 focus ring');
+  assert.ok(
+    projects.includes('className="block rounded-md border border-border p-3"'),
+    'the unlinked div card keeps its static shell — no exp-lift, no hover affordance (§3.2/W-2)',
+  );
+  // About — M3 nudge on the channel icons + the resume ArrowRight (U-5);
+  // M5 underline focus parity on BOTH underlined labels.
+  const about = read('src/components/explore/sections/about-section.tsx');
+  const nudgeLines = about.split('\n').filter((l) => l.includes('exp-nudge'));
+  assert.ok(nudgeLines.length >= 2, `exp-nudge on the channel icons + the resume ArrowRight (${nudgeLines.length} ≥ 2)`);
+  assert.ok(nudgeLines.some((l) => l.includes('ArrowRight')), 'the resume row ArrowRight joins M3 (U-5)');
+  const parityLines = about
+    .split('\n')
+    .filter((l) => l.includes('group-hover:underline') && l.includes('group-focus-visible:underline'));
+  assert.ok(
+    parityLines.length >= 2,
+    `group-focus-visible:underline on BOTH underlined labels, riding group-hover:underline (contact + Full resume) — M5 keyboard parity (${parityLines.length} ≥ 2)`,
+  );
+  // Skills — the competency cards carry exp-lift (plan 02 hook, §10.4).
+  const skills = read('src/components/explore/sections/skills-section.tsx');
+  assert.ok(skills.includes('exp-lift'), 'competency cards carry exp-lift (plan 02, animated by the vocabulary)');
+
+  // Header press-settle (U-4/A-10): active:bg-muted/80 on all four 44px
+  // ghost controls; the theme swap stays INSTANT — no transition utility in
+  // header code (§0 rail; prose comments are stripped per codeOf).
+  const headerSrc = read('src/components/explore/explore-header.tsx');
+  assert.equal(
+    (headerSrc.match(/active:bg-muted\/80/g) || []).length,
+    4,
+    'active:bg-muted/80 on all four 44px ghost controls (Tour/theme/drawer/Terminal)',
+  );
+  assert.ok(
+    !codeOf('src/components/explore/explore-header.tsx').includes('transition'),
+    'no transition utility in header code — the theme swap stays instant (§0 rail)',
+  );
+
+  // §10.7: negative JS-animation greps under src/components/explore/ — the
+  // vocabulary is CSS-only; comments stripped per the codeOf convention.
+  // DEV (plan deviation, recorded): the plan's acceptance said
+  // requestAnimationFrame prints 0 under src/components/explore/ — unsatisfiable
+  // against the real tree: the tour spotlight's PRE-EXISTING double-rAF
+  // measurement (W-1/W-2, last touched phase-6 cc30b09, untouched here) uses
+  // it for layout timing, not animation. The invariant REV-11 actually needs
+  // is "no NEW JS animation APIs": the full ban holds for every explore file
+  // EXCEPT the tour, whose rAF baseline is frozen at its phase-6 counts
+  // (5 requestAnimationFrame / 3 cancelAnimationFrame) so any new usage trips.
+  const tourSrc = codeOf('src/components/explore/explore-tour.tsx');
+  assert.equal(
+    (tourSrc.match(/requestAnimationFrame/g) || []).length,
+    5,
+    'the tour rAF baseline is frozen — 5 requestAnimationFrame (pre-existing W-1/W-2 measurement, no NEW usage)',
+  );
+  assert.equal(
+    (tourSrc.match(/cancelAnimationFrame/g) || []).length,
+    3,
+    'the tour cleanup baseline is frozen — 3 cancelAnimationFrame',
+  );
+  const exploreFiles = readdirSync(join(root, 'src/components/explore'), { recursive: true })
+    .filter((f) => /\.(tsx|ts)$/.test(f));
+  for (const banned of ['.animate(', 'framer-motion', 'gsap', 'lottie']) {
+    for (const rel of exploreFiles) {
+      const src = codeOf(join('src/components/explore', rel));
+      assert.ok(!src.includes(banned), `src/components/explore/${rel}: ${banned} absent (CSS-only motion, REV-11)`);
+    }
+  }
+  for (const rel of exploreFiles) {
+    if (rel === join('explore-tour.tsx') || rel.endsWith('explore-tour.tsx')) continue;
+    const src = codeOf(join('src/components/explore', rel));
+    assert.ok(
+      !src.includes('requestAnimationFrame'),
+      `src/components/explore/${rel}: requestAnimationFrame absent (CSS-only motion, REV-11)`,
+    );
+  }
+});
+
 // ---------------------------------------------------------------------------
 // Plan 04 Task 2: Layer-3 export-level invariants — hold against the static
 // export (out/) produced by `npm run build`; they fail with a build hint
@@ -526,4 +686,20 @@ test('export: the four panel headers render the aria-hidden mono index spans 01-
 test('export: CLI and resume still emitted (EXPLORE-05/D-07)', () => {
   assert.ok(existsSync(join(root, 'out/index.html')), 'out/index.html still emitted (D-10)');
   assert.ok(existsSync(join(root, 'out/resume.html')), 'out/resume.html still emitted (D-10)');
+});
+
+test('export: the REV-11 motion vocabulary ships in the built stylesheet (UI-SPEC §9.1/§10.8, plan 03)', () => {
+  assert.ok(existsSync(exportHtmlPath), 'out/explore.html missing — run `npm run build` first');
+  // The export links the compiled CSS as a static chunk (hashed name) —
+  // discover it instead of pinning the hash.
+  const cssDir = join(root, 'out/_next/static/css');
+  assert.ok(existsSync(cssDir), 'out/_next/static/css missing — run `npm run build` first');
+  const cssFiles = readdirSync(cssDir).filter((f) => f.endsWith('.css'));
+  assert.ok(cssFiles.length >= 1, 'at least one compiled CSS chunk ships');
+  const compiled = cssFiles.map((f) => readFileSync(join(cssDir, f), 'utf8')).join('\n');
+  assert.ok(compiled.includes('explore-panel-in'), 'the entrance keyframes ship in the compiled CSS (M1)');
+  assert.ok(compiled.includes('panel-grid'), 'the panel-grid stagger selectors ship (M1)');
+  assert.ok(compiled.includes('panel-shadow-hover'), 'the hover bloom token ships (M2/OQ-A)');
+  assert.ok(compiled.includes('exp-lift'), 'the lift rules ship (M2)');
+  assert.ok(compiled.includes('exp-nudge'), 'the nudge rules ship (M3)');
 });
