@@ -622,6 +622,37 @@ test('cross-cutting: registry spine — four total closures after the About+Cont
   );
 });
 
+test('cross-cutting: REV-07 deferral — the experience showcase stays byte-untouched (D-09)', () => {
+  // No speculative experience redesign ships this phase (REV-07 deferred
+  // pending the user's screenshot description): both files must still exist
+  // with their Gantt contract intact, and the wizard/drawer/counter flows
+  // keep working through the untouched panel.
+  assert.ok(
+    existsSync(join(root, 'src/components/explore/sections/experience-section.tsx')),
+    'experience-section.tsx still exists (D-09)',
+  );
+  assert.ok(
+    existsSync(join(root, 'src/components/explore/sections/career-span-chart.tsx')),
+    'career-span-chart.tsx still exists (D-09)',
+  );
+  const exp = read('src/components/explore/sections/experience-section.tsx');
+  const chart = read('src/components/explore/sections/career-span-chart.tsx');
+  assert.ok(
+    exp.includes('buildCareerSpan'),
+    'experience-section still feeds the Gantt from viz-data (no redesign landed)',
+  );
+  assert.ok(
+    chart.includes('buildCareerSpan') && chart.includes('aria-hidden'),
+    'career-span-chart keeps its dumb-renderer contract (D-02/D-09)',
+  );
+  assert.ok(
+    !exp.includes('use client') && !chart.includes('use client'),
+    'both remain server components (no speculative interactivity)',
+  );
+  // The buildCareerSpan Gantt geometry tests above (lines ~360-460) run
+  // unchanged in this same suite — their green here is the contract proof.
+});
+
 test('cross-cutting: zero new dependencies — 39 dependency keys with recharts ^2.15.1 (D-07)', () => {
   const pkg = JSON.parse(read('package.json'));
   assert.equal(Object.keys(pkg.dependencies).length, 39, 'dependencies unchanged this phase (D-07)');

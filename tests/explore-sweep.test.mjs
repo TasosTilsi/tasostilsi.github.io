@@ -52,6 +52,37 @@ test('sweep rows EXPLORE@375/768/1440/1920 (P): panels grid 1→2→2 cols, merg
   assert.ok(!/max-w-/.test(src), 'no max-width wrapper — full-bleed at 1920 (row EXPLORE@1920)');
 });
 
+test('sweep rows EXPLORE@* (P): 2×2 zero-empty-cells structure — 4 sections, 2 cols at md+, no col-span anywhere (REV-04/D-04)', () => {
+  const constants = read('src/components/explore/constants.ts');
+  const sectionsBlock = constants.slice(
+    constants.indexOf('EXPLORE_SECTIONS = ['),
+    constants.indexOf('] as const'),
+  );
+  const sections = [...sectionsBlock.matchAll(/id: "([a-z]+)"/g)].map((m) => m[1]);
+  assert.deepEqual(
+    sections,
+    ['about', 'experience', 'skills', 'projects'],
+    'exactly 4 section ids in EXPLORE_SECTIONS after the About+Contact merge',
+  );
+  const src = read('src/components/explore/explore-panels.tsx');
+  assert.ok(
+    src.includes('md:grid-cols-2'),
+    '2 columns from md up (768/1440/1920) — 4 panels ÷ 2 cols = zero empty cells',
+  );
+  assert.ok(
+    (src.match(/(sm|md|lg|xl):col-span/g) || []).length === 0,
+    'no col-span classes anywhere in explore-panels.tsx — every panel fills exactly one cell',
+  );
+});
+
+test('sweep row EXPLORE@375 (P): grid-cols-1 base class present — single-column stack at 375px (REV-04)', () => {
+  const src = read('src/components/explore/explore-panels.tsx');
+  assert.ok(
+    src.includes('grid grid-cols-1 gap-4 md:grid-cols-2'),
+    'base grid-cols-1 before the md: modifier — 4 panels stack at 375px, zero empty cells',
+  );
+});
+
 test('sweep rows EXPLORE@375-1920 (P): .explore-shell overflow-x-hidden — zero horizontal scroll is structural', () => {
   const src = read('src/components/explore/explore-shell.tsx');
   assert.match(
