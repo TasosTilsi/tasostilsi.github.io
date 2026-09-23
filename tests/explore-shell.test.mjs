@@ -352,7 +352,7 @@ test('intro: sr-only h1 carries full name—title, reserved height, strip chrome
   assert.match(src, /<h1 className=["']sr-only["']>/, 'sr-only h1 (a11y + no-JS contract)');
   assert.ok(src.includes('aria-hidden'), 'animated strip hidden from AT');
   assert.ok(src.includes('❯'), 'accent prefix');
-  assert.ok(src.includes('min-h-[40px]') && src.includes('md:min-h-[20px]'), 'px-reserved height (no CLS)');
+  assert.ok(src.includes('min-h-[60px]') && src.includes('md:min-h-[20px]'), 'px-reserved height, 3-line refresh reserve (no CLS, B-6)');
   assert.ok(src.includes('border-b') && src.includes('shrink-0'), 'strip chrome');
 });
 

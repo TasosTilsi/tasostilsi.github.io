@@ -21,9 +21,10 @@
  * at all under reduce.
  *
  * No layout shift: the strip reserves height with px arbitrary values
- * (min-h-[40px] md:min-h-[20px] — immune to the ≤640px html{font-size:14px}
- * rem shrink; text-sm line-height = 20px/line, the 57-char string wraps to
- * two lines at 375px), shrink-0, border-b per UI-SPEC §2.1/§4.
+ * (min-h-[60px] md:min-h-[20px] — immune to the ≤640px html{font-size:14px}
+ * rem shrink; text-sm line-height = 20px/line, the ~91-char refreshed
+ * name—title string wraps to three lines at 375px — checker B-6 3-line
+ * reserve), shrink-0, border-b per UI-SPEC §2.1/§4.
  */
 import { useEffect, useState } from 'react';
 import { TypingEffect } from '@/components/cli/TypingEffect';
@@ -39,7 +40,7 @@ export function ExploreIntro({ name, title }: { name: string; title: string }) {
   }, []);
 
   return (
-    <div className="flex min-h-[40px] shrink-0 items-center border-b px-4 text-sm md:min-h-[20px]">
+    <div className="flex min-h-[60px] shrink-0 items-center border-b px-4 text-sm md:min-h-[20px]">
       <h1 className="sr-only">{fullText}</h1>
       <span aria-hidden="true" className="text-accent">
         ❯

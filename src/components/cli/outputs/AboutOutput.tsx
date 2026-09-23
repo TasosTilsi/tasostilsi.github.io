@@ -17,14 +17,18 @@ export const AboutOutput = () => {
 
   const yearsOfExperience = calculateYearsOfExperience();
 
+  // ASCII box width derives from the rendered strings — the 62-char docx
+  // title must fit (no fixed-width pad rule; RESEARCH pitfall 2, D-01).
+  const boxWidth = Math.max(portfolioData.about.name.length, (portfolioData.about.title || '').length) + 2;
+
   return (
     <div className="flex flex-col gap-3">
       {/* ASCII Banner - Desktop */}
       <pre className="text-accent font-mono text-xs sm:text-sm leading-tight hidden sm:block">
-        {`╔═══════════════════════════════════════════════════════════╗
-║  ${portfolioData.about.name.toUpperCase().padEnd(57)}║
-║  ${(portfolioData.about.title || '').padEnd(57)}║
-╚═══════════════════════════════════════════════════════════╝`}
+        {`╔${'═'.repeat(boxWidth)}╗
+║  ${portfolioData.about.name.toUpperCase().padEnd(boxWidth - 2)}║
+║  ${(portfolioData.about.title || '').padEnd(boxWidth - 2)}║
+╚${'═'.repeat(boxWidth)}╝`}
       </pre>
 
       {/* Mobile Header */}

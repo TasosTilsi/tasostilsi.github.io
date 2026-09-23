@@ -29,7 +29,7 @@ export const WelcomeMessage = () => {
         {`/**
  * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
  * ANASTASIOS TILSIZOGLOU
- * Senior Software Engineer in Test
+ * ${portfolioData.about.title}
  * Open to selective part-time work
  * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
  */`}
@@ -38,7 +38,7 @@ export const WelcomeMessage = () => {
       {/* Mobile-friendly version */}
       <div className="sm:hidden text-accent font-bold text-sm border-b border-accent/30 pb-2 mb-2">
         <div>ANASTASIOS TILSIZOGLOU</div>
-        <div className="text-xs font-normal text-muted-foreground">Senior Software Engineer in Test</div>
+        <div className="text-xs font-normal text-muted-foreground">{portfolioData.about.title}</div>
         <div className="text-xs font-normal text-muted-foreground/80 italic mt-1">Open to selective part-time work</div>
       </div>
 
