@@ -6,7 +6,34 @@ const outputPath = path.join(__dirname, '../public/resume-export.html');
 
 const portfolioData = JSON.parse(fs.readFileSync(dataPath, 'utf8'));
 
-const { about, experience, education, skills, projects, certifications, articles } = portfolioData;
+const { about, experience, education, projects, certifications, articles, core_competencies } = portfolioData;
+
+// HTML-escape every injected data string.
+const esc = (value) => String(value)
+  .replace(/&/g, '&amp;')
+  .replace(/</g, '&lt;')
+  .replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;');
+
+// Docx selection contract (D-08, UI-SPEC §8): the U-4 isTechRelated filter
+// selects the docx's three roles; featured flags select the docx's two
+// projects, two degrees, five certifications and five writing entries.
+// Data order everywhere — JSON order is render order.
+const roles = experience.filter((job) => job.isTechRelated);
+const flagshipProjects = projects.filter((project) => project.featured);
+const featuredEducation = education.filter((edu) => edu.featured);
+const featuredCertifications = certifications.filter((cert) => cert.featured);
+const featuredArticles = articles.filter((article) => article.featured);
+
+// Contact rows built from about.contact — data-driven, no hardcoded URLs.
+const contactItems = [
+  { icon: 'fas fa-envelope', label: about.contact.email, href: `mailto:${about.contact.email}` },
+  { icon: 'fab fa-linkedin', label: 'LinkedIn', href: about.contact.linkedin },
+  { icon: 'fab fa-github', label: 'GitHub', href: about.contact.github },
+  { icon: 'fas fa-globe', label: 'Portfolio', href: about.contact.portfolio || 'https://tasostilsi.github.io/' },
+].filter((item) => item.href);
+
+const stripUrl = (value) => value.replace(/^https?:\/\/(www\.)?/, '');
 
 const html = `
 <!DOCTYPE html>
@@ -14,14 +41,13 @@ const html = `
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Resume - ${about.name}</title>
+    <title>Resume - ${esc(about.name)}</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700;800&display=swap');
 
         :root {
             --bg-dark: #0b1326;
-            --bg-sidebar: #131b2e;
             --text-primary: #dae2fd;
             --text-accent: #8fdb00;
             --text-muted: #c6c6cb;
@@ -35,7 +61,7 @@ const html = `
         }
 
         body {
-            font-family: 'JetBrains+Mono', 'Courier New', monospace;
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
             background-color: var(--bg-dark);
             color: var(--text-primary);
             font-size: 12px;
@@ -44,51 +70,26 @@ const html = `
             print-color-adjust: exact !important;
         }
 
+        /* Single-column 210mm document (docx order) */
         .resume-container {
             width: 210mm;
             min-height: 297mm;
             margin: 0 auto;
+            padding: 30px 35px;
             position: relative;
-            display: flex;
+            display: block;
             background-color: var(--bg-dark);
             box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
         }
 
-        /* Sidebar: 33% */
-        .sidebar {
-            width: 33%;
-            background-color: var(--bg-sidebar);
-            padding: 25px 20px;
-            display: flex;
-            flex-direction: column;
-            border-right: 1px solid var(--border-color);
-        }
-
-        /* Main: 67% */
-        .main {
-            width: 67%;
-            padding: 30px 35px;
-            background-color: var(--bg-dark);
-        }
-
         a {
-            color: inherit;
-            text-decoration: none;
-            transition: color 0.2s;
-        }
-
-        .sidebar a:hover {
-            color: var(--text-accent);
-            text-decoration: underline;
-        }
-
-        .main a {
             color: var(--text-accent);
             text-decoration: none;
             border-bottom: 1px dotted rgba(143, 219, 0, 0.3);
+            transition: color 0.2s;
         }
 
-        .main a:hover {
+        a:hover {
             border-bottom-style: solid;
         }
 
@@ -107,7 +108,7 @@ const html = `
             color: var(--text-accent);
             text-transform: uppercase;
             letter-spacing: 2.5px;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
 
         .location {
@@ -115,26 +116,32 @@ const html = `
             text-transform: uppercase;
             letter-spacing: 1px;
             opacity: 0.6;
-            margin-bottom: 20px;
+            margin-bottom: 12px;
         }
 
-        .contact-list {
-            margin-top: 15px;
-            list-style: none;
-        }
-
-        .contact-item {
+        /* Docx contact line: location | email | LinkedIn | GitHub | Portfolio */
+        .contact-line {
             display: flex;
+            flex-wrap: wrap;
             align-items: center;
-            margin-bottom: 8px;
-            font-size: 10px;
+            gap: 6px;
+            font-size: 9.5px;
+            margin-bottom: 6px;
         }
 
-        .contact-item i {
-            width: 18px;
+        .contact-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .contact-link i {
             color: var(--text-accent);
             opacity: 0.8;
-            margin-right: 8px;
+        }
+
+        .contact-sep {
+            opacity: 0.4;
         }
 
         .section-title {
@@ -143,7 +150,8 @@ const html = `
             text-transform: uppercase;
             letter-spacing: 4px;
             color: var(--text-accent);
-            margin-bottom: 18px;
+            margin-bottom: 14px;
+            margin-top: 22px;
             display: flex;
             align-items: center;
         }
@@ -153,74 +161,35 @@ const html = `
             margin-right: 8px;
         }
 
-        .skill-group {
-            margin-bottom: 18px;
-        }
-
-        .skill-group-title {
-            font-size: 9.5px;
-            font-weight: 800;
-            text-transform: uppercase;
-            margin-bottom: 8px;
-            opacity: 0.7;
-        }
-
-        .skill-tags {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 5px;
-        }
-
-        .tag {
-            font-size: 9px;
-            padding: 3px 6px;
-            background: rgba(143, 219, 0, 0.05);
-            border: 1px solid rgba(143, 219, 0, 0.2);
-            color: var(--text-accent);
-            border-radius: 3px;
-        }
-
-        .project-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-        }
-
-        .project-card {
-            border: 1px solid var(--border-color);
-            background: rgba(255, 255, 255, 0.02);
-            border-radius: 4px;
-            padding: 12px;
-            break-inside: avoid;
-        }
-
-        .project-card .item-title {
-            font-size: 12px;
-        }
-
-        .project-card .item-details li {
-            font-size: 10px;
-        }
-
-        .project-card .item-details li.card-desc {
-            display: -webkit-box;
-            -webkit-line-clamp: 4;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-
         .main-summary {
             font-size: 11px;
             line-height: 1.5;
             color: var(--text-muted);
-            margin-bottom: 20px;
+            break-inside: avoid;
+        }
+
+        .competency-row {
+            margin-bottom: 7px;
+            break-inside: avoid;
+        }
+
+        .competency-name {
+            font-size: 10.5px;
+            font-weight: 700;
+        }
+
+        .competency-proof {
+            font-size: 9.5px;
+            color: var(--text-muted);
+            line-height: 1.4;
         }
 
         .experience-item {
-            margin-bottom: 12px;
+            margin-bottom: 14px;
             position: relative;
             padding-left: 18px;
             border-left: 1px solid var(--border-color);
+            break-inside: avoid;
         }
 
         .experience-item::before {
@@ -282,22 +251,64 @@ const html = `
             flex-shrink: 0;
         }
 
+        .project-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .project-card {
+            border: 1px solid var(--border-color);
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 4px;
+            padding: 12px;
+            break-inside: avoid;
+        }
+
+        .project-card .item-title {
+            font-size: 12px;
+        }
+
+        .project-card .item-details li {
+            font-size: 10px;
+        }
+
+        .project-card .item-details li.card-desc {
+            display: -webkit-box;
+            -webkit-line-clamp: 4;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .project-link a {
+            font-size: 9.5px;
+            opacity: 0.8;
+        }
+
         .education-item {
-            margin-bottom: 25px;
+            margin-bottom: 12px;
+            break-inside: avoid;
         }
 
-        .sidebar-item {
-            margin-bottom: 15px;
-            font-size: 11px;
+        .edu-focus {
+            font-size: 9.5px;
+            color: var(--text-muted);
+            font-style: italic;
         }
 
-        .sidebar-item-name {
+        .resume-item {
+            margin-bottom: 9px;
+            font-size: 10.5px;
+            break-inside: avoid;
+        }
+
+        .resume-item-name {
             font-weight: 700;
             display: block;
         }
 
-        .sidebar-item-meta {
-            font-size: 9.5px;
+        .resume-item-meta {
+            font-size: 9px;
             opacity: 0.6;
         }
 
@@ -310,24 +321,12 @@ const html = `
                 margin: 0;
                 box-shadow: none;
                 width: 210mm;
-                height: 297mm;
-                overflow: hidden;
-            }
-            .sidebar {
-                background-color: #f7f7f7 !important;
-                border-right: 1px solid #eee;
-            }
-            .main {
-                background-color: white !important;
+                padding: 25px 30px;
             }
             :root {
                 --text-primary: #000;
                 --text-muted: #333;
                 --text-accent: #0044cc; /* Blue for print readability */
-            }
-            .tag {
-                border-color: #ddd;
-                background: none;
             }
             /* Show URLs for print readability */
             a[href^="http"]:after {
@@ -340,126 +339,97 @@ const html = `
 </head>
 <body>
     <div class="resume-container">
-        <!-- Sidebar Column -->
-        <div class="sidebar">
-            <header>
-                <h1>${about.name}</h1>
-                <div class="job-title">${about.title}</div>
-                <div class="location">${about.location}</div>
-
-                <ul class="contact-list">
-                    <li class="contact-item">
-                        <i class="fas fa-envelope"></i> 
-                        <a href="mailto:${about.contact.email}">${about.contact.email}</a>
-                    </li>
-                    <li class="contact-item">
-                        <i class="fab fa-linkedin"></i> 
-                        <a href="https://linkedin.com/in/tasostilsi" target="_blank">LinkedIn Profile</a>
-                    </li>
-                    <li class="contact-item">
-                        <i class="fab fa-github"></i> 
-                        <a href="https://github.com/tasostilsi" target="_blank">GitHub Portfolio</a>
-                    </li>
-                    <li class="contact-item">
-                        <i class="fas fa-globe"></i> 
-                        <a href="https://tasostilsi.github.io" target="_blank">Official Website</a>
-                    </li>
-                </ul>
-            </header>
-
-            <div style="margin-top: 10px;">
-                <h3 class="section-title"><span>//</span> SKILLS.SYS</h3>
-
-                <div class="skill-group">
-                    <div class="skill-group-title">Engineering</div>
-                    <div class="skill-tags">
-                        ${[...skills.hard_skills.Languages.slice(0, 4), ...skills.hard_skills.Testing.slice(0, 4), ...skills.hard_skills.Infrastructure.slice(0, 3)].map(s => `<span class="tag">${s}</span>`).join('')}
-                    </div>
-                </div>
-
-                <div class="skill-group">
-                    <div class="skill-group-title">AI &amp; Innovation</div>
-                    <div class="skill-tags">
-                        ${skills.hard_skills.Innovation.map(s => `<span class="tag">${s}</span>`).join('')}
-                    </div>
-                </div>
+        <header>
+            <h1>${esc(about.name)}</h1>
+            <div class="job-title">${esc(about.title)}</div>
+            <div class="location">${esc(about.location)}</div>
+            <div class="contact-line">
+                ${contactItems.map((item) => `<a class="contact-link" href="${esc(item.href)}" target="_blank"><i class="${item.icon}"></i>${esc(item.label)}</a>`).join('<span class="contact-sep">|</span>')}
             </div>
+        </header>
 
-            <div style="margin-top: 10px;">
-                <h3 class="section-title"><span>//</span> EDUCATION.BIN</h3>
-                ${education.filter(edu => edu.degree.toLowerCase().includes('science') || edu.degree.toLowerCase().includes('master') || edu.degree.toLowerCase().includes('bachelor')).map(edu => `
-                    <div class="sidebar-item">
-                        <span class="sidebar-item-name">${edu.degree}</span>
-                        <span class="sidebar-item-meta">${edu.institution} — ${edu.duration}</span>
-                    </div>
-                `).join('')}
-            </div>
-
-            <div style="margin-top: 10px;">
-                <h3 class="section-title"><span>//</span> ARTICLES.LOG</h3>
-                ${articles.slice(0, 3).map(a => `
-                    <div class="sidebar-item">
-                        <span class="sidebar-item-name">
-                            <a href="${a.link || '#'}" target="_blank">${a.name}</a>
-                        </span>
-                        <span class="sidebar-item-meta">${a.platform} — ${a.date}</span>
-                    </div>
-                `).join('')}
-            </div>
-            
-            <div style="margin-top: 10px;">
-                <h3 class="section-title"><span>//</span> CERTS.KEY</h3>
-                <div class="sidebar-item">
-                    <span class="sidebar-item-name">ISTQB® Foundation Level (CTFL)</span>
-                    <span class="sidebar-item-meta">ID: GRTB-24-1S20-CTFL</span>
-                </div>
-            </div>
+        <h3 class="section-title"><span>//</span> SUMMARY</h3>
+        <div class="main-summary">
+            ${esc(about.description)}
         </div>
 
-        <!-- Main Column -->
-        <div class="main">
-            <h3 class="section-title"><span>//</span> SUMMARY.EXE</h3>
-            <div class="main-summary">
-                ${about.description}
-            </div>
+        <h3 class="section-title"><span>//</span> CORE COMPETENCIES</h3>
+        <div class="competency-list">
+            ${core_competencies.map((competency) => `
+                <div class="competency-row">
+                    <div class="competency-name">${esc(competency.name)}</div>
+                    <div class="competency-proof">${esc(competency.proof)}</div>
+                </div>
+            `).join('')}
+        </div>
 
-            <h3 class="section-title"><span>//</span> EXPERIENCE.SH</h3>
-            <div class="experience-list">
-                ${experience.slice(0, 3).map(job => `
-                    <div class="experience-item">
-                        <div class="item-header">
-                            <h4 class="item-title">${job.title}</h4>
-                            <span class="item-date">${job.duration}</span>
-                        </div>
-                        <div class="item-company">${job.company}</div>
-                        <ul class="item-details">
-                            ${job.responsibilities.map(resp => `<li>${resp}</li>`).join('')}
-                        </ul>
+        <h3 class="section-title"><span>//</span> PROFESSIONAL EXPERIENCE</h3>
+        <div class="experience-list">
+            ${roles.map((job) => `
+                <div class="experience-item">
+                    <div class="item-header">
+                        <h4 class="item-title">${esc(job.title)}</h4>
+                        <span class="item-date">${esc(job.duration)}</span>
                     </div>
-                `).join('')}
-            </div>
+                    <div class="item-company">${esc(job.company)} — ${esc(job.location)}</div>
+                    <ul class="item-details">
+                        ${(job.responsibilities || []).map((resp) => `<li>${esc(resp)}</li>`).join('')}
+                    </ul>
+                </div>
+            `).join('')}
+        </div>
 
-            <h3 class="section-title" style="margin-top: 25px;"><span>//</span> PROJECTS.BIN</h3>
-            <div class="project-grid">
-                ${projects.slice(0, 2).map(project => `
-                    <div class="project-card">
-                        <div class="item-header">
-                            <h4 class="item-title">${project.name}</h4>
-                            <span class="item-date">${project.date}</span>
-                        </div>
-                        <ul class="item-details">
-                            <li class="card-desc">${project.description}</li>
-                            ${project.link ? `<li><a href="${project.link}" target="_blank">${project.link.replace(/^https?:\/\/(www\.)?/, '')}</a></li>` : ''}
-                            ${project.sourceUrl ? `<li><a href="${project.sourceUrl}" target="_blank">${project.sourceUrl.replace(/^https?:\/\/(www\.)?/, '')}</a></li>` : ''}
-                        </ul>
+        <h3 class="section-title"><span>//</span> PROJECTS</h3>
+        <div class="project-grid">
+            ${flagshipProjects.map((project) => `
+                <div class="project-card">
+                    <div class="item-header">
+                        <h4 class="item-title">${esc(project.name)}</h4>
+                        <span class="item-date">${esc(project.date || '')}</span>
                     </div>
-                `).join('')}
-            </div>
+                    <ul class="item-details">
+                        <li class="card-desc">${esc(project.description)}</li>
+                        ${project.link ? `<li class="project-link"><a href="${esc(project.link)}" target="_blank">${esc(stripUrl(project.link))}</a></li>` : ''}
+                        ${project.sourceUrl ? `<li class="project-link"><a href="${esc(project.sourceUrl)}" target="_blank">${esc(stripUrl(project.sourceUrl))}</a></li>` : ''}
+                    </ul>
+                </div>
+            `).join('')}
+        </div>
+
+        <h3 class="section-title"><span>//</span> EDUCATION</h3>
+        <div class="education-list">
+            ${featuredEducation.map((edu) => `
+                <div class="education-item">
+                    <div class="item-header">
+                        <h4 class="item-title">${esc(edu.degree)}</h4>
+                        <span class="item-date">${esc(edu.duration)}</span>
+                    </div>
+                    <div class="item-company">${esc(edu.institution)}${edu.location ? ` — ${esc(edu.location)}` : ''}</div>
+                    ${edu.specialization ? `<div class="edu-focus">focus: ${esc(edu.specialization)}</div>` : ''}
+                </div>
+            `).join('')}
+        </div>
+
+        <h3 class="section-title"><span>//</span> CERTIFICATIONS</h3>
+        <div class="cert-list">
+            ${featuredCertifications.map((cert) => `
+                <div class="resume-item">
+                    <span class="resume-item-name">${esc(cert.name)}</span>
+                    <span class="resume-item-meta">${esc(cert.date)}${cert.link && cert.link.startsWith('ID:') ? ` — ${esc(cert.link)}` : ''}</span>
+                </div>
+            `).join('')}
+        </div>
+
+        <h3 class="section-title"><span>//</span> SELECTED WRITING</h3>
+        <div class="writing-list">
+            ${featuredArticles.map((article) => `
+                <div class="resume-item">
+                    <span class="resume-item-name"><a href="${esc(article.link)}" target="_blank">${esc(article.name)}</a></span>
+                    <span class="resume-item-meta">${esc(article.platform)} — ${esc(article.date)}</span>
+                </div>
+            `).join('')}
         </div>
     </div>
-
-    <!-- Clickable Links Overlay (Hidden during print) -->
-    <!-- Not strictly needed as native <a> tags work in PDF, but we could add a floating info bar if the user wanted -->
 </body>
 </html>
 `;

@@ -11,7 +11,6 @@
 
         :root {
             --bg-dark: #0b1326;
-            --bg-sidebar: #131b2e;
             --text-primary: #dae2fd;
             --text-accent: #8fdb00;
             --text-muted: #c6c6cb;
@@ -25,7 +24,7 @@
         }
 
         body {
-            font-family: 'JetBrains+Mono', 'Courier New', monospace;
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
             background-color: var(--bg-dark);
             color: var(--text-primary);
             font-size: 12px;
@@ -34,51 +33,26 @@
             print-color-adjust: exact !important;
         }
 
+        /* Single-column 210mm document (docx order) */
         .resume-container {
             width: 210mm;
             min-height: 297mm;
             margin: 0 auto;
+            padding: 30px 35px;
             position: relative;
-            display: flex;
+            display: block;
             background-color: var(--bg-dark);
             box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
         }
 
-        /* Sidebar: 33% */
-        .sidebar {
-            width: 33%;
-            background-color: var(--bg-sidebar);
-            padding: 25px 20px;
-            display: flex;
-            flex-direction: column;
-            border-right: 1px solid var(--border-color);
-        }
-
-        /* Main: 67% */
-        .main {
-            width: 67%;
-            padding: 30px 35px;
-            background-color: var(--bg-dark);
-        }
-
         a {
-            color: inherit;
-            text-decoration: none;
-            transition: color 0.2s;
-        }
-
-        .sidebar a:hover {
-            color: var(--text-accent);
-            text-decoration: underline;
-        }
-
-        .main a {
             color: var(--text-accent);
             text-decoration: none;
             border-bottom: 1px dotted rgba(143, 219, 0, 0.3);
+            transition: color 0.2s;
         }
 
-        .main a:hover {
+        a:hover {
             border-bottom-style: solid;
         }
 
@@ -97,7 +71,7 @@
             color: var(--text-accent);
             text-transform: uppercase;
             letter-spacing: 2.5px;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
 
         .location {
@@ -105,26 +79,32 @@
             text-transform: uppercase;
             letter-spacing: 1px;
             opacity: 0.6;
-            margin-bottom: 20px;
+            margin-bottom: 12px;
         }
 
-        .contact-list {
-            margin-top: 15px;
-            list-style: none;
-        }
-
-        .contact-item {
+        /* Docx contact line: location | email | LinkedIn | GitHub | Portfolio */
+        .contact-line {
             display: flex;
+            flex-wrap: wrap;
             align-items: center;
-            margin-bottom: 8px;
-            font-size: 10px;
+            gap: 6px;
+            font-size: 9.5px;
+            margin-bottom: 6px;
         }
 
-        .contact-item i {
-            width: 18px;
+        .contact-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .contact-link i {
             color: var(--text-accent);
             opacity: 0.8;
-            margin-right: 8px;
+        }
+
+        .contact-sep {
+            opacity: 0.4;
         }
 
         .section-title {
@@ -133,7 +113,8 @@
             text-transform: uppercase;
             letter-spacing: 4px;
             color: var(--text-accent);
-            margin-bottom: 18px;
+            margin-bottom: 14px;
+            margin-top: 22px;
             display: flex;
             align-items: center;
         }
@@ -143,74 +124,35 @@
             margin-right: 8px;
         }
 
-        .skill-group {
-            margin-bottom: 18px;
-        }
-
-        .skill-group-title {
-            font-size: 9.5px;
-            font-weight: 800;
-            text-transform: uppercase;
-            margin-bottom: 8px;
-            opacity: 0.7;
-        }
-
-        .skill-tags {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 5px;
-        }
-
-        .tag {
-            font-size: 9px;
-            padding: 3px 6px;
-            background: rgba(143, 219, 0, 0.05);
-            border: 1px solid rgba(143, 219, 0, 0.2);
-            color: var(--text-accent);
-            border-radius: 3px;
-        }
-
-        .project-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-        }
-
-        .project-card {
-            border: 1px solid var(--border-color);
-            background: rgba(255, 255, 255, 0.02);
-            border-radius: 4px;
-            padding: 12px;
-            break-inside: avoid;
-        }
-
-        .project-card .item-title {
-            font-size: 12px;
-        }
-
-        .project-card .item-details li {
-            font-size: 10px;
-        }
-
-        .project-card .item-details li.card-desc {
-            display: -webkit-box;
-            -webkit-line-clamp: 4;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-
         .main-summary {
             font-size: 11px;
             line-height: 1.5;
             color: var(--text-muted);
-            margin-bottom: 20px;
+            break-inside: avoid;
+        }
+
+        .competency-row {
+            margin-bottom: 7px;
+            break-inside: avoid;
+        }
+
+        .competency-name {
+            font-size: 10.5px;
+            font-weight: 700;
+        }
+
+        .competency-proof {
+            font-size: 9.5px;
+            color: var(--text-muted);
+            line-height: 1.4;
         }
 
         .experience-item {
-            margin-bottom: 12px;
+            margin-bottom: 14px;
             position: relative;
             padding-left: 18px;
             border-left: 1px solid var(--border-color);
+            break-inside: avoid;
         }
 
         .experience-item::before {
@@ -272,22 +214,64 @@
             flex-shrink: 0;
         }
 
+        .project-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .project-card {
+            border: 1px solid var(--border-color);
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 4px;
+            padding: 12px;
+            break-inside: avoid;
+        }
+
+        .project-card .item-title {
+            font-size: 12px;
+        }
+
+        .project-card .item-details li {
+            font-size: 10px;
+        }
+
+        .project-card .item-details li.card-desc {
+            display: -webkit-box;
+            -webkit-line-clamp: 4;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .project-link a {
+            font-size: 9.5px;
+            opacity: 0.8;
+        }
+
         .education-item {
-            margin-bottom: 25px;
+            margin-bottom: 12px;
+            break-inside: avoid;
         }
 
-        .sidebar-item {
-            margin-bottom: 15px;
-            font-size: 11px;
+        .edu-focus {
+            font-size: 9.5px;
+            color: var(--text-muted);
+            font-style: italic;
         }
 
-        .sidebar-item-name {
+        .resume-item {
+            margin-bottom: 9px;
+            font-size: 10.5px;
+            break-inside: avoid;
+        }
+
+        .resume-item-name {
             font-weight: 700;
             display: block;
         }
 
-        .sidebar-item-meta {
-            font-size: 9.5px;
+        .resume-item-meta {
+            font-size: 9px;
             opacity: 0.6;
         }
 
@@ -300,24 +284,12 @@
                 margin: 0;
                 box-shadow: none;
                 width: 210mm;
-                height: 297mm;
-                overflow: hidden;
-            }
-            .sidebar {
-                background-color: #f7f7f7 !important;
-                border-right: 1px solid #eee;
-            }
-            .main {
-                background-color: white !important;
+                padding: 25px 30px;
             }
             :root {
                 --text-primary: #000;
                 --text-muted: #333;
                 --text-accent: #0044cc; /* Blue for print readability */
-            }
-            .tag {
-                border-color: #ddd;
-                background: none;
             }
             /* Show URLs for print readability */
             a[href^="http"]:after {
@@ -330,178 +302,214 @@
 </head>
 <body>
     <div class="resume-container">
-        <!-- Sidebar Column -->
-        <div class="sidebar">
-            <header>
-                <h1>Anastasios Tilsizoglou</h1>
-                <div class="job-title">Senior Software Engineer in Test</div>
-                <div class="location">Thessaloniki, Greece</div>
-
-                <ul class="contact-list">
-                    <li class="contact-item">
-                        <i class="fas fa-envelope"></i> 
-                        <a href="mailto:tilsizoglou@protonmail.com">tilsizoglou@protonmail.com</a>
-                    </li>
-                    <li class="contact-item">
-                        <i class="fab fa-linkedin"></i> 
-                        <a href="https://linkedin.com/in/tasostilsi" target="_blank">LinkedIn Profile</a>
-                    </li>
-                    <li class="contact-item">
-                        <i class="fab fa-github"></i> 
-                        <a href="https://github.com/tasostilsi" target="_blank">GitHub Portfolio</a>
-                    </li>
-                    <li class="contact-item">
-                        <i class="fas fa-globe"></i> 
-                        <a href="https://tasostilsi.github.io" target="_blank">Official Website</a>
-                    </li>
-                </ul>
-            </header>
-
-            <div style="margin-top: 10px;">
-                <h3 class="section-title"><span>//</span> SKILLS.SYS</h3>
-
-                <div class="skill-group">
-                    <div class="skill-group-title">Engineering</div>
-                    <div class="skill-tags">
-                        <span class="tag">Java</span><span class="tag">JS</span><span class="tag">TS</span><span class="tag">ReactJS</span><span class="tag">Playwright</span><span class="tag">Selenium</span><span class="tag">Rest Assured</span><span class="tag">ReadyAPI</span><span class="tag">NPM Module Dev</span><span class="tag">CI/CD</span><span class="tag">Docker</span>
-                    </div>
-                </div>
-
-                <div class="skill-group">
-                    <div class="skill-group-title">AI &amp; Innovation</div>
-                    <div class="skill-tags">
-                        <span class="tag">Prompt Engineering</span><span class="tag">MCP</span><span class="tag">AI Agents</span><span class="tag">RAG</span><span class="tag">Context Engineering</span><span class="tag">Embeddings & Semantic Search</span><span class="tag">AI-driven SDLC</span>
-                    </div>
-                </div>
+        <header>
+            <h1>Anastasios Tilsizoglou</h1>
+            <div class="job-title">Test Automation Architect | Principal Test Automation Engineer</div>
+            <div class="location">Thessaloniki, Greece</div>
+            <div class="contact-line">
+                <a class="contact-link" href="mailto:tilsizoglou@protonmail.com" target="_blank"><i class="fas fa-envelope"></i>tilsizoglou@protonmail.com</a><span class="contact-sep">|</span><a class="contact-link" href="http://www.linkedin.com/in/tasostilsi" target="_blank"><i class="fab fa-linkedin"></i>LinkedIn</a><span class="contact-sep">|</span><a class="contact-link" href="http://github.com/tasostilsi" target="_blank"><i class="fab fa-github"></i>GitHub</a><span class="contact-sep">|</span><a class="contact-link" href="https://tasostilsi.github.io/" target="_blank"><i class="fas fa-globe"></i>Portfolio</a>
             </div>
+        </header>
 
-            <div style="margin-top: 10px;">
-                <h3 class="section-title"><span>//</span> EDUCATION.BIN</h3>
-                
-                    <div class="sidebar-item">
-                        <span class="sidebar-item-name">Master of Science in Computer Science</span>
-                        <span class="sidebar-item-meta">University of Macedonia — October 2021 - June 2023</span>
-                    </div>
-                
-                    <div class="sidebar-item">
-                        <span class="sidebar-item-name">Bachelor of Computer Engineering</span>
-                        <span class="sidebar-item-meta">TEI of Central Macedonia — September 2012 - December 2018</span>
-                    </div>
-                
-            </div>
-
-            <div style="margin-top: 10px;">
-                <h3 class="section-title"><span>//</span> ARTICLES.LOG</h3>
-                
-                    <div class="sidebar-item">
-                        <span class="sidebar-item-name">
-                            <a href="https://medium.com/@tasostilsi" target="_blank">Local Knowledge Graphs for AI</a>
-                        </span>
-                        <span class="sidebar-item-meta">Medium — Feb 2026</span>
-                    </div>
-                
-                    <div class="sidebar-item">
-                        <span class="sidebar-item-name">
-                            <a href="https://medium.com/@tasostilsi" target="_blank">Testing Geo-Specific Features</a>
-                        </span>
-                        <span class="sidebar-item-meta">Medium — Jan 2026</span>
-                    </div>
-                
-                    <div class="sidebar-item">
-                        <span class="sidebar-item-name">
-                            <a href="https://medium.com/@tasostilsi" target="_blank">The €10,000 Contract Mistake</a>
-                        </span>
-                        <span class="sidebar-item-meta">Medium — Mar 2026</span>
-                    </div>
-                
-            </div>
-            
-            <div style="margin-top: 10px;">
-                <h3 class="section-title"><span>//</span> CERTS.KEY</h3>
-                <div class="sidebar-item">
-                    <span class="sidebar-item-name">ISTQB® Foundation Level (CTFL)</span>
-                    <span class="sidebar-item-meta">ID: GRTB-24-1S20-CTFL</span>
-                </div>
-            </div>
+        <h3 class="section-title"><span>//</span> SUMMARY</h3>
+        <div class="main-summary">
+            Test automation engineer with 7+ years designing frameworks and platforms now standard across an entire QA organization. Recognized internally as the go-to authority for QA automation architecture and technical direction, translating strategy into shared tooling adopted by 12+ engineering teams. Builds AI-driven QA infrastructure — MCP servers, agentic coding workflows, and RAG-based tooling — bridging emerging AI practice with governed engineering standards. ISTQB-certified; MSc in Applied Informatics; open-source contributor with a published npm package that debuted at 600+ downloads in its launch week.
         </div>
 
-        <!-- Main Column -->
-        <div class="main">
-            <h3 class="section-title"><span>//</span> SUMMARY.EXE</h3>
-            <div class="main-summary">
-                Aspiring Test Solutions Architect and "Bridge Builder" with a Master’s in Applied Informatics. Expert in architecting scalable automation frameworks, streamlining enterprise QA processes, and integrating AI across the SDLC — from MCP servers and agentic harnesses at work to shipping my own AI products: Clarif-AI (clarif-ai.net) and the npm-published DeepIndex CLI. Committed to translating technical rigor into business value.
-            </div>
+        <h3 class="section-title"><span>//</span> CORE COMPETENCIES</h3>
+        <div class="competency-list">
+            
+                <div class="competency-row">
+                    <div class="competency-name">Test Automation Architecture &amp; Framework Design</div>
+                    <div class="competency-proof">Internal NPM framework used by 12+ engineering teams across 20+ projects — 5 adopted it immediately; now the QA chapter standard.</div>
+                </div>
+            
+                <div class="competency-row">
+                    <div class="competency-name">Test Automation Stack &amp; Languages</div>
+                    <div class="competency-proof">Playwright, Selenium, Rest Assured, WebdriverIO · Java, JavaScript, TypeScript — the stack the shared framework's 20+ projects are written in.</div>
+                </div>
+            
+                <div class="competency-row">
+                    <div class="competency-name">CI/CD (Jenkins, Docker, Bitbucket)</div>
+                    <div class="competency-proof">Rebuilt CI/CD pipelines on open-source tooling — recurring licensing costs eliminated, delivery velocity maintained.</div>
+                </div>
+            
+                <div class="competency-row">
+                    <div class="competency-name">AI-Driven QA (MCP, RAG, Prompt Engineering, Agentic AI)</div>
+                    <div class="competency-proof">MCP servers and AI agent skills used by 30+ engineers; agentic coding harnesses standardized org-wide.</div>
+                </div>
+            
+                <div class="competency-row">
+                    <div class="competency-name">NPM Module &amp; Platform Architecture</div>
+                    <div class="competency-proof">Published npm package (deepindex); replaced forked, duplicated automation code with one modular NPM dependency model.</div>
+                </div>
+            
+                <div class="competency-row">
+                    <div class="competency-name">Quality Dashboards &amp; Reporting</div>
+                    <div class="competency-proof">Real-time quality dashboards giving stakeholders test-health visibility for data-driven prioritization.</div>
+                </div>
+            
+                <div class="competency-row">
+                    <div class="competency-name">Cross-Team Technical Leadership &amp; Mentorship</div>
+                    <div class="competency-proof">Primary technical point of contact for QA automation architecture across the department; led code reviews as primary reviewer.</div>
+                </div>
+            
+                <div class="competency-row">
+                    <div class="competency-name">Performance &amp; Load Testing (ReadyAPI, LoadUI, Postman)</div>
+                    <div class="competency-proof">Executed performance and load testing to identify and resolve system bottlenecks.</div>
+                </div>
+            
+        </div>
 
-            <h3 class="section-title"><span>//</span> EXPERIENCE.SH</h3>
-            <div class="experience-list">
-                
-                    <div class="experience-item">
-                        <div class="item-header">
-                            <h4 class="item-title">Senior Software Engineer in Test</h4>
-                            <span class="item-date">Sept 2023 — Present</span>
-                        </div>
-                        <div class="item-company">Chubb</div>
-                        <ul class="item-details">
-                            <li>Deployed MCP servers and AI agent skills across engineering teams, making technical context retrievable where the work happens.</li><li>Standardized agentic AI coding harnesses org-wide — rules, hooks, and sub-agent workflows that turn AI assistants into governed engineering tooling.</li><li>Wove AI into the automation pipeline: LLM-assisted test authoring and self-healing selectors that cut creation and maintenance overhead.</li><li>Built RAG pipelines over engineering knowledge bases, giving teams instant, grounded answers instead of documentation archaeology.</li><li>Architected centralized infrastructure by transitioning from forked projects to a modular NPM node dependency model, standardizing automation across all organizational teams.</li><li>Designed custom quality dashboards with real-time data visualization, providing stakeholders with critical visibility for data-driven task prioritization.</li><li>Engineered cost-efficient CI/CD pipelines using open-source frameworks, eliminating expensive licensing while maintaining high-velocity delivery.</li>
-                        </ul>
+        <h3 class="section-title"><span>//</span> PROFESSIONAL EXPERIENCE</h3>
+        <div class="experience-list">
+            
+                <div class="experience-item">
+                    <div class="item-header">
+                        <h4 class="item-title">Senior Software Engineer in Test</h4>
+                        <span class="item-date">Sept 2023 — Present</span>
                     </div>
-                
-                    <div class="experience-item">
-                        <div class="item-header">
-                            <h4 class="item-title">Software Engineer in Test</h4>
-                            <span class="item-date">Sept 2022 — Aug 2023</span>
-                        </div>
-                        <div class="item-company">Upstream Systems</div>
-                        <ul class="item-details">
-                            <li>Integrated automated smoke and regression suites into daily CI/CD delivery cycles.</li><li>Designed custom tools for test execution, reducing manual overhead and expanding coverage to new product modules.</li><li>Influenced "Shift-Left" strategy by providing UX and performance feedback during early design phases.</li>
-                        </ul>
+                    <div class="item-company">Chubb — Leof. Georgikis Scholis 27, Thermi, 57001 Thessaloniki (Greece)</div>
+                    <ul class="item-details">
+                        <li>Designed an internal NPM automation framework now used by 12+ engineering teams across 20+ projects; after an internal presentation, 5 projects adopted it immediately, and it went on to become the standard framework across the entire QA chapter, replacing duplicated, forked automation code org-wide.</li><li>Serve as the primary technical point of contact for QA automation architecture and design decisions across the department, advising teams on framework structure, tooling choices, and test strategy.</li><li>Deployed MCP servers and AI agent skills used by 30+ engineers, making testing know-how and technical context retrievable at the point of work instead of buried in documentation.</li><li>Standardized agentic AI coding harnesses org-wide (rules, hooks, sub-agent workflows), converting ad hoc AI tool usage into governed engineering practice.</li><li>Defined CI hosting requirements for the DevOps team and rebuilt CI/CD pipelines on open-source tooling, eliminating recurring licensing costs while maintaining delivery velocity.</li><li>Designed real-time quality dashboards giving stakeholders visibility into test health for data-driven prioritization.</li>
+                    </ul>
+                </div>
+            
+                <div class="experience-item">
+                    <div class="item-header">
+                        <h4 class="item-title">Software Engineer in Test</h4>
+                        <span class="item-date">Sept 2022 — Aug 2023</span>
                     </div>
-                
-                    <div class="experience-item">
-                        <div class="item-header">
-                            <h4 class="item-title">Software Engineer in Test</h4>
-                            <span class="item-date">June 2019 — Sept 2022</span>
-                        </div>
-                        <div class="item-company">Netcompany-Intrasoft</div>
-                        <ul class="item-details">
-                            <li>Executed Performance & Load Testing using LoadUI and Java scripts to resolve system bottlenecks.</li><li>Led code reviews as Primary Reviewer, ensuring automation scripts met strict architectural standards.</li><li>Authored comprehensive test artifacts and traceability matrices to ensure 100% requirement coverage.</li>
-                        </ul>
+                    <div class="item-company">Upstream Systems — Kastorias 4, Gerakas, 15344 Athens (Greece)</div>
+                    <ul class="item-details">
+                        <li>Integrated automated smoke and regression suites into daily CI/CD delivery cycles.</li><li>Designed custom test execution tooling that reduced manual overhead and expanded automated coverage to new product modules.</li><li>Influenced “shift-left” strategy by feeding UX and performance findings into design phases before development began.</li>
+                    </ul>
+                </div>
+            
+                <div class="experience-item">
+                    <div class="item-header">
+                        <h4 class="item-title">Software Engineer in Test</h4>
+                        <span class="item-date">June 2019 — Sept 2022</span>
                     </div>
-                
-            </div>
+                    <div class="item-company">Netcompany-Intrasoft — Agiou Georgiou 5, Pylaia, 57001 Thessaloniki (Greece)</div>
+                    <ul class="item-details">
+                        <li>Initiated and built the team’s first Jenkins CI pipelines for test automation, introducing scheduled overnight regression runs where none had previously existed.</li><li>Led code reviews as primary reviewer, holding automation scripts to consistent architectural standards across the team.</li><li>Authored test artifacts and traceability matrices achieving 100% requirement coverage.</li><li>Executed performance and load testing (LoadUI, Java) to identify and resolve system bottlenecks.</li>
+                    </ul>
+                </div>
+            
+        </div>
 
-            <h3 class="section-title" style="margin-top: 25px;"><span>//</span> PROJECTS.BIN</h3>
-            <div class="project-grid">
-                
-                    <div class="project-card">
-                        <div class="item-header">
-                            <h4 class="item-title">Clarif-AI</h4>
-                            <span class="item-date">2026</span>
-                        </div>
-                        <ul class="item-details">
-                            <li class="card-desc">AI contract analyzer for freelancers — scans any contract in under 2 minutes and surfaces red flags, hidden fees, and unfair terms. Live web app.</li>
-                            <li><a href="https://clarif-ai.net" target="_blank">clarif-ai.net</a></li>
-                            
-                        </ul>
+        <h3 class="section-title"><span>//</span> PROJECTS</h3>
+        <div class="project-grid">
+            
+                <div class="project-card">
+                    <div class="item-header">
+                        <h4 class="item-title">DeepIndex</h4>
+                        <span class="item-date">2026</span>
                     </div>
-                
-                    <div class="project-card">
-                        <div class="item-header">
-                            <h4 class="item-title">DeepIndex</h4>
-                            <span class="item-date">2026</span>
-                        </div>
-                        <ul class="item-details">
-                            <li class="card-desc">Self-healing, token-efficient context-engineering framework for AI coding harnesses — hybrid semantic + entity-graph code search (tree-sitter, SQLite, embeddings) with an MCP server and bundled dashboard. Published on npm.</li>
-                            <li><a href="https://www.npmjs.com/package/deepindex" target="_blank">npmjs.com/package/deepindex</a></li>
-                            <li><a href="https://github.com/TasosTilsi/deepindex" target="_blank">github.com/TasosTilsi/deepindex</a></li>
-                        </ul>
+                    <ul class="item-details">
+                        <li class="card-desc">Open-source, npm-published RAG-based context engine for AI coding assistants — hybrid semantic and entity-graph code search (tree-sitter, SQLite, embeddings), self-healing and token-efficient, with an MCP server and bundled dashboard. Published on npm. 600+ downloads in launch week (Sep 2026).</li>
+                        <li class="project-link"><a href="https://www.npmjs.com/package/deepindex" target="_blank">npmjs.com/package/deepindex</a></li>
+                        <li class="project-link"><a href="https://github.com/TasosTilsi/deepindex" target="_blank">github.com/TasosTilsi/deepindex</a></li>
+                    </ul>
+                </div>
+            
+                <div class="project-card">
+                    <div class="item-header">
+                        <h4 class="item-title">Clarif-AI</h4>
+                        <span class="item-date">2026</span>
                     </div>
-                
-            </div>
+                    <ul class="item-details">
+                        <li class="card-desc">AI-powered contract analyzer for freelancers — scans contracts to surface red flags and hidden terms in under two minutes. Personal product, currently in alpha. Live at clarif-ai.net.</li>
+                        <li class="project-link"><a href="https://clarif-ai.net" target="_blank">clarif-ai.net</a></li>
+                        
+                    </ul>
+                </div>
+            
+        </div>
+
+        <h3 class="section-title"><span>//</span> EDUCATION</h3>
+        <div class="education-list">
+            
+                <div class="education-item">
+                    <div class="item-header">
+                        <h4 class="item-title">Master of Science in Computer Science</h4>
+                        <span class="item-date">October 2021 - June 2023</span>
+                    </div>
+                    <div class="item-company">University of Macedonia — Thessaloniki, Greece</div>
+                    <div class="edu-focus">focus: Software Quality Assurance Engineering</div>
+                </div>
+            
+                <div class="education-item">
+                    <div class="item-header">
+                        <h4 class="item-title">Bachelor of Computer Engineering</h4>
+                        <span class="item-date">September 2012 - December 2018</span>
+                    </div>
+                    <div class="item-company">TEI of Central Macedonia — Serres, Greece</div>
+                    
+                </div>
+            
+        </div>
+
+        <h3 class="section-title"><span>//</span> CERTIFICATIONS</h3>
+        <div class="cert-list">
+            
+                <div class="resume-item">
+                    <span class="resume-item-name">ISTQB® Foundation Level (CTFL)</span>
+                    <span class="resume-item-meta">July 2024 — ID: GRTB-24-1S20-CTFL</span>
+                </div>
+            
+                <div class="resume-item">
+                    <span class="resume-item-name">Claude 101</span>
+                    <span class="resume-item-meta">2026</span>
+                </div>
+            
+                <div class="resume-item">
+                    <span class="resume-item-name">Claude Code in Action</span>
+                    <span class="resume-item-meta">2026</span>
+                </div>
+            
+                <div class="resume-item">
+                    <span class="resume-item-name">Introduction to Claude Cowork</span>
+                    <span class="resume-item-meta">2026</span>
+                </div>
+            
+                <div class="resume-item">
+                    <span class="resume-item-name">Introduction to Agent Skills</span>
+                    <span class="resume-item-meta">2026</span>
+                </div>
+            
+        </div>
+
+        <h3 class="section-title"><span>//</span> SELECTED WRITING</h3>
+        <div class="writing-list">
+            
+                <div class="resume-item">
+                    <span class="resume-item-name"><a href="https://generativeai.pub/your-ai-agent-keeps-re-discovering-your-codebase-i-built-the-tool-that-stops-it-2f7c67ea8de0" target="_blank">Your AI Agent Keeps Re-Discovering Your Codebase. I Built the Tool That Stops It.</a></span>
+                    <span class="resume-item-meta">Medium — Sep 14, 2026</span>
+                </div>
+            
+                <div class="resume-item">
+                    <span class="resume-item-name"><a href="https://medium.com/startup-insider-edge/your-playwright-tests-take-45-minutes-cut-that-to-12-be3a6a1f5c49" target="_blank">Your Playwright Tests Take 45 Minutes? Cut That to 12.</a></span>
+                    <span class="resume-item-meta">Medium — May 26, 2026</span>
+                </div>
+            
+                <div class="resume-item">
+                    <span class="resume-item-name"><a href="https://medium.com/@tasostilsi/a85a11c2c932?sk=e87168a4ec0c3094ce75b01d64077727" target="_blank">Core Design Patterns for Test Automation: From Chaos to Maintainable Frameworks</a></span>
+                    <span class="resume-item-meta">Medium — Sep 17, 2025</span>
+                </div>
+            
+                <div class="resume-item">
+                    <span class="resume-item-name"><a href="https://medium.com/@tasostilsi/flaky-tests-driving-you-crazy-heres-how-to-fix-and-prevent-them-6fb46b041a4e?sk=97060c585875028e57a253696f284eef" target="_blank">Flaky Tests Driving You Crazy? Here's How to Fix and Prevent Them!</a></span>
+                    <span class="resume-item-meta">Medium — Jun 28, 2025</span>
+                </div>
+            
+                <div class="resume-item">
+                    <span class="resume-item-name"><a href="https://medium.com/startup-insider-edge/a-qa-engineers-guide-to-testing-geo-specific-features-without-flying-to-30-countries-part-1-1e8e3f31b84f" target="_blank">A QA Engineer’s Guide to Testing Geo-Specific Features (Without Flying to 30 Countries) — Part 1</a></span>
+                    <span class="resume-item-meta">Medium — Dec 23, 2025</span>
+                </div>
+            
         </div>
     </div>
-
-    <!-- Clickable Links Overlay (Hidden during print) -->
-    <!-- Not strictly needed as native <a> tags work in PDF, but we could add a floating info bar if the user wanted -->
 </body>
 </html>

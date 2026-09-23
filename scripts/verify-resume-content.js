@@ -1,5 +1,6 @@
-// Acceptance check for the AI CV revamp (see doublecheck-spec.md).
-// Verifies the source data and the generated static resume export.
+// Acceptance check for the docx-structure resume rebuild (REV-02/REV-03, D-08).
+// Verifies the refreshed source data and the generated static resume export
+// against the same docx section order /resume renders.
 // Run: node scripts/verify-resume-content.js  (exit 0 = all checks pass)
 
 const fs = require('fs');
@@ -9,7 +10,7 @@ const exportPath = 'public/resume-export.html';
 
 const failures = [];
 
-// --- 1. Source data carries the approved change ---
+// --- 1. Source data carries the docx contract (plan-01 refresh) -----------
 let data;
 try {
   data = JSON.parse(fs.readFileSync(dataPath, 'utf8'));
@@ -18,27 +19,41 @@ try {
   process.exit(1);
 }
 
-const chubb = data.experience[0];
-const innovation = data.skills.hard_skills.Innovation || [];
+const DOCX_TITLE = 'Test Automation Architect | Principal Test Automation Engineer';
+const ANTHROPIC_CERTS = [
+  'Claude 101',
+  'Claude Code in Action',
+  'Introduction to Claude Cowork',
+  'Introduction to Agent Skills',
+];
+const NEW_ARTICLES = [
+  'Your AI Agent Keeps Re-Discovering Your Codebase. I Built the Tool That Stops It.',
+  'Your Playwright Tests Take 45 Minutes? Cut That to 12.',
+];
+const chubb = data.experience.find((job) => job.company === 'Chubb');
 
 const dataChecks = {
-  'data: projects[0] is Clarif-AI': data.projects[0] && data.projects[0].name === 'Clarif-AI',
-  'data: projects[1] is DeepIndex': data.projects[1] && data.projects[1].name === 'DeepIndex',
-  'data: Clarif-AI links live site (clarif-ai.net)': data.projects[0] && data.projects[0].link === 'https://clarif-ai.net',
-  'data: DeepIndex links npm + GitHub repo':
-    data.projects[1] && data.projects[1].link === 'https://www.npmjs.com/package/deepindex' &&
-    data.projects[1].sourceUrl === 'https://github.com/TasosTilsi/deepindex',
-  'data: Chubb role has 7 responsibilities, AI-forward':
-    chubb && chubb.responsibilities && chubb.responsibilities.length === 7 &&
-    chubb.responsibilities[0].includes('MCP servers'),
-  'data: Innovation group has 7 tags incl. RAG + AI Agents':
-    innovation.length === 7 && innovation.includes('RAG') && innovation.includes('AI Agents'),
-  'data: summary (V1) names both AI products':
-    data.about.description.includes('Clarif-AI (clarif-ai.net)') &&
-    data.about.description.includes('DeepIndex CLI'),
+  'data: about.title is the docx line-2 branding': data.about.title === DOCX_TITLE,
+  'data: 8 core competencies, each with a non-empty proof':
+    Array.isArray(data.core_competencies) &&
+    data.core_competencies.length === 8 &&
+    data.core_competencies.every((c) => c.name && c.proof),
+  'data: Chubb carries 6 docx bullets, first quantifies 12+ engineering teams':
+    chubb && chubb.responsibilities && chubb.responsibilities.length === 6 &&
+    chubb.responsibilities[0].includes('12+ engineering teams'),
+  'data: exactly 3 isTechRelated roles (U-4)':
+    data.experience.filter((job) => job.isTechRelated).length === 3,
+  'data: exactly 5 featured certifications incl. the 4 Anthropic Academy items':
+    data.certifications.filter((c) => c.featured).length === 5 &&
+    ANTHROPIC_CERTS.every((name) =>
+      data.certifications.some((c) => c.featured && c.name === name)),
+  'data: exactly 5 featured articles incl. the 2 new Medium titles':
+    data.articles.filter((a) => a.featured).length === 5 &&
+    NEW_ARTICLES.every((name) =>
+      data.articles.some((a) => a.featured && a.name === name)),
 };
 
-// --- 2. Generated export artifact carries the change ---
+// --- 2. Generated export artifact renders the docx structure --------------
 let html = '';
 try {
   html = fs.readFileSync(exportPath, 'utf8');
@@ -46,39 +61,60 @@ try {
   failures.push(`export: ${exportPath} unreadable: ${e.message}`);
 }
 
+// Minimal entity normalisation so marker checks are escaping-agnostic.
+const decoded = html
+  .replace(/&amp;/g, '&')
+  .replace(/&lt;/g, '<')
+  .replace(/&gt;/g, '>')
+  .replace(/&#39;/g, "'")
+  .replace(/&quot;/g, '"');
+
 const requiredInExport = [
-  'Clarif-AI',
+  data.about.name,
+  DOCX_TITLE,
+  'Test automation engineer with 7+ years designing frameworks',
+  ...data.core_competencies.map((c) => c.name),
+  '12+ engineering teams',
   'clarif-ai.net',
-  'DeepIndex',
   'npmjs.com/package/deepindex',
-  'github.com/TasosTilsi/deepindex',
-  'PROJECTS.BIN',
-  'AI Agents',
-  'RAG',
-  'Context Engineering',
-  'Embeddings & Semantic Search',
-  'agentic AI coding harnesses',
-  'self-healing selectors',
-  'RAG pipelines',
-  'npm-published DeepIndex CLI',
+  ...ANTHROPIC_CERTS,
+  ...NEW_ARTICLES,
 ];
 
+// Docx section order — §8 renders §7.3 exactly. Each marker is the unique
+// '//</span> LABEL' heading emitted by the template.
+const sections = [
+  '//</span> SUMMARY',
+  '//</span> CORE COMPETENCIES',
+  '//</span> PROFESSIONAL EXPERIENCE',
+  '//</span> PROJECTS',
+  '//</span> EDUCATION',
+  '//</span> CERTIFICATIONS',
+  '//</span> SELECTED WRITING',
+];
+const orderOk = sections.every((marker) => decoded.includes(marker)) &&
+  sections.map((marker) => decoded.indexOf(marker))
+    .every((idx, i, all) => i === 0 || idx > all[i - 1]);
+
+// Forbidden markers: the old two-column/sidebar structure is gone.
 const forbiddenInExport = [
-  'Spearheaded AI innovation',
-  'Jira synchronization',
-  // Single-page A4 pressure valve: only the two AI flagship projects render
-  // on the PDF (older projects remain on the site + in-app resume).
-  'SDK4ED-TD',
+  'SKILLS.SYS',
+  'skill-group-title',
+  'https://linkedin.com/in/tasostilsi',
+  'ARTICLES.LOG',
+  'CERTS.KEY',
+  'EDUCATION.BIN',
+  'PROJECTS.BIN',
+  'EXPERIENCE.SH',
+  'SUMMARY.EXE',
+  'sidebar',
 ];
 
-// Redesigned PDF layout (user-approved): education lives in the sidebar,
-// skills render as 2 merged groups, projects render as 2-column cards.
-const educationInSidebar =
-  html.indexOf('EDUCATION.BIN') !== -1 &&
-  html.indexOf('EDUCATION.BIN') < html.indexOf('SUMMARY.EXE');
-const projectsAsCards = html.includes('project-grid');
-const skillsMerged = html.includes('class="skill-group-title">Engineering') &&
-  !html.includes('class="skill-group-title">Languages');
+// Data-driven contacts: the export carries the about.contact forms.
+const contactsOk =
+  decoded.includes(data.about.contact.linkedin) &&
+  decoded.includes(data.about.contact.github) &&
+  decoded.includes(data.about.contact.email);
 
 // --- report ---
 for (const [label, ok] of Object.entries(dataChecks)) {
@@ -86,21 +122,19 @@ for (const [label, ok] of Object.entries(dataChecks)) {
   if (!ok) failures.push(label);
 }
 for (const marker of requiredInExport) {
-  const ok = html.includes(marker);
+  const ok = decoded.includes(marker);
   console.log(`${ok ? 'PASS' : 'FAIL'}  export contains "${marker}"`);
   if (!ok) failures.push(`export contains "${marker}"`);
 }
 for (const marker of forbiddenInExport) {
-  const ok = !html.includes(marker);
+  const ok = !decoded.includes(marker);
   console.log(`${ok ? 'PASS' : 'FAIL'}  export no longer contains "${marker}"`);
   if (!ok) failures.push(`export still contains "${marker}"`);
 }
-console.log(`${educationInSidebar ? 'PASS' : 'FAIL'}  export renders EDUCATION.BIN in the sidebar`);
-if (!educationInSidebar) failures.push('export renders EDUCATION.BIN in the sidebar');
-console.log(`${projectsAsCards ? 'PASS' : 'FAIL'}  export renders projects as 2-column cards`);
-if (!projectsAsCards) failures.push('export renders projects as 2-column cards');
-console.log(`${skillsMerged ? 'PASS' : 'FAIL'}  export skills merged to 2 groups (Engineering + AI & Innovation)`);
-if (!skillsMerged) failures.push('export skills merged to 2 groups');
+console.log(`${orderOk ? 'PASS' : 'FAIL'}  export renders the docx section order: SUMMARY < COMPETENCIES < EXPERIENCE < PROJECTS < EDUCATION < CERTIFICATIONS < WRITING`);
+if (!orderOk) failures.push('export docx section order');
+console.log(`${contactsOk ? 'PASS' : 'FAIL'}  export contacts are data-driven from about.contact`);
+if (!contactsOk) failures.push('export contacts data-driven');
 
 if (failures.length > 0) {
   console.error(`\n${failures.length} check(s) failed.`);
