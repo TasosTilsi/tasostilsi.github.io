@@ -30,6 +30,7 @@ export interface Certification {
   name: string;
   date: string;
   link?: string | null;
+  featured?: boolean;
 }
 
 export interface Article {
@@ -38,6 +39,7 @@ export interface Article {
   summary: string;
   link: string;
   date: string;
+  featured?: boolean;
 }
 
 export interface Presentation {
@@ -77,6 +79,7 @@ export interface PortfolioData {
     };
     profileImageUrl: string;
   };
+  core_competencies: { name: string; proof: string }[];
   experience: ExperienceEntry[];
   education: EducationEntry[];
   skills: {
