@@ -2,22 +2,22 @@
 gsd_state_version: 1
 milestone: v1.0
 milestone_name: "Explore Visual Landing"
-status: ship
-active_phase: 5
-next_action: ship-phase
-next_phases: [5]
+status: spec
+active_phase: 6
+next_action: discuss-phase
+next_phases: [6]
 progress:
   total_phases: 5
   completed_phases: 0
   total_plans: 3
   completed_plans: 13
   percent: 0
-current_phase: 5
-current_phase_name: explore-routing
+current_phase: 6
+current_phase_name: explore-revision
 current_plan: 3
-last_updated: "2026-09-22T15:53:33.359Z"
+last_updated: "2026-09-23T05:46:55.717Z"
 state_head: null
-last_activity: 2026-09-22
+last_activity: 2026-09-23
 stopped_at: null
 paused_at: null
 ---
@@ -52,6 +52,7 @@ _No active phase._
 - Phase 5: SPEC.md sealed (ambiguity 0.155)
 - Phase 5: CONTEXT.md sealed — 5 decisions
 - Phase 5: planned — 3 plan(s) across 2 wave(s).
+- Phase 6: SPEC.md sealed (ambiguity 0.182)
 
 ### Blockers / Concerns
 - Shipping decision (user, 2026-09-21): ship the milestone AS A WHOLE at milestone close — no per-phase PRs. phase-1 and phase-2 branches pushed to origin (backup only); gsd_ship deferred for both phases. phase-2 branch contains phase-1 commits (stacked).
