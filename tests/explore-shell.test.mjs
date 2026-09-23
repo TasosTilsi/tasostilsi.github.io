@@ -432,8 +432,8 @@ test('static export: intro strip — sr-only h1 full name—title server-rendere
   const html = readFileSync(exportHtml, 'utf8');
   assert.ok(html.includes('<h1'), 'sr-only h1 emitted (a11y + no-JS contract, UI-SPEC §4)');
   assert.ok(
-    html.includes('Anastasios Tilsizoglou — Senior Software Engineer in Test'),
-    'full real name—title from data (D-07)',
+    html.includes('Anastasios Tilsizoglou — Test Automation Architect | Principal Test Automation Engineer'),
+    'full real name—title from data (D-07) — refreshed docx branding',
   );
   assert.ok(html.includes('Open section navigation'), 'drawer toggle aria-label (SSR)');
 });
