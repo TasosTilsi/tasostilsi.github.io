@@ -6,14 +6,14 @@
 **Scope guard:** nothing is deleted. Every untouched collection is ledgered in §9. One deliberate replacement happens by design (experience responsibilities, D-02) — called out in §4 and §9.
 
 > ## APPROVAL BOX (to be filled by the user before the write)
-> **Approved:** _(date + verdict recorded here verbatim on approval)_
-> - (a) Downloads wording: A (keep docx 400+) / B (spike-scoped, **recommended**) / C (soften — no number)
-> - (b) Flagship order per U-6 (deepindex → Clarif-AI): confirm / override
-> - (c) Anthropic cert dates & links: accept defaults (date `2026`, `link: null`) / supply exact values
-> - (d) Geo-article reconciliation: d1 / d2 (**recommended**) / d3
-> - (e) meta.keywords refresh: yes / no
-> - (f) Skill chips stay under the /explore competency cards (plan-04 U-2 adjudication): confirm / override
-> - U-4 Smartup PCC `isTechRelated` flip true→false (entry stays, CLI-reachable): approve / reject
+> **Approved:** 2026-09-22 — user approved via interactive decision round: (a) **B** launch-week number; (d) **d2** add real Part 1; all remaining items approved as recommended (title/summary/competencies/bullets verbatim, U-4 flip, deepindex-first flagship order, Anthropic cert defaults, keywords refresh, chips stay, TaasOutput pipe sentence seen-and-accepted).
+> - (a) Downloads wording: ~~A~~ / **B (spike-scoped) ✓ APPROVED** / C
+> - (b) Flagship order per U-6 (deepindex → Clarif-AI): **✓ confirmed**
+> - (c) Anthropic cert dates & links: **✓ defaults accepted (date `2026`, `link: null`)**
+> - (d) Geo-article reconciliation: d1 / **d2 ✓ APPROVED** / d3
+> - (e) meta.keywords refresh: **✓ yes**
+> - (f) Skill chips stay under the /explore competency cards: **✓ confirmed**
+> - U-4 Smartup PCC `isTechRelated` flip true→false: **✓ approved**
 
 ---
 
