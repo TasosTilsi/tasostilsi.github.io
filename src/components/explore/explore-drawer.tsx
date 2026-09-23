@@ -29,13 +29,12 @@ import {
 } from '@/components/ui/sheet';
 import { EXPLORE_SECTIONS } from './constants';
 
-/** Digit accent per section order: About=chart-1 … Contact=chart-5 (UI-SPEC §5). */
+/** Digit accent per section order: About=chart-1 … Projects=chart-4 (UI-SPEC §5; 4 sections since REV-04). */
 const DIGIT_ACCENTS = [
   'text-chart-1',
   'text-chart-2',
   'text-chart-3',
   'text-chart-4',
-  'text-chart-5',
 ] as const;
 
 export function ExploreDrawer({ trigger }: { trigger: ReactNode }) {
