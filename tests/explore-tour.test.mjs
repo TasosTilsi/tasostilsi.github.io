@@ -133,6 +133,23 @@ test('tour copy guard: chrome only, no digits beyond the allowed "60" (§12.4)',
   assert.equal(EXPLORE_TOUR_STEPS[5].body, EXPLORE_TOUR_FINISH.congrats, 'finish body = congrats');
 });
 
+test('tour step bodies: no chart machinery mention in the source literal (REV-08/U-10, UI-SPEC §10.2)', () => {
+  // EXPLORE_TOUR_STEP_BODIES is module-private (not exported), so the
+  // assertion reads the SOURCE per the established source-grep convention:
+  // extract the array literal and ban the "chart" substring inside it.
+  const src = read('src/components/explore/constants.ts');
+  const block = src.match(/const EXPLORE_TOUR_STEP_BODIES = \[([\s\S]*?)\] as const;/);
+  assert.ok(block, 'the module-private step-body literal is present in the source');
+  assert.ok(
+    !/chart/i.test(block[1]),
+    'no "chart" substring in any step body — the dangling career-span reference is rewritten (U-10)',
+  );
+  assert.ok(
+    block[1].includes('shape of the career as a timeline'),
+    'the experience step body carries the replacement copy (UI-SPEC §2.1)',
+  );
+});
+
 test('welcome copy: the lap covers FOUR sections after the merge (D-05/OQ-9)', () => {
   const welcome = EXPLORE_TOUR_STEPS[0].body;
   assert.ok(

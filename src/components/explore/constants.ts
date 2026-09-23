@@ -94,7 +94,7 @@ export const EXPLORE_TOUR_FINISH = {
 /** §4 bodies in EXPLORE_SECTIONS order — chrome orientation copy only, zero invented portfolio facts. */
 const EXPLORE_TOUR_STEP_BODIES = [
   "The short version of who's typing — bio, role, location, every contact channel, and the resume export.",
-  "Roles in order, with the career-span chart on top for the shape of it.",
+  "Roles in order — title, company, tenure, and the shape of the career as a timeline.",
   "Competency cards with the quantified proof behind each — full inventory below.",
   "Stat tiles up top, six projects underneath.",
 ] as const;

@@ -151,7 +151,7 @@ test('constants: skills tour step names the cards, no treemap copy anywhere (che
 
 // ---------------------------------------------------------------------------
 // Phase-3 B-1 carry-over — the chart tokens stay live for the surviving
-// server-rendered accents (career-span bg-chart-2, panel chips)
+// server-rendered accents (timeline dot bg-chart-2, panel chips)
 // ---------------------------------------------------------------------------
 
 test('globals.css: light shell carries the pinned chart-2/chart-3 overrides exactly once (B-1)', () => {

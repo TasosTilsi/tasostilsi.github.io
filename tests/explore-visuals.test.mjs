@@ -34,95 +34,14 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import {
-  parseDuration,
   skillGroupFill,
   skillsGroupCounts,
   projectStats,
-  buildCareerSpan,
 } from '../src/components/explore/viz-data.ts';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const read = (p) => readFileSync(join(root, p), 'utf8');
 const data = JSON.parse(read('src/data/portfolio-main-data.json'));
-
-// ---------------------------------------------------------------------------
-// Task 1: tracer — parseDuration over the real JSON + malformed-input proof
-// ---------------------------------------------------------------------------
-
-test('parseDuration: all 7 real duration strings — both dash styles, Sept, Present', () => {
-  // JSON order: Chubb, Upstream, Netcompany-Intrasoft, Smartup, Sweet Corner,
-  // Mini Market, WashPark (RESEARCH.md §1.2B parse inventory).
-  const [chubb, upstream, netcompany, smartup, sweetCorner, miniMarket, washPark] =
-    data.experience.map((entry) => parseDuration(entry.duration));
-
-  assert.deepStrictEqual(chubb, {
-    startYear: 2023,
-    startMonth: 9,
-    endYear: null,
-    endMonth: null,
-    isPresent: true,
-  }, 'Chubb "Sept 2023 — Present" (em-dash) → Present semantics');
-
-  assert.deepStrictEqual(upstream, {
-    startYear: 2022,
-    startMonth: 9,
-    endYear: 2023,
-    endMonth: 8,
-    isPresent: false,
-  }, 'Upstream "Sept 2022 — Aug 2023" (em-dash)');
-
-  assert.deepStrictEqual(netcompany, {
-    startYear: 2019,
-    startMonth: 6,
-    endYear: 2022,
-    endMonth: 9,
-    isPresent: false,
-  }, 'Netcompany "June 2019 — Sept 2022" (em-dash)');
-
-  assert.deepStrictEqual(smartup, {
-    startYear: 2017,
-    startMonth: 11,
-    endYear: 2018,
-    endMonth: 4,
-    isPresent: false,
-  }, 'Smartup "November 2017 - April 2018" (hyphen, full-word months)');
-
-  assert.deepStrictEqual(sweetCorner, {
-    startYear: 2018,
-    startMonth: 5,
-    endYear: 2018,
-    endMonth: 6,
-    isPresent: false,
-  }, 'Sweet Corner "May 2018 - June 2018" (hyphen)');
-
-  assert.deepStrictEqual(miniMarket, {
-    startYear: 2017,
-    startMonth: 6,
-    endYear: 2017,
-    endMonth: 7,
-    isPresent: false,
-  }, 'Mini Market "June 2017 - July 2017" (hyphen)');
-
-  assert.deepStrictEqual(washPark, {
-    startYear: 2017,
-    startMonth: 3,
-    endYear: 2017,
-    endMonth: 6,
-    isPresent: false,
-  }, 'WashPark "March 2017 - June 2017" (hyphen) — axis minimum');
-});
-
-test('parseDuration: malformed inputs return null without throwing', () => {
-  for (const raw of [
-    'garbage',
-    'March',
-    '2023 — ',
-    '',
-    'March 2017 — someday',
-  ]) {
-    assert.strictEqual(parseDuration(raw), null, `"${raw}" → null, never throws`);
-  }
-});
 
 // ---------------------------------------------------------------------------
 // Task 2: skillsGroupCounts (+ shared §2 fill map) + projectStats
@@ -236,112 +155,6 @@ test('projectStats: activeYearsSpan null when no date carries a year (E-9)', () 
 });
 
 // ---------------------------------------------------------------------------
-// Task 4: buildCareerSpan — Gantt geometry with injectable now (D-02)
-// ---------------------------------------------------------------------------
-
-test('buildCareerSpan: 7 rows in JSON order, WashPark at 0%, Chubb reaches 100%', () => {
-  const now = new Date('2026-09-21T00:00:00Z');
-  const span = buildCareerSpan(data.experience, now);
-  assert.strictEqual(span.startYear, 2017, 'axis start = WashPark March 2017');
-  assert.strictEqual(span.rows.length, 7);
-  assert.deepStrictEqual(
-    span.rows.map((r) => [r.company, r.title, r.duration, r.isTechRelated]),
-    [
-      ['Chubb', 'Senior Software Engineer in Test', 'Sept 2023 — Present', true],
-      ['Upstream Systems', 'Software Engineer in Test', 'Sept 2022 — Aug 2023', true],
-      ['Netcompany-Intrasoft', 'Software Engineer in Test', 'June 2019 — Sept 2022', true],
-      ['Smartup PCC', 'Android Developer', 'November 2017 - April 2018', false],
-      ['Sweet Corner', 'Barista', 'May 2018 - June 2018', false],
-      ['Mini Market at University Campus of AUTH', 'Storekeeper', 'June 2017 - July 2017', false],
-      ['WashPark', 'Washer', 'March 2017 - June 2017', false],
-    ],
-    'JSON order preserved — no sorting anywhere (R-4/E-6); display strings verbatim (both dash styles intact)',
-  );
-  const chubb = span.rows[0];
-  const washPark = span.rows[6];
-  assert.strictEqual(washPark.leftPct, 0, 'axis minimum = WashPark March 2017');
-  assert.ok(
-    Math.abs(chubb.leftPct + chubb.widthPct - 100) < 1e-9,
-    'Present row extends to the axis end — left+width = 100 (E-3)',
-  );
-  assert.ok(
-    washPark.leftPct < span.rows[1].leftPct && span.rows[1].leftPct < chubb.leftPct,
-    'Upstream starts strictly between WashPark and Chubb positions',
-  );
-});
-
-test('buildCareerSpan: year ticks — axis-start year at 0 through axis-end year', () => {
-  const now = new Date('2026-09-21T00:00:00Z');
-  const span = buildCareerSpan(data.experience, now);
-  assert.deepStrictEqual(span.yearTicks[0], { year: 2017, leftPct: 0 });
-  const last = span.yearTicks[span.yearTicks.length - 1];
-  assert.strictEqual(last.year, 2026, 'last tick = axis-end year');
-  assert.strictEqual(span.yearTicks.length, 10, 'one tick per January 2017..2026 — no right-edge tick');
-  assert.ok(last.leftPct > 0 && last.leftPct < 100, 'final January sits inside the axis');
-  for (let i = 1; i < span.yearTicks.length; i += 1) {
-    assert.ok(span.yearTicks[i].leftPct > span.yearTicks[i - 1].leftPct, 'ticks are monotonic');
-  }
-});
-
-test('buildCareerSpan: unparseable duration → null geometry, text intact (E-1)', () => {
-  const now = new Date('2026-09-21T00:00:00Z');
-  const span = buildCareerSpan(
-    [
-      { title: 'A', company: 'C1', duration: 'unparseable', isTechRelated: true },
-      { title: 'B', company: 'C2', duration: 'March 2017 - June 2017', isTechRelated: false },
-    ],
-    now,
-  );
-  assert.strictEqual(span.rows[0].duration, 'unparseable');
-  assert.strictEqual(span.rows[0].title, 'A');
-  assert.strictEqual(span.rows[0].leftPct, null);
-  assert.strictEqual(span.rows[0].widthPct, null);
-  assert.strictEqual(span.startYear, 2017, 'axis unaffected by the unparseable row');
-  assert.strictEqual(span.rows[1].leftPct, 0);
-});
-
-test('buildCareerSpan: all durations unparseable → every row null (E-2)', () => {
-  const now = new Date('2026-09-21T00:00:00Z');
-  const span = buildCareerSpan(
-    [
-      { title: 'A', company: 'C1', duration: 'unparseable', isTechRelated: true },
-      { title: 'B', company: 'C2', duration: '', isTechRelated: false },
-    ],
-    now,
-  );
-  assert.strictEqual(span.rows.length, 2);
-  for (const row of span.rows) {
-    assert.strictEqual(row.leftPct, null);
-    assert.strictEqual(row.widthPct, null);
-  }
-});
-
-test('buildCareerSpan: end beyond now clamps to axis end (E-4)', () => {
-  const now = new Date('2026-09-21T00:00:00Z');
-  const span = buildCareerSpan(
-    [{ title: 'A', company: 'C', duration: 'January 2020 - January 2030', isTechRelated: true }],
-    now,
-  );
-  assert.strictEqual(span.rows[0].leftPct, 0);
-  assert.ok(span.rows[0].widthPct <= 100);
-  assert.ok(
-    Math.abs(span.rows[0].widthPct - 100) < 1e-9,
-    'unclamped span would exceed 100 — the bar is clamped to the axis end',
-  );
-});
-
-test('buildCareerSpan: start==end entry still yields a row (E-5)', () => {
-  const now = new Date('2026-09-21T00:00:00Z');
-  const span = buildCareerSpan(
-    [{ title: 'A', company: 'C', duration: 'June 2017 - June 2017', isTechRelated: true }],
-    now,
-  );
-  assert.strictEqual(span.rows.length, 1);
-  assert.strictEqual(span.rows[0].leftPct, 0);
-  assert.strictEqual(span.rows[0].widthPct, 0, "min-width is the component's job — module reports 0");
-});
-
-// ---------------------------------------------------------------------------
 // Plan 04 Task 1: cross-cutting Layer-2 source invariants — proof of delivery
 // over the settled wave-2 tree. These are expected to pass immediately (the
 // behavior exists); any failure is a REAL defect in the owning plan's scope —
@@ -355,7 +168,6 @@ const codeOf = (p) =>
   read(p).replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
 
 const serverSlices = [
-  'src/components/explore/sections/career-span-chart.tsx',
   'src/components/explore/sections/project-stat-tiles.tsx',
 ];
 const sectionBodies = [
@@ -404,16 +216,7 @@ test('cross-cutting: motion — never isAnimationActive={true} under explore, no
   }
 });
 
-test('cross-cutting: interaction-free charts — no Tooltip/grid/handlers in any chart-like component (D-04/§6)', () => {
-  for (const p of serverSlices) {
-    const code = codeOf(p);
-    for (const banned of ['Tooltip', 'CartesianGrid', 'onClick', 'onMouseEnter', 'onMouseLeave']) {
-      assert.ok(!code.includes(banned), `${p}: ${banned} absent (D-04/§6)`);
-    }
-  }
-});
-
-test('cross-cutting: viz-data is the SOLE parsing site — the component files parse nothing inline (D-05)', () => {
+test('cross-cutting: viz-data is the sole data-shaping module — chart machinery GONE, survivors pinned (REV-08/U-6, D-05)', () => {
   for (const p of phaseTouchedComponents) {
     const code = codeOf(p);
     for (const banned of ['new Date(', 'getFullYear', 'getMonth', '.match(', 'RegExp(', 'parseDuration(']) {
@@ -421,15 +224,28 @@ test('cross-cutting: viz-data is the SOLE parsing site — the component files p
     }
   }
   const viz = read('src/components/explore/viz-data.ts');
-  for (const site of [
+  for (const gone of [
     'parseDuration',
-    'skillGroupFill',
-    'skillsGroupCounts',
-    'projectStats',
     'buildCareerSpan',
-    'YEAR_PATTERN',
+    'buildProjectCalendar',
+    'MONTH_NAMES',
+    'parseMonthToken',
+    'parseMonthYear',
+    'monthIndex',
   ]) {
-    assert.ok(viz.includes(site), `viz-data.ts hosts ${site} — the one data-shaping module (D-05)`);
+    assert.ok(
+      !viz.includes(gone),
+      `viz-data.ts no longer hosts ${gone} — the chart machinery is deleted (REV-08/U-6)`,
+    );
+  }
+  // The parse-block YEAR_PATTERN is matched with an upper-boundary lookbehind
+  // because the pinned survivor GLOBAL_YEAR_PATTERN contains it as a substring.
+  assert.ok(
+    !/(?<![A-Z_])YEAR_PATTERN(?![A-Z_])/.test(viz),
+    'viz-data.ts no longer hosts the parse-block YEAR_PATTERN — deleted with the builders (REV-08/U-6)',
+  );
+  for (const site of ['skillGroupFill', 'skillsGroupCounts', 'projectStats', 'GLOBAL_YEAR_PATTERN']) {
+    assert.ok(viz.includes(site), `viz-data.ts still hosts ${site} — the survivor stays pinned (D-05)`);
   }
 });
 
@@ -474,35 +290,28 @@ test('cross-cutting: registry spine — four total closures after the merge, ski
   );
 });
 
-test('cross-cutting: REV-07 deferral — the experience showcase stays byte-untouched (D-09)', () => {
-  // No speculative experience redesign ships this phase (REV-07 deferred
-  // pending the user's screenshot description): both files must still exist
-  // with their Gantt contract intact, and the wizard/drawer/counter flows
-  // keep working through the untouched panel.
-  assert.ok(
-    existsSync(join(root, 'src/components/explore/sections/experience-section.tsx')),
-    'experience-section.tsx still exists (D-09)',
-  );
-  assert.ok(
-    existsSync(join(root, 'src/components/explore/sections/career-span-chart.tsx')),
-    'career-span-chart.tsx still exists (D-09)',
-  );
+test('cross-cutting: REV-08 — both chart files deleted, builders absent, the polished timeline survives (D-03)', () => {
+  // The removal contract: no chart artefact remains on disk or in the two
+  // section files, while the rail+dots timeline (the REV-07-deferred
+  // showcase, polished at taste level only) stays as pinned.
+  for (const deleted of [
+    'src/components/explore/sections/career-span-chart.tsx',
+    'src/components/explore/sections/projects-calendar.tsx',
+  ]) {
+    assert.equal(existsSync(join(root, deleted)), false, `${deleted}: deleted (REV-08/D-03)`);
+  }
+  const viz = read('src/components/explore/viz-data.ts');
   const exp = read('src/components/explore/sections/experience-section.tsx');
-  const chart = read('src/components/explore/sections/career-span-chart.tsx');
+  assert.ok(!viz.includes('buildCareerSpan'), 'buildCareerSpan gone from viz-data (U-6)');
   assert.ok(
-    exp.includes('buildCareerSpan'),
-    'experience-section still feeds the Gantt from viz-data (no redesign landed)',
+    !exp.includes('buildCareerSpan') && !exp.includes('CareerSpanChart'),
+    'experience-section carries no chart machinery',
   );
   assert.ok(
-    chart.includes('buildCareerSpan') && chart.includes('aria-hidden'),
-    'career-span-chart keeps its dumb-renderer contract (D-02/D-09)',
+    exp.includes('relative space-y-5 border-l border-border'),
+    'the rail+dots timeline survives as the polished non-chart showcase',
   );
-  assert.ok(
-    !exp.includes('use client') && !chart.includes('use client'),
-    'both remain server components (no speculative interactivity)',
-  );
-  // The buildCareerSpan Gantt geometry tests above (lines ~360-460) run
-  // unchanged in this same suite — their green here is the contract proof.
+  assert.ok(!exp.includes('use client'), 'experience-section remains a server component');
 });
 
 test('cross-cutting: recharts removed — 38 dependency keys, no recharts key (OQ-2, plan 04)', () => {
@@ -534,11 +343,11 @@ test('cross-cutting: scoped light-theme chart overrides pinned, chart-1 absent f
 // ---------------------------------------------------------------------------
 // Plan 04 Task 2: Layer-3 export-level invariants — hold against the static
 // export (out/) produced by `npm run build`; they fail with a build hint
-// until then (suite convention). Post-removal the page is recharts-free —
-// every panel (Gantt, tiles, cards, chips) is fully
+// until then (suite convention). Post-removal the page is chart-free —
+// every panel (timeline, tiles, cards, chips) is fully
 // server-rendered and must appear complete in the static HTML.
 // Manual checks deliberately NOT asserted here (static HTML cannot carry
-// them): rendered calendar bar placement fidelity, 375px no-scroll,
+// them): rendered timeline spacing fidelity, 375px no-scroll,
 // both-theme legibility — listed for the verify step's human pass.
 // ---------------------------------------------------------------------------
 
@@ -598,34 +407,6 @@ test('export: calendar removed — no year-grid remains, tiles + exactly 6 cards
     assert.ok(
       !html.includes(project.name),
       `"${project.name}" (beyond the top-6 cap) renders nowhere in the export — no calendar rows linger`,
-    );
-  }
-});
-
-test('export: Gantt fully server-rendered — all 7 companies + the axis-start year tick', () => {
-  assert.ok(existsSync(exportHtmlPath), 'out/explore.html missing — run `npm run build` first');
-  const html = readExport();
-  const startYears = data.experience
-    .map((entry) => parseDuration(entry.duration))
-    .filter(Boolean)
-    .map((parsed) => parsed.startYear);
-  const axisStartYear = String(Math.min(...startYears));
-  // Cross-check the derivation against the module the component renders from.
-  assert.strictEqual(
-    String(buildCareerSpan(data.experience, new Date('2026-09-21T00:00:00Z')).startYear),
-    axisStartYear,
-    'viz-data axis start = minimum parsed start year',
-  );
-  assert.ok(
-    html.includes(`>${axisStartYear}</span>`),
-    `axis-start year tick "${axisStartYear}" server-rendered (derived, never pinned)`,
-  );
-  // Company names carry no HTML-escapable characters in this dataset; the
-  // raw substring form is the honest presence check.
-  for (const entry of data.experience) {
-    assert.ok(
-      html.includes(entry.company),
-      `Gantt row company "${entry.company}" server-rendered`,
     );
   }
 });
