@@ -12,7 +12,7 @@
 
 ## REV
 
-- [ ] REV-01: The portfolio data file is refreshed to the user's current resume (docx) as source of truth — new branding ("Test Automation Architect | Principal Test Automation Engineer"), business-value summary, 8 core-competency clusters with proof lines, quantified experience bullets, enriched Clarif-AI/DeepIndex entries, featured-flagged certifications, and selected-writing curation — flowing consistently to ALL surfaces (CLI, /explore, /resume, PDF export), with nothing deleted (full lists stay in the CLI).
+- [x] REV-01: The portfolio data file is refreshed to the user's current resume (docx) as source of truth — new branding ("Test Automation Architect | Principal Test Automation Engineer"), business-value summary, 8 core-competency clusters with proof lines, quantified experience bullets, enriched Clarif-AI/DeepIndex entries, featured-flagged certifications, and selected-writing curation — flowing consistently to ALL surfaces (CLI, /explore, /resume, PDF export), with nothing deleted (full lists stay in the CLI).
 - [ ] REV-02: The /resume page is rebuilt to the docx structure — SUMMARY → CORE COMPETENCIES → PROFESSIONAL EXPERIENCE (quantified bullets) → PROJECTS → EDUCATION → CERTIFICATIONS → SELECTED WRITING — print-optimized.
 - [ ] REV-03: The static PDF export (scripts/generate-static-resume.js → public/resume-export.html) is rebuilt to the same docx structure, replacing its hardcoded sections.
 - [x] REV-04: The About and Contact panels merge into one panel on /explore, reclaiming the empty space the oversized About section left, with the panel grid rebalanced.
