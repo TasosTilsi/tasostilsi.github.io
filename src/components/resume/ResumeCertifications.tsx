@@ -6,15 +6,20 @@ interface ResumeCertificationsProps {
   data: PortfolioData;
   isDarkMode?: boolean;
   isSidebar?: boolean;
+  featuredOnly?: boolean;
 }
 
-const ResumeCertifications: React.FC<ResumeCertificationsProps> = ({ data, isDarkMode = true, isSidebar = false }) => {
+const ResumeCertifications: React.FC<ResumeCertificationsProps> = ({ data, isDarkMode = true, isSidebar = false, featuredOnly = false }) => {
   const accentColor = isDarkMode ? "text-[#8fdb00]" : "text-blue-600";
   const textColor = isDarkMode ? "text-[#dae2fd]" : "text-gray-900";
   const mutedColor = isDarkMode ? "text-[#c6c6cb]" : "text-gray-600";
 
-  // Limit certifications for sidebar/resume space
-  const topCerts = data.certifications.slice(0, 8);
+  // featuredOnly (/resume + modal, §7.3.7): the docx's five featured
+  // certifications (ISTQB + 4 Anthropic Academy); the other 40 stay
+  // CLI-reachable. Unset → the legacy top-8 slice.
+  const topCerts = featuredOnly
+    ? data.certifications.filter((cert) => cert.featured)
+    : data.certifications.slice(0, 8);
 
   return (
     <section className="resume-section" style={{ breakInside: "avoid" }}>

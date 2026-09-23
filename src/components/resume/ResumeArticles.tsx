@@ -7,14 +7,19 @@ interface ResumeArticlesProps {
   limit?: number;
   isDarkMode?: boolean;
   isSidebar?: boolean;
+  featuredOnly?: boolean;
 }
 
-const ResumeArticles: React.FC<ResumeArticlesProps> = ({ data, limit = 5, isDarkMode = true, isSidebar = false }) => {
+const ResumeArticles: React.FC<ResumeArticlesProps> = ({ data, limit = 5, isDarkMode = true, isSidebar = false, featuredOnly = false }) => {
   const accentColor = isDarkMode ? "text-[#8fdb00]" : "text-blue-600";
   const textColor = isDarkMode ? "text-[#dae2fd]" : "text-gray-900";
   const mutedColor = isDarkMode ? "text-[#c6c6cb]" : "text-gray-600";
 
-  const selectedArticles = data.articles?.slice(0, limit) || [];
+  // featuredOnly (/resume + modal, §7.3.8): the 5 docx selected-writing
+  // entries in data order, ignoring any slice limit. Unset → the legacy slice.
+  const selectedArticles = featuredOnly
+    ? data.articles?.filter((article) => article.featured) || []
+    : data.articles?.slice(0, limit) || [];
 
   if (selectedArticles.length === 0) {
     return null;

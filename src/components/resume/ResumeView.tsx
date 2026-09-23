@@ -127,9 +127,9 @@ const ResumeView: React.FC<ResumeViewProps> = ({
 
           <ResumeEducation data={data} isDarkMode={isDarkMode} featuredOnly />
 
-          {showCertifications && <ResumeCertifications data={data} isDarkMode={isDarkMode} />}
+          {showCertifications && <ResumeCertifications data={data} isDarkMode={isDarkMode} featuredOnly />}
 
-          {showArticles && <ResumeArticles data={data} isDarkMode={isDarkMode} />}
+          {showArticles && <ResumeArticles data={data} isDarkMode={isDarkMode} featuredOnly />}
         </div>
       </div>
     </div>

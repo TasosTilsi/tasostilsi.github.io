@@ -210,3 +210,75 @@ test('resume: EDUCATION renders the featured degrees only — High School stays 
   assert.equal(featured.length, 2, 'the docx two degrees featured');
   assert.ok(data.education.some((edu) => edu.degree === 'High School Degree'), 'High School row survives in data (CLI-reachable)');
 });
+
+// ---------------------------------------------------------------------------
+// §7.3.7/§7.3.8 — featured-only CERTIFICATIONS + SELECTED WRITING (task 2)
+// ---------------------------------------------------------------------------
+
+test('resume: CERTIFICATIONS render exactly the featured five when curated', () => {
+  const src = read('src/components/resume/ResumeCertifications.tsx');
+  assert.ok(src.includes('featuredOnly'), 'featuredOnly prop (task 2)');
+  assert.ok(src.includes('cert.featured'), 'selection filters on the featured flag');
+
+  const usageInView = usage(view, 'ResumeCertifications');
+  assert.ok(usageInView.includes('featuredOnly'), 'ResumeView passes featuredOnly to CERTIFICATIONS');
+
+  const featured = data.certifications.filter((cert) => cert.featured);
+  assert.equal(featured.length, 5, 'exactly 5 featured certifications (ISTQB + 4 Anthropic)');
+  assert.equal(featured[0].name, 'ISTQB® Foundation Level (CTFL)', 'ISTQB first in data order');
+  assert.deepEqual(
+    featured.map((cert) => cert.name),
+    ['ISTQB® Foundation Level (CTFL)', 'Claude 101', 'Claude Code in Action', 'Introduction to Claude Cowork', 'Introduction to Agent Skills'],
+    'the docx five',
+  );
+  assert.equal(data.certifications.length, 45, 'all 41 pre-phase certs + 4 Anthropic entries intact');
+});
+
+test('resume: SELECTED WRITING renders exactly the 5 featured articles, ignoring any slice limit', () => {
+  const src = read('src/components/resume/ResumeArticles.tsx');
+  assert.ok(src.includes('featuredOnly'), 'featuredOnly prop (task 2)');
+  assert.ok(src.includes('article.featured'), 'selection filters on the featured flag');
+
+  const usageInView = usage(view, 'ResumeArticles');
+  assert.ok(usageInView.includes('featuredOnly'), 'ResumeView passes featuredOnly to SELECTED WRITING');
+
+  const featured = data.articles.filter((article) => article.featured);
+  assert.equal(featured.length, 5, 'exactly the 5 docx selected-writing entries');
+  assert.equal(data.articles.length, 15, 'all 12 pre-phase articles + 3 additions intact');
+});
+
+// ---------------------------------------------------------------------------
+// §7.5 — ResumeSkills deleted; nothing deleted from DATA (CLI keeps skills)
+// ---------------------------------------------------------------------------
+
+test('resume: ResumeSkills component deleted from composition, barrel, and disk', () => {
+  assert.ok(!existsSync(join(root, 'src/components/resume/ResumeSkills.tsx')), 'ResumeSkills.tsx deleted');
+  assert.ok(
+    !read('src/components/resume/index.ts').includes('ResumeSkills'),
+    'barrel no longer exports ResumeSkills',
+  );
+
+  const resumeDir = join(root, 'src/components/resume');
+  for (const file of readdirSync(resumeDir)) {
+    if (!file.endsWith('.tsx')) continue;
+    const src = read(`src/components/resume/${file}`);
+    assert.ok(!src.includes('SKILLS.SYS'), `${file} drops the legacy SKILLS.SYS marker`);
+    assert.ok(!/\.EXE|\.SH|\.SYS|\.BIN|\.KEY|\.LOG/.test(src), `${file} drops all legacy marker suffixes`);
+  }
+
+  // The skills DATA is untouched — full lists stay CLI-reachable.
+  assert.ok(Object.keys(data.skills.hard_skills).length > 0, 'hard_skills data intact');
+});
+
+// ---------------------------------------------------------------------------
+// §7.5 — single-column print stylesheet
+// ---------------------------------------------------------------------------
+
+test('resume: print CSS is single-column (no sidebar widths), A4 + max-w-none retained', () => {
+  assert.ok(!view.includes('33%'), 'no 33% print rule');
+  assert.ok(!view.includes('67%'), 'no 67% print rule');
+  assert.ok(view.includes('.resume-wrapper') && view.includes('display: block'), 'wrapper prints as a single block');
+  assert.ok(view.includes('size: A4'), 'A4 page rule kept');
+  assert.ok(view.includes('print:max-w-none'), 'print max-width override kept');
+  assert.ok(view.includes('print-tight'), 'print-tight helpers kept');
+});
