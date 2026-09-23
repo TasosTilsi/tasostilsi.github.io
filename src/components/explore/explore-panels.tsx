@@ -13,12 +13,22 @@
  * renders its data-driven body and nothing else — no humor lines and no
  * loading shimmer anywhere (D-06, EXPLORE-07).
  *
- * Responsive grid (REV-04/D-04): 1 column base, 2 columns from md up (the
- * lg tier drops from 3 to 2) so natural DOM order yields
- * [about+contact | experience] / [skills | projects] — no col-span classes
- * anywhere, hence zero empty cells at 375px (1 col) and at 768/1440/1920
- * (2×2). Full-bleed inside the main scroll container (padding lands via
- * ExploreShell's p-4 md:p-6 — no max-width wrapper here).
+ * Responsive grid (REV-04/D-04; D-02 gutter widening): 1 column base, 2
+ * columns from md up (the lg tier drops from 3 to 2) so natural DOM order
+ * yields [about+contact | experience] / [skills | projects] — no col-span
+ * classes anywhere, hence zero empty cells at 375px (1 col) and at
+ * 768/1440/1920 (2×2). Gutters widen gap-4 → gap-5 at the lg tier ONLY
+ * (D-02, UI-SPEC §1.2 — no max-width wrapper here; full-bleed inside the
+ * main scroll container, padding lands via ExploreShell's p-4 md:p-6).
+ *
+ * The panel-grid class is the DOM hook the plan-03 entrance stagger targets
+ * (UI-SPEC §6.2): four PanelShell children in DOM order, animated purely by
+ * CSS keyframes in globals.css under the .explore-shell scope — zero JSX
+ * animation wiring, SSG-safe.
+ *
+ * D-02 hierarchy device (UI-SPEC §5): each PanelShell header receives the
+ * zero-padded mono index 01–04 derived from the EXPLORE_SECTIONS map index
+ * (String(index + 1).padStart(2, '0')) — data-driven, no literals in JSX.
  *
  * Panels are static cards (UI-SPEC §17.6) — no interaction states of any
  * kind on the containers; only links inside bodies are interactive.
@@ -62,8 +72,8 @@ const SECTION_BODIES: Record<
 
 export function ExplorePanels({ data }: { data: PortfolioData }) {
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-      {EXPLORE_SECTIONS.map((section) => {
+    <div className="grid panel-grid grid-cols-1 gap-4 md:grid-cols-2 lg:gap-5">
+      {EXPLORE_SECTIONS.map((section, index) => {
         const Body = SECTION_BODIES[section.id];
         return (
           <PanelShell
@@ -71,6 +81,7 @@ export function ExplorePanels({ data }: { data: PortfolioData }) {
             id={section.id}
             label={section.label}
             accent={ACCENTS[section.id]}
+            index={String(index + 1).padStart(2, '0')}
           >
             <Body data={data} />
           </PanelShell>

@@ -305,6 +305,22 @@ test('panel-shell: chrome anatomy — chip, label, body slot; hover-inert; secti
   for (const s of ['AboutSection', 'ExperienceSection', 'SkillsSection', 'ProjectsSection'])
     assert.ok(src.includes(s), `section body registered: ${s}`);
   assert.ok(!src.includes('ContactSection'), 'no contact body — Contact merged into About (REV-04/D-05)');
+  // EXPLORE-07 plan 02 (D-02, UI-SPEC §5): the quiet oversized mono index on
+  // the header row — chrome-only; the hover:/cursor-pointer/tabIndex bans
+  // above must keep holding with the device present.
+  assert.ok(code.includes('index: string'), 'PanelShell declares a REQUIRED index: string prop (UI-SPEC §5)');
+  assert.match(
+    code,
+    /aria-hidden="true"\s+className=["']ml-auto select-none font-mono text-2xl font-medium leading-none tabular-nums text-muted-foreground\/50["']/,
+    'aria-hidden oversized mono index span with the pinned class recipe (UI-SPEC §5)',
+  );
+  assert.ok(src.includes('panel-grid'), 'stagger hook class on the grid container (plan-03 target, UI-SPEC §6.2)');
+  assert.ok(src.includes('lg:gap-5'), 'gutter widening is lg-only (D-02, UI-SPEC §1.2)');
+  assert.ok(!src.includes('max-w-'), 'no max-w wrapper on the panels container (R12)');
+  assert.ok(
+    src.includes("String(index + 1).padStart(2, '0')"),
+    'index fed data-driven from the EXPLORE_SECTIONS map — zero literals in JSX (R3)',
+  );
 });
 
 test('panels: responsive grid 2×2 after the merge — zero col-spans, per-section chart accents', () => {

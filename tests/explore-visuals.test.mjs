@@ -439,6 +439,24 @@ test('export: stat tiles server-rendered with JSON-derived values (OQ-1/U-1 — 
   }
 });
 
+test('export: the four panel headers render the aria-hidden mono index spans 01-04 (UI-SPEC §5/§10.6, D-02)', () => {
+  assert.ok(existsSync(exportHtmlPath), 'out/explore.html missing — run `npm run build` first');
+  const html = readExport();
+  // The class signature keeps the assertion off the drawer's decorative
+  // chart-N digits, which carry entirely different classes (UI-SPEC §5 scope).
+  const spans =
+    html.match(
+      /aria-hidden="true" class="ml-auto select-none font-mono text-2xl font-medium leading-none tabular-nums text-muted-foreground\/50">[0-9]{2}<\/span>/g,
+    ) || [];
+  assert.equal(spans.length, 4, `exactly four panel index spans render — found ${spans.length}`);
+  ['01', '02', '03', '04'].forEach((digits, i) => {
+    assert.ok(
+      spans.some((s) => s.endsWith(`>${digits}</span>`)),
+      `panel #${i + 1} carries the zero-padded index ${digits}`,
+    );
+  });
+});
+
 test('export: CLI and resume still emitted (EXPLORE-05/D-07)', () => {
   assert.ok(existsSync(join(root, 'out/index.html')), 'out/index.html still emitted (D-10)');
   assert.ok(existsSync(join(root, 'out/resume.html')), 'out/resume.html still emitted (D-10)');
