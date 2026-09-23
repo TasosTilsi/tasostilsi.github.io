@@ -1,6 +1,6 @@
 # Roadmap — Explore Visual Landing (v1.0)
 
-6 phase(s) | requirements mapped per phase
+7 phase(s) | requirements mapped per phase
 
 | # | Phase | Goal | Requirements |
 |---|-------|------|--------------|
@@ -10,6 +10,7 @@
 | 04 | explore-gamification | Add light gamification to /explore — a guided spin-the-wheel tour picker, exploration progress/achievements, and light humor in the copy. | EXPLORE-04 |
 | 05 | explore-routing | Add a non-blocking toggle/link routing visitors between the CLI (/) and /explore, and polish responsive behaviour across breakpoints. | EXPLORE-05 … EXPLORE-06 |
 | 06 | explore-revision | Refresh the portfolio data to the user's current resume (docx) as source of truth and revise the visual surfaces accordingly — /resume + PDF rebuilt to the docx structure, About+Contact merged, skills as competency + proof cards, projects year-grid calendar — per the user's pre-ship revision list. | REV-01 … REV-07 |
+| 07 | look-and-feel-revision | Overall UI/UX look-and-feel revision under the newly installed design skills (motion-design + design-taste-frontend + redesign-existing-projects): both Gantt-style charts removed, skills cards' presentation redesigned, audit-first polish pass and restrained micro-motion across /explore — IDE aesthetic preserved. | REV-08 … REV-11 |
 
 ## Progress
 
@@ -21,3 +22,4 @@
 | 04 | explore-gamification | pending |  |
 | 05 | explore-routing | pending |  |
 | 06 | explore-revision | pending |  |
+| 07 | look-and-feel-revision | pending |  |
