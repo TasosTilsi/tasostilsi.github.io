@@ -507,10 +507,10 @@ test('cross-cutting: REV-07 deferral — the experience showcase stays byte-unto
   // unchanged in this same suite — their green here is the contract proof.
 });
 
-test('cross-cutting: zero new dependencies — 39 dependency keys with recharts ^2.15.1 (D-07)', () => {
+test('cross-cutting: recharts removed — 38 dependency keys, no recharts key (OQ-2, plan 04)', () => {
   const pkg = JSON.parse(read('package.json'));
-  assert.equal(Object.keys(pkg.dependencies).length, 39, 'dependencies unchanged this phase (D-07)');
-  assert.equal(pkg.dependencies.recharts, '^2.15.1', 'recharts pinned version unchanged');
+  assert.equal(Object.keys(pkg.dependencies).length, 38, 'recharts removed — dependencies 39→38 (OQ-2)');
+  assert.equal(pkg.dependencies.recharts, undefined, 'no recharts key remains (OQ-2)');
 });
 
 test('cross-cutting: scoped light-theme chart overrides pinned, chart-1 absent from both shell blocks (UI-SPEC §2 B-1/OQ-6)', () => {

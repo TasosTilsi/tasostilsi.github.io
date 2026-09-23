@@ -198,8 +198,13 @@ test('guards: zero new dependencies; the /explore → CLI return leg stays intac
   const pkg = JSON.parse(read('package.json'));
   assert.equal(
     Object.keys(pkg.dependencies).length,
-    39,
-    'dependency count pinned at 39 (precedent tests/explore-visuals.test.mjs:622-625)',
+    38,
+    'dependency count pinned at 38 — recharts removed with its last explore consumer (OQ-2, plan 04)',
+  );
+  assert.equal(
+    pkg.dependencies.recharts,
+    undefined,
+    'no recharts key remains (OQ-2, plan 04)',
   );
   assert.equal(
     EXPLORE_TOUR_FINISH.linkHref,

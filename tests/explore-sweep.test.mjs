@@ -206,12 +206,17 @@ test('sweep E-3 (E): CLI welcome is client-only — documents why the welcome li
   );
 });
 
-test('sweep E-4 (E): zero new dependencies — package.json dependencies length stays 39 (D-05)', () => {
+test('sweep E-4 (E): recharts removed — package.json dependencies length stays 38 (D-05, plan 04 OQ-2)', () => {
   const pkg = JSON.parse(read('package.json'));
   assert.equal(
     Object.keys(pkg.dependencies).length,
-    39,
-    'dependency count pinned (precedent tests/explore-visuals.test.mjs:624)',
+    38,
+    'dependency count pinned at 38 (precedent tests/explore-visuals.test.mjs:624)',
+  );
+  assert.equal(
+    pkg.dependencies.recharts,
+    undefined,
+    'no recharts key remains — the gate proves zero remaining usages (OQ-2)',
   );
 });
 
