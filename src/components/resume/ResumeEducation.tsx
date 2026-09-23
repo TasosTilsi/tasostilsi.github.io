@@ -5,21 +5,26 @@ import { PortfolioData } from "@/data/portfolio-main-data";
 interface ResumeEducationProps {
   data: PortfolioData;
   isDarkMode?: boolean;
+  featuredOnly?: boolean;
 }
 
-const ResumeEducation: React.FC<ResumeEducationProps> = ({ data, isDarkMode = true }) => {
+const ResumeEducation: React.FC<ResumeEducationProps> = ({ data, isDarkMode = true, featuredOnly = false }) => {
   const accentColor = isDarkMode ? "text-[#8fdb00]" : "text-blue-600";
   const textColor = isDarkMode ? "text-[#dae2fd]" : "text-gray-900";
   const mutedColor = isDarkMode ? "text-[#c6c6cb]" : "text-gray-600";
 
-  const educationForResume = data.education.filter(
-    (edu) => edu.degree !== "High School Degree"
-  );
+  // featuredOnly (/resume + modal, §7.3.6/B-2): the docx's two featured
+  // degrees; the High School row stays CLI-reachable via the education command.
+  const educationForResume = featuredOnly
+    ? data.education.filter((edu) => edu.featured)
+    : data.education.filter(
+        (edu) => edu.degree !== "High School Degree"
+      );
 
   return (
     <section className="resume-section">
       <h3 className={`text-[10px] font-black uppercase tracking-[0.4em] mb-8 flex items-center ${accentColor}`}>
-        <span className="mr-2 opacity-50">//</span> EDUCATION.SYS
+        <span className="mr-2 opacity-50">//</span> EDUCATION
       </h3>
       <div className="space-y-10">
         {educationForResume.map((edu, index) => (

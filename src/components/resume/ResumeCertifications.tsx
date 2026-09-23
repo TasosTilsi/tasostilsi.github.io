@@ -19,7 +19,7 @@ const ResumeCertifications: React.FC<ResumeCertificationsProps> = ({ data, isDar
   return (
     <section className="resume-section" style={{ breakInside: "avoid" }}>
       <h3 className={`text-[10px] font-black uppercase tracking-[0.4em] mb-6 flex items-center ${accentColor}`}>
-        <span className="mr-2 opacity-50">//</span> CERTS.KEY
+        <span className="mr-2 opacity-50">//</span> CERTIFICATIONS
       </h3>
       <div className="space-y-4">
         {topCerts.map((cert, index) => (

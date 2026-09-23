@@ -4,8 +4,8 @@ import React from "react";
 import type { PortfolioData } from "@/data/portfolio-main-data";
 import ResumeHeader from "@/components/resume/ResumeHeader";
 import ResumeSummary from "@/components/resume/ResumeSummary";
+import ResumeCoreCompetencies from "@/components/resume/ResumeCoreCompetencies";
 import ResumeExperience from "@/components/resume/ResumeExperience";
-import ResumeSkills from "@/components/resume/ResumeSkills";
 import ResumeEducation from "@/components/resume/ResumeEducation";
 import ResumeCertifications from "@/components/resume/ResumeCertifications";
 import ResumeProjects from "@/components/resume/ResumeProjects";
@@ -19,6 +19,12 @@ interface ResumeViewProps {
   showArticles?: boolean;
 }
 
+// Single-column docx-order document flow (D-08, UI-SPEC §7.2/§7.3):
+// Header → SUMMARY → CORE COMPETENCIES → PROFESSIONAL EXPERIENCE → PROJECTS →
+// EDUCATION → CERTIFICATIONS → SELECTED WRITING. The 33/67 sidebar grid is
+// gone (§7.2); PROJECTS and PUBLICATIONS render independently of each other
+// (E-16). The CLI ResumeModal renders this same component and inherits the
+// docx layout and featured curation (§7.5) — its props contract is unchanged.
 const ResumeView: React.FC<ResumeViewProps> = ({
   data,
   isDarkMode,
@@ -30,12 +36,10 @@ const ResumeView: React.FC<ResumeViewProps> = ({
     dark: {
       bg: "bg-[#0b1326]",
       text: "text-[#dae2fd]",
-      sidebar: "bg-[#131b2e]",
     },
     light: {
       bg: "bg-white",
       text: "text-gray-900",
-      sidebar: "bg-gray-50",
     }
   };
 
@@ -68,21 +72,9 @@ const ResumeView: React.FC<ResumeViewProps> = ({
             background-color: white !important;
           }
           .resume-wrapper {
-            display: flex !important;
-            flex-direction: row !important;
+            display: block !important;
             width: 100% !important;
-            min-height: 297mm !important;
-          }
-          .resume-sidebar {
-            width: 33% !important;
-            padding: 20px 15px !important;
-            display: block !important;
-            font-size: 0.75rem !important;
-          }
-          .resume-main {
-            width: 67% !important;
             padding: 25px 30px !important;
-            display: block !important;
             font-size: 0.8rem !important;
           }
           /* Tighten spacing for print */
@@ -121,30 +113,23 @@ const ResumeView: React.FC<ResumeViewProps> = ({
         }
       `}} />
 
-      <div className="flex flex-col md:flex-row min-h-screen resume-wrapper">
-        {/* Sidebar Column */}
-        <div className={`w-full md:w-[33%] p-8 resume-sidebar ${theme.sidebar} print:bg-white print:border-r print:border-gray-200`}>
-          <ResumeHeader data={data} isDarkMode={isDarkMode} />
-          
-          <div className="mt-8 space-y-8 print:mt-4 print:space-y-4">
-            <ResumeSkills data={data} isDarkMode={isDarkMode} />
-            
-            {showArticles && <ResumeArticles data={data} limit={6} isDarkMode={isDarkMode} isSidebar />}
-            
-            {showCertifications && <ResumeCertifications data={data} isDarkMode={isDarkMode} isSidebar />}
-          </div>
-        </div>
+      <div className="flex flex-col min-h-screen resume-wrapper px-8 py-10 md:px-12">
+        <ResumeHeader data={data} isDarkMode={isDarkMode} />
 
-        {/* Main Content Column */}
-        <div className="w-full md:w-[67%] p-8 md:p-12 space-y-10 resume-main print:space-y-6">
+        <div className="space-y-12 print:space-y-6">
           <ResumeSummary data={data} isDarkMode={isDarkMode} />
-          
-          <div className="space-y-12 print:space-y-6">
-            <ResumeExperience data={data} isDarkMode={isDarkMode} />
-            <ResumeEducation data={data} isDarkMode={isDarkMode} />
-            
-            {showProjects && !showArticles && <ResumeProjects data={data} limit={6} isDarkMode={isDarkMode} />}
-          </div>
+
+          <ResumeCoreCompetencies data={data} isDarkMode={isDarkMode} />
+
+          <ResumeExperience data={data} isDarkMode={isDarkMode} />
+
+          {showProjects && <ResumeProjects data={data} isDarkMode={isDarkMode} featuredOnly />}
+
+          <ResumeEducation data={data} isDarkMode={isDarkMode} featuredOnly />
+
+          {showCertifications && <ResumeCertifications data={data} isDarkMode={isDarkMode} />}
+
+          {showArticles && <ResumeArticles data={data} isDarkMode={isDarkMode} />}
         </div>
       </div>
     </div>

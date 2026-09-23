@@ -23,7 +23,7 @@ const ResumeArticles: React.FC<ResumeArticlesProps> = ({ data, limit = 5, isDark
   return (
     <section className="resume-section" style={{ breakInside: "avoid" }}>
       <h3 className={`text-[10px] font-black uppercase tracking-[0.4em] mb-6 flex items-center ${accentColor}`}>
-        <span className="mr-2 opacity-50">//</span> PUBS.LOG
+        <span className="mr-2 opacity-50">//</span> SELECTED WRITING
       </h3>
       <div className="space-y-6">
         {selectedArticles.map((article: Article, index: number) => (
