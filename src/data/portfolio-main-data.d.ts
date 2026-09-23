@@ -8,6 +8,7 @@ export interface ExperienceEntry {
 }
 
 export interface EducationEntry {
+  featured?: boolean;
   duration: string;
   location: string;
   specialization?: string;
@@ -22,6 +23,7 @@ export interface Project {
   date?: string;
   link?: string;
   sourceUrl?: string;
+  featured?: boolean;
 }
 
 export interface Certification {

@@ -3,17 +3,17 @@
   "meta": {
     "charset": "utf-8",
     "viewport": "width=device-width, initial-scale=1, shrink-to-fit=no",
-    "description": "Interactive CLI portfolio of Anastasios Tilsizoglou — Senior Software Engineer in Test and part-time freelance consultant (TAaS). Test automation, Playwright, CI/CD, and full-stack engineering for startups.",
-    "keywords": "TasosTilsi, resume, cv, skills, experience, Software, developer, engineer, QA, Tester, Web, android, java, html, css, JavaScript, Anastasios Tilsizoglou, Senior Software Engineer in Test, Portfolio, CLI, Command Line, Next.js, React, Cyber Security Enthusiast, freelance, test automation consultant, TAaS, Playwright, CI/CD consultant, part-time engineer, QA automation architect, AI, LLM, MCP, AI agents, context engineering, contract analysis",
+    "description": "Interactive CLI portfolio of Anastasios Tilsizoglou — Test Automation Architect and Principal Test Automation Engineer, part-time freelance consultant (TAaS). Test automation architecture, AI-driven QA, Playwright, CI/CD, and full-stack engineering.",
+    "keywords": "TasosTilsi, resume, cv, skills, experience, Software, developer, engineer, QA, Tester, Web, android, java, html, css, JavaScript, Anastasios Tilsizoglou, Test Automation Architect, Principal Test Automation Engineer, Portfolio, CLI, Command Line, Next.js, React, Cyber Security Enthusiast, freelance, test automation consultant, TAaS, Playwright, CI/CD consultant, part-time engineer, QA automation architect, AI, LLM, MCP, AI agents, context engineering, contract analysis",
     "author": "Anastasios Tilsizoglou"
   },
   "about": {
     "name": "Anastasios Tilsizoglou",
-    "title": "Senior Software Engineer in Test",
+    "title": "Test Automation Architect | Principal Test Automation Engineer",
     "location": "Thessaloniki, Greece",
     "dob": "12 Oct 1994",
     "email": "tilsizoglou@protonmail.com",
-    "description": "Aspiring Test Solutions Architect and \"Bridge Builder\" with a Master’s in Applied Informatics. Expert in architecting scalable automation frameworks, streamlining enterprise QA processes, and integrating AI across the SDLC — from MCP servers and agentic harnesses at work to shipping my own AI products: Clarif-AI (clarif-ai.net) and the npm-published DeepIndex CLI. Committed to translating technical rigor into business value.",
+    "description": "Test automation engineer with 7+ years designing frameworks and platforms now standard across an entire QA organization. Recognized internally as the go-to authority for QA automation architecture and technical direction, translating strategy into shared tooling adopted by 12+ engineering teams. Builds AI-driven QA infrastructure — MCP servers, agentic coding workflows, and RAG-based tooling — bridging emerging AI practice with governed engineering standards. ISTQB-certified; MSc in Applied Informatics; open-source contributor with a published npm package that debuted at 600+ downloads in its launch week.",
     "contact": {
       "email":"tilsizoglou@protonmail.com",
       "linkedin": "http://www.linkedin.com/in/tasostilsi",
@@ -27,6 +27,16 @@
     },
     "profileImageUrl":"https://tinyurl.com/5cfm72u7"
   },
+  "core_competencies": [
+    {"name": "Test Automation Architecture & Framework Design", "proof": "Internal NPM framework used by 12+ engineering teams across 20+ projects — 5 adopted it immediately; now the QA chapter standard."},
+    {"name": "Test Automation Stack & Languages", "proof": "Playwright, Selenium, Rest Assured, WebdriverIO · Java, JavaScript, TypeScript — the stack the shared framework's 20+ projects are written in."},
+    {"name": "CI/CD (Jenkins, Docker, Bitbucket)", "proof": "Rebuilt CI/CD pipelines on open-source tooling — recurring licensing costs eliminated, delivery velocity maintained."},
+    {"name": "AI-Driven QA (MCP, RAG, Prompt Engineering, Agentic AI)", "proof": "MCP servers and AI agent skills used by 30+ engineers; agentic coding harnesses standardized org-wide."},
+    {"name": "NPM Module & Platform Architecture", "proof": "Published npm package (deepindex); replaced forked, duplicated automation code with one modular NPM dependency model."},
+    {"name": "Quality Dashboards & Reporting", "proof": "Real-time quality dashboards giving stakeholders test-health visibility for data-driven prioritization."},
+    {"name": "Cross-Team Technical Leadership & Mentorship", "proof": "Primary technical point of contact for QA automation architecture across the department; led code reviews as primary reviewer."},
+    {"name": "Performance & Load Testing (ReadyAPI, LoadUI, Postman)", "proof": "Executed performance and load testing to identify and resolve system bottlenecks."}
+  ],
   "experience": [
     {
       "title": "Senior Software Engineer in Test",
@@ -35,13 +45,12 @@
       "duration": "Sept 2023 — Present",
       "isTechRelated": true,
       "responsibilities": [
-        "Deployed MCP servers and AI agent skills across engineering teams, making technical context retrievable where the work happens.",
-        "Standardized agentic AI coding harnesses org-wide — rules, hooks, and sub-agent workflows that turn AI assistants into governed engineering tooling.",
-        "Wove AI into the automation pipeline: LLM-assisted test authoring and self-healing selectors that cut creation and maintenance overhead.",
-        "Built RAG pipelines over engineering knowledge bases, giving teams instant, grounded answers instead of documentation archaeology.",
-        "Architected centralized infrastructure by transitioning from forked projects to a modular NPM node dependency model, standardizing automation across all organizational teams.",
-        "Designed custom quality dashboards with real-time data visualization, providing stakeholders with critical visibility for data-driven task prioritization.",
-        "Engineered cost-efficient CI/CD pipelines using open-source frameworks, eliminating expensive licensing while maintaining high-velocity delivery."
+        "Designed an internal NPM automation framework now used by 12+ engineering teams across 20+ projects; after an internal presentation, 5 projects adopted it immediately, and it went on to become the standard framework across the entire QA chapter, replacing duplicated, forked automation code org-wide.",
+        "Serve as the primary technical point of contact for QA automation architecture and design decisions across the department, advising teams on framework structure, tooling choices, and test strategy.",
+        "Deployed MCP servers and AI agent skills used by 30+ engineers, making testing know-how and technical context retrievable at the point of work instead of buried in documentation.",
+        "Standardized agentic AI coding harnesses org-wide (rules, hooks, sub-agent workflows), converting ad hoc AI tool usage into governed engineering practice.",
+        "Defined CI hosting requirements for the DevOps team and rebuilt CI/CD pipelines on open-source tooling, eliminating recurring licensing costs while maintaining delivery velocity.",
+        "Designed real-time quality dashboards giving stakeholders visibility into test health for data-driven prioritization."
       ]
     },
     {
@@ -52,8 +61,8 @@
       "isTechRelated": true,
       "responsibilities": [
         "Integrated automated smoke and regression suites into daily CI/CD delivery cycles.",
-        "Designed custom tools for test execution, reducing manual overhead and expanding coverage to new product modules.",
-        "Influenced \"Shift-Left\" strategy by providing UX and performance feedback during early design phases."
+        "Designed custom test execution tooling that reduced manual overhead and expanded automated coverage to new product modules.",
+        "Influenced “shift-left” strategy by feeding UX and performance findings into design phases before development began."
       ]
     },
     {
@@ -63,9 +72,10 @@
       "duration": "June 2019 — Sept 2022",
       "isTechRelated": true,
       "responsibilities": [
-        "Executed Performance & Load Testing using LoadUI and Java scripts to resolve system bottlenecks.",
-        "Led code reviews as Primary Reviewer, ensuring automation scripts met strict architectural standards.",
-        "Authored comprehensive test artifacts and traceability matrices to ensure 100% requirement coverage."
+        "Initiated and built the team’s first Jenkins CI pipelines for test automation, introducing scheduled overnight regression runs where none had previously existed.",
+        "Led code reviews as primary reviewer, holding automation scripts to consistent architectural standards across the team.",
+        "Authored test artifacts and traceability matrices achieving 100% requirement coverage.",
+        "Executed performance and load testing (LoadUI, Java) to identify and resolve system bottlenecks."
       ]
     },
     {
@@ -73,7 +83,7 @@
       "company": "Smartup PCC",
       "location": "Komninon 45, Evosmos, 56224 Thessaloniki (Greece)",
       "duration": "November 2017 - April 2018",
-      "isTechRelated": true,
+      "isTechRelated": false,
       "responsibilities": [
         "Creation of Android applications.",
         "Uploaded Android applications to Google's Playstore.",
@@ -109,6 +119,7 @@
   ],
   "education": [
     {
+      "featured": true,
       "institution": "University of Macedonia",
       "location": "Thessaloniki, Greece",
       "degree": "Master of Science in Computer Science",
@@ -126,6 +137,7 @@
       ]
     },
     {
+      "featured": true,
       "institution": "TEI of Central Macedonia",
       "location": "Serres, Greece",
       "degree": "Bachelor of Computer Engineering",
@@ -170,8 +182,8 @@
     "racing_games":["Grand Turismo","Need for Speed","F1"]
   },
   "projects": [
-    {"name": "Clarif-AI", "description": "AI contract analyzer for freelancers — scans any contract in under 2 minutes and surfaces red flags, hidden fees, and unfair terms. Live web app.", "link": "https://clarif-ai.net", "date": "2026"},
-    {"name": "DeepIndex", "description": "Self-healing, token-efficient context-engineering framework for AI coding harnesses — hybrid semantic + entity-graph code search (tree-sitter, SQLite, embeddings) with an MCP server and bundled dashboard. Published on npm.", "link": "https://www.npmjs.com/package/deepindex", "sourceUrl": "https://github.com/TasosTilsi/deepindex", "date": "2026"},
+    {"name": "DeepIndex", "description": "Open-source, npm-published RAG-based context engine for AI coding assistants — hybrid semantic and entity-graph code search (tree-sitter, SQLite, embeddings), self-healing and token-efficient, with an MCP server and bundled dashboard. Published on npm. 600+ downloads in launch week (Sep 2026).", "link": "https://www.npmjs.com/package/deepindex", "sourceUrl": "https://github.com/TasosTilsi/deepindex", "date": "2026", "featured": true},
+    {"name": "Clarif-AI", "description": "AI-powered contract analyzer for freelancers — scans contracts to surface red flags and hidden terms in under two minutes. Personal product, currently in alpha. Live at clarif-ai.net.", "link": "https://clarif-ai.net", "date": "2026", "featured": true},
     {"name": "SDK4ED-TD", "description": "Technical Debt management tool for the SDK4ED platform.", "link": "https://github.com/TasosTilsi/sdk4ed-td", "date": "June 2023"},
     {"name": "ServicedMetricsCalculator", "description": "A tool to calculate metrics for services, likely related to software architecture or performance.", "link": "https://github.com/TasosTilsi/ServicedMetricsCalculator", "date": "June 2023"},
     {"name": "Avoid Traffic Extended", "description": "An extended version of a traffic avoidance application, likely for route optimization.", "link": "https://github.com/TasosTilsi/AvoidTrafficExtended", "date": "May 2022"},
@@ -193,7 +205,11 @@
     {"name": "Introduction to Prompt Engineering for Generative AI", "link": "https://tinyurl.com/ut2b4zx5", "date": "June 2025"},
     {"name": "What Is Generative AI", "link": "https://tinyurl.com/3zeks6xj", "date": "June 2025"},
     {"name": "JavaScript Essential Training", "link": "https://tinyurl.com/ms4m3z97", "date": "May 2025"},
-    {"name": "ISTQB® Foundation Level (CTFL)", "link": "ID: GRTB-24-1S20-CTFL", "date": "July 2024"},
+    {"name": "ISTQB® Foundation Level (CTFL)", "link": "ID: GRTB-24-1S20-CTFL", "date": "July 2024", "featured": true},
+    {"name": "Claude 101", "link": null, "date": "2026", "featured": true},
+    {"name": "Claude Code in Action", "link": null, "date": "2026", "featured": true},
+    {"name": "Introduction to Claude Cowork", "link": null, "date": "2026", "featured": true},
+    {"name": "Introduction to Agent Skills", "link": null, "date": "2026", "featured": true},
     {"name": "Test Automation in DevOps", "link": "https://tinyurl.com/crd4cp43", "date": "October 2023"},
     {"name": "Advanced Playwright", "link": "https://tinyurl.com/2s9fsukf", "date": "September 2023"},
     {"name": "Introduction to Playwright", "link": "https://tinyurl.com/5n6n2684", "date": "July 2023"},
@@ -240,6 +256,22 @@
   ],
   "articles": [
     {
+      "name": "Your AI Agent Keeps Re-Discovering Your Codebase. I Built the Tool That Stops It.",
+      "platform": "Medium",
+      "link": "https://generativeai.pub/your-ai-agent-keeps-re-discovering-your-codebase-i-built-the-tool-that-stops-it-2f7c67ea8de0",
+      "summary": "The context engine that stops AI agents re-discovering the same codebase every session.",
+      "date": "Sep 14, 2026",
+      "featured": true
+    },
+    {
+      "name": "Your Playwright Tests Take 45 Minutes? Cut That to 12.",
+      "platform": "Medium",
+      "link": "https://medium.com/startup-insider-edge/your-playwright-tests-take-45-minutes-cut-that-to-12-be3a6a1f5c49",
+      "summary": "Practical cuts that took a 45-minute Playwright suite down to 12 minutes.",
+      "date": "May 26, 2026",
+      "featured": true
+    },
+    {
       "name": "Local Knowledge Graphs for AI",
       "platform": "Medium",
       "link": "https://medium.com/@tasostilsi",
@@ -279,14 +311,24 @@
       "platform": "Medium",
       "link": "https://medium.com/@tasostilsi/a85a11c2c932?sk=e87168a4ec0c3094ce75b01d64077727",
       "summary": "In software engineering, test automation is often compared to an assembly line in a factory. Each test is a \"product\" that must meet quality standards. But without proper structure, that assembly line quickly collapses into chaos: flaky tests, duplicated code, and runaway technical debt.",
-      "date": "Sep 17, 2025"
+      "date": "Sep 17, 2025",
+      "featured": true
     },
     {
       "name": "Flaky Tests Driving You Crazy? Here's How to Fix and Prevent Them!",
       "platform": "Medium",
       "link": "https://medium.com/@tasostilsi/flaky-tests-driving-you-crazy-heres-how-to-fix-and-prevent-them-6fb46b041a4e?sk=97060c585875028e57a253696f284eef",
       "summary": "Discover proven strategies to identify, prevent, and fix flaky tests in your CI/CD pipeline — complete with real‑world insights and code examples.",
-      "date": "Jun 28, 2025"
+      "date": "Jun 28, 2025",
+      "featured": true
+    },
+    {
+      "name": "A QA Engineer’s Guide to Testing Geo-Specific Features (Without Flying to 30 Countries) — Part 1",
+      "platform": "Medium",
+      "link": "https://medium.com/startup-insider-edge/a-qa-engineers-guide-to-testing-geo-specific-features-without-flying-to-30-countries-part-1-1e8e3f31b84f",
+      "summary": "The testing gap no one talks about — and the practical solution for 80% of geo-specific testing scenarios",
+      "date": "Dec 23, 2025",
+      "featured": true
     },
     {
       "name": "Unpopular Opinion (or Maybe Not): ISTQB Shouldn't Be for Testers — It Should Be for Everyone Else",
