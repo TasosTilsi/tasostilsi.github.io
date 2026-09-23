@@ -533,8 +533,9 @@ body {
 /* Light IDE theme override — activates when <html> carries .light (UI-SPEC §9.3).
    Specificity (0,2,0) beats .explore-shell (0,1,0); the shell div's own values
    beat <html>-level CLI classes for all descendants. The CLI .light block above
-   stays byte-untouched (D-10). Chart-1..5 stay inherited except the two
-   scoped chart-2/chart-3 fill-contrast overrides pinned by phase-3 §2 B-1. */
+   stays byte-untouched (D-10). Chart-1..5 stay inherited except the scoped
+   chart-2/chart-3 fill-contrast overrides pinned by phase-3 §2 B-1 and the
+   chart-4 bar-fill override pinned by phase-6 UI-SPEC §5.3 (the calendar). */
 .light .explore-shell {
   --background: 220 20% 97%;
   --foreground: 220 14% 16%;
@@ -566,11 +567,15 @@ body {
   --radius: 0.25rem;
   /* Chart fill contrast in light mode — scoped overrides only (UI-SPEC §2 B-1,
      user-confirmed): chart-2/3 at 60%+ lightness fail 3:1 on the white card;
-     these hue-preserving darkened values clear it (4.49:1 / 4.75:1). Dark
+     these hue-preserving darkened values clear it (4.49:1 / 4.75:1). chart-4
+     (the projects-calendar bar fill, phase-6 UI-SPEC §5.3) joins the same
+     treatment: 280 65% 40% preserves the hue from the dark 60% value and
+     clears 3:1 with margin (~7.8:1 measured on the white card). Dark
      shell values are untouched; the first chart token stays inherited in both
      shell blocks. */
   --chart-2: 160 65% 32%;
   --chart-3: 30 75% 38%;
+  --chart-4: 280 65% 40%;
 }
 
 /* Reduced-motion guard (UI-SPEC §12) — the ONLY motion-suppression mechanism of

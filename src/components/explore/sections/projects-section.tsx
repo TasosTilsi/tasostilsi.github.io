@@ -9,11 +9,15 @@
  * secondary source link stays out of the card — one link per card (§17.11)
  * — and remains reachable through the terminal pointer below (D-02).
  *
- * ProjectStatTiles (D-03) opens the body with the three JSON-derived
- * summary tiles above the cards — values from viz-data's projectStats
- * (EXPLORE-07); the wrapper's mb-3 gives the intentional 12px tiles→cards
- * gap versus the 8px card-card rhythm (§1). The card map below stays
- * byte-identical.
+ * ProjectsCalendar (D-07, plan EXPLORE-06) opens the body as the FIRST
+ * child — the year-grid bars calendar above the tiles (UI-SPEC §5.1) inside
+ * its own mb-5 wrapper exactly like the career-span Gantt's; it hides
+ * entirely (wrapper included) when no project date yields geometry (E-2).
+ *
+ * ProjectStatTiles (D-03) follows — the three JSON-derived summary tiles
+ * above the cards — values from viz-data's projectStats (EXPLORE-07); the
+ * wrapper's mb-3 gives the intentional 12px tiles→cards gap versus the 8px
+ * card-card rhythm (§1). The card map below stays byte-identical.
  *
  * Server component (UI-SPEC §2): no client directive, no hooks — copy
  * arrives entirely from the portfolio data via props (D-07). Graceful-hide
@@ -23,9 +27,10 @@
  */
 import { ArrowUpRight } from 'lucide-react';
 import type { PortfolioData } from '@/data/portfolio-main-data';
-import { projectStats } from '../viz-data';
+import { buildProjectCalendar, projectStats } from '../viz-data';
 import { TerminalPointer } from './terminal-pointer';
 import { ProjectStatTiles } from './project-stat-tiles';
+import { ProjectsCalendar } from './projects-calendar';
 
 export function ProjectsSection({
   projects,
@@ -37,8 +42,15 @@ export function ProjectsSection({
     return null;
   }
   const stats = projectStats(projects);
+  const calendar = buildProjectCalendar(projects);
+  const hasCalendar = calendar.rows.some((row) => row.leftPct !== null);
   return (
     <div className="space-y-2">
+      {hasCalendar && (
+        <div className="mb-5">
+          <ProjectsCalendar calendar={calendar} />
+        </div>
+      )}
       <div className="mb-3">
         <ProjectStatTiles stats={stats} />
       </div>
