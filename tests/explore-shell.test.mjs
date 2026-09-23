@@ -24,11 +24,15 @@ const exportHtml = join(root, 'out/explore.html');
 // Task 1: tracer — route, IDE frame skeleton, dark token block, status bar
 // ---------------------------------------------------------------------------
 
-test('constants: 5 locked sections, disjoint theme key, breadcrumb strings', () => {
+test('constants: 4 locked sections after the About+Contact merge, disjoint theme key, breadcrumb strings', () => {
   const src = read('src/components/explore/constants.ts');
-  for (const id of ['about', 'experience', 'skills', 'projects', 'contact']) {
+  for (const id of ['about', 'experience', 'skills', 'projects']) {
     assert.ok(src.includes(`id: "${id}"`), `section ${id} locked (D-01)`);
   }
+  assert.ok(
+    !src.includes('id: "contact"'),
+    'no standalone contact section — Contact merged into About (REV-04/D-05)',
+  );
   assert.ok(src.includes('"portfolio-explore-theme"'), 'explore theme key');
   assert.ok(
     !/= ["']portfolio-theme["']/.test(src),
@@ -297,25 +301,27 @@ test('panel-shell: chrome anatomy — chip, label, body slot; hover-inert; secti
   assert.ok(!code.includes('cursor-pointer'), 'no pointer cursor');
   assert.ok(!code.includes('tabIndex'), 'not focusable');
   const src = read('src/components/explore/explore-panels.tsx');
-  for (const s of ['AboutSection', 'ExperienceSection', 'SkillsSection', 'ProjectsSection', 'ContactSection'])
+  for (const s of ['AboutSection', 'ExperienceSection', 'SkillsSection', 'ProjectsSection'])
     assert.ok(src.includes(s), `section body registered: ${s}`);
+  assert.ok(!src.includes('ContactSection'), 'no contact body — Contact merged into About (REV-04/D-05)');
 });
 
-test('panels: responsive grid with About spanning md/lg, per-section chart accents', () => {
+test('panels: responsive grid 2×2 after the merge — zero col-spans, per-section chart accents', () => {
   const src = read('src/components/explore/explore-panels.tsx');
-  assert.match(src, /grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3/, '1/2/3-col grid (EXPLORE-06)');
-  assert.ok(src.includes('md:col-span-2') && src.includes('lg:col-span-2'), 'About spans at md/lg');
-  for (let i = 1; i <= 5; i++) assert.ok(src.includes(`chart-${i}`), `accent mapping chart-${i}`);
+  assert.match(src, /grid-cols-1 gap-4 md:grid-cols-2/, '1/2-col grid (REV-04/D-04)');
+  assert.ok(!src.includes('lg:grid-cols-3'), 'lg tier drops to 2 columns (D-04)');
+  for (let i = 1; i <= 4; i++) assert.ok(src.includes(`chart-${i}`), `accent mapping chart-${i}`);
+  assert.ok(!src.includes('chart-5'), 'no chart-5 accent — 4 sections only (D-05)');
   assert.ok(!src.includes('EXPLORE_PANEL_HUMOR'), 'humor constant gone (plan 02, D-06)');
   assert.ok(src.includes('<PanelShell'), 'shared §3 chrome composed');
   assert.ok(src.includes('SECTION_BODIES'), 'bodies from total registry (plan 02)');
-  // About-only span: both breakpoint classes written exactly once, applied
-  // conditionally on the about panel — not baked into every panel
+  // Zero-empty-cells invariant: no col-span class exists anywhere — every
+  // panel occupies exactly one cell of the 2×2 (D-04).
   assert.ok(
-    (src.match(/(md|lg):col-span-2/g) || []).length === 2,
-    'span classes written once each (md + lg)',
+    (src.match(/(sm|md|lg|xl):col-span/g) || []).length === 0,
+    'no col-span classes anywhere — zero empty cells at every width (D-04)',
   );
-  assert.match(src, /section\.id === ['"]about['"]/, 'span conditional targets about only');
+  assert.ok(!/section\.id === ['"]about['"]/.test(src), 'no span conditional survives the merge');
 });
 
 // ---------------------------------------------------------------------------

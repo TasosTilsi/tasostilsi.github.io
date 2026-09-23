@@ -53,8 +53,8 @@ import {
 import { placeCard, type TourRect } from './tour-placement';
 import { readTourFlag, writeTourFlag } from './use-explore-visited';
 
-/** §4 primary-action label ladder, indexed by stepIndex (0-6). */
-const PRIMARY_LABELS = ['Start', 'Next', 'Next', 'Next', 'Next', 'Finish', 'Done'] as const;
+/** §4 primary-action label ladder, indexed by stepIndex (0-5). */
+const PRIMARY_LABELS = ['Start', 'Next', 'Next', 'Next', 'Finish', 'Done'] as const;
 
 /** §0 header ghost recipe — shared by the card's X/Back/Next controls. */
 const GHOST_INTERACTION =

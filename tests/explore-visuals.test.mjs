@@ -602,20 +602,23 @@ test('cross-cutting: treemap keywords zero-invented — the component holds no J
   }
 });
 
-test('cross-cutting: registry spine — five total closures, skills threads the corpus, nothing else changed (D-07)', () => {
+test('cross-cutting: registry spine — four total closures after the About+Contact merge, skills threads the corpus (D-04/D-05/D-07)', () => {
   const src = read('src/components/explore/explore-panels.tsx');
   assert.ok(
     src.includes('skills: ({ data }) => <SkillsSection skills={data.skills} experience={data.experience} />,'),
-    'skills closure threads experience={data.experience} for the treemap corpus (§10)',
+    'skills closure threads experience={data.experience} for the treemap corpus (§10) — plan 04 reverts it',
   );
   assert.ok(src.includes('about: ({ data }) => <AboutSection about={data.about} />,'));
-  assert.ok(src.includes('contact: ({ data }) => <ContactSection contact={data.about.contact} />,'));
+  assert.ok(
+    !src.includes('contact: ({ data })'),
+    'no contact closure — Contact merged into AboutSection (REV-04/D-05)',
+  );
   assert.ok(src.includes('experience: ({ data }) => <ExperienceSection experience={data.experience} />,'));
   assert.ok(src.includes('projects: ({ data }) => <ProjectsSection projects={data.projects} />,'));
   assert.equal(
     (src.match(/\w+: \(\{ data \}\) => </g) || []).length,
-    5,
-    'exactly five adapter closures — the registry is total, no new data paths (D-07)',
+    4,
+    'exactly four adapter closures — the registry is total over the 4-section grid (D-04/D-07)',
   );
 });
 

@@ -12,7 +12,6 @@ export const EXPLORE_SECTIONS = [
   { id: "experience", label: "Experience" },
   { id: "skills", label: "Skills" },
   { id: "projects", label: "Projects" },
-  { id: "contact", label: "Contact" },
 ] as const;
 
 export type ExploreSectionId = (typeof EXPLORE_SECTIONS)[number]["id"];
@@ -56,15 +55,14 @@ export const EXPLORE_VISITED_STORAGE_KEY = "portfolio-explore-visited";
 
 /**
  * UI-SPEC §4 chip accent per section, for the tour's heading-row chip.
- * Duplicated from the module-private ACCENTS in explore-panels.tsx (lines
- * 37-43) because that file is byte-untouched this phase (D-08).
+ * Duplicated from the module-private ACCENTS in explore-panels.tsx; both
+ * maps narrowed to the 4 sections by the REV-04 merge (D-05).
  */
 export const EXPLORE_TOUR_ACCENTS: Record<ExploreSectionId, string> = {
   about: "bg-chart-1",
   experience: "bg-chart-2",
   skills: "bg-chart-3",
   projects: "bg-chart-4",
-  contact: "bg-chart-5",
 };
 
 /**
@@ -74,7 +72,7 @@ export const EXPLORE_TOUR_ACCENTS: Record<ExploreSectionId, string> = {
  * panel id.
  */
 export type TourStep = {
-  id: "welcome" | "about" | "experience" | "skills" | "projects" | "contact" | "finish";
+  id: "welcome" | "about" | "experience" | "skills" | "projects" | "finish";
   sectionId: ExploreSectionId | null;
   heading: string;
   announce: string;
@@ -95,7 +93,7 @@ export const EXPLORE_TOUR_FINISH = {
 
 /** §4 bodies in EXPLORE_SECTIONS order — chrome orientation copy only, zero invented portfolio facts. */
 const EXPLORE_TOUR_STEP_BODIES = [
-  "The short version of who's typing — bio, role, and location.",
+  "The short version of who's typing — bio, role, location, every contact channel, and the resume export.",
   "Roles in order, with the career-span chart on top for the shape of it.",
   "Skills by category, then the treemap of what the actual work proves — full inventory below.",
   "Stat tiles up top, six projects underneath.",
@@ -103,10 +101,11 @@ const EXPLORE_TOUR_STEP_BODIES = [
 ] as const;
 
 /**
- * D-02: locked 7-step table — welcome → about → experience → skills →
- * projects → contact → finish. Indices drive the progress dots and the
- * "Step N of 7" counter (UI-SPEC §3); content steps are generated from
- * EXPLORE_SECTIONS so headings/announce never duplicate the labels.
+ * D-02 (REV-04 amended): locked 6-step table — welcome → about → experience →
+ * skills → projects → finish. Indices drive the progress dots and the
+ * step counter, always derived from this array's length (UI-SPEC §3);
+ * content steps are generated from EXPLORE_SECTIONS so headings/announce
+ * never duplicate the labels.
  */
 export const EXPLORE_TOUR_STEPS: readonly TourStep[] = [
   {

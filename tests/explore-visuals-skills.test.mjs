@@ -128,7 +128,10 @@ test('explore-panels: skills closure threads experience, every other closure byt
   assert.ok(skillsLine.includes('experience={data.experience}'), 'experience threaded for the treemap corpus (§10)');
   // byte-unchanged registry neighbours (the registry is the data spine, not chrome)
   assert.ok(src.includes('about: ({ data }) => <AboutSection about={data.about} />,'));
-  assert.ok(src.includes('contact: ({ data }) => <ContactSection contact={data.about.contact} />,'));
+  assert.ok(
+    !src.includes('contact: ({ data })'),
+    'no contact closure — Contact merged into AboutSection (REV-04/D-05)',
+  );
   assert.ok(src.includes('experience: ({ data }) => <ExperienceSection experience={data.experience} />,'));
   assert.ok(src.includes('projects: ({ data }) => <ProjectsSection projects={data.projects} />,'));
 });

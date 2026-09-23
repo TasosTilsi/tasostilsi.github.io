@@ -35,15 +35,19 @@ import { EXPLORE_TOUR_FINISH } from '../src/components/explore/constants.ts';
 // Type-P structural rows (Task 1)
 // ---------------------------------------------------------------------------
 
-test('sweep rows EXPLORE@375/768/1440/1920 (P): panels grid 1→2→3 cols, About spans wide layouts', () => {
+test('sweep rows EXPLORE@375/768/1440/1920 (P): panels grid 1→2→2 cols, merged 2×2 with zero empty cells (REV-04)', () => {
   const src = read('src/components/explore/explore-panels.tsx');
   assert.ok(
-    src.includes('grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'),
-    'grid classes (explore-panels.tsx:67) — 1 col base (375), 2 at md (768), 3 at lg (1440/1920)',
+    src.includes('grid grid-cols-1 gap-4 md:grid-cols-2'),
+    'grid classes (explore-panels.tsx:67) — 1 col base (375), 2 cols at md AND lg (768/1440/1920) — D-04 2×2',
   );
   assert.ok(
-    src.includes('md:col-span-2 lg:col-span-2'),
-    'About spans both wider layouts (:77) — row EXPLORE@768',
+    !src.includes('lg:grid-cols-3'),
+    'lg tier drops from 3 to 2 columns (D-04) — no lg:grid-cols-3 anywhere',
+  );
+  assert.ok(
+    !src.includes('md:col-span-2'),
+    'About col-span removed — the merged panel occupies one 2×2 cell, zero empty cells at every width (D-04)',
   );
   assert.ok(!/max-w-/.test(src), 'no max-width wrapper — full-bleed at 1920 (row EXPLORE@1920)');
 });
