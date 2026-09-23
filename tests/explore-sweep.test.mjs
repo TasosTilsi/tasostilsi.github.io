@@ -157,8 +157,8 @@ test('sweep rows EXPLORE@* (P): status bar height/type tokens — four independe
 test('sweep row EXPLORE@375 (P): intro strip min-height reserves the two-line wrap', () => {
   const src = read('src/components/explore/explore-intro.tsx');
   assert.ok(
-    src.includes('min-h-[40px]'),
-    'min-h-[40px] (explore-intro.tsx:42) — 2 lines × text-sm (20px/line) at 375px, by design',
+    src.includes('min-h-[60px]'),
+    'min-h-[60px] (explore-intro.tsx:42) — 3 lines × text-sm (20px/line) at 375px for the ~91-char refreshed intro, by design (B-6)',
   );
   assert.ok(src.includes('md:min-h-[20px]'), 'md:min-h-[20px] (:42) — single line from 768px up');
   assert.ok(src.includes('shrink-0'), 'strip is shrink-0 chrome outside the scroll container');
