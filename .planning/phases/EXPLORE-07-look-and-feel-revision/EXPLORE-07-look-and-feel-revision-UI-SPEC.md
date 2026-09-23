@@ -51,8 +51,8 @@ All inputs grounded. Here is the full UI-SPEC.md:
 │       │    competency cards (1col; 2col at lg; lift+bloom; alternating chip) → chip groups → terminal pointer
 │       └ PanelShell #04 Projects (accent bg-chart-4)         [row 2 right]
 │            stat tiles (3-up, never stacks) → ≤6 mini-cards (linked: lift+bloom) → terminal pointer
-├ ④ Status bar h-7 sm:h-8 — guest@tasostilsi:~/explore · theme · N/5 sections visited (aria-live)
-└ ⑤ Tour overlay (portaled Sheet — unchanged chrome, guard covers via body:has selectors)
+├ ④ Status bar h-7 sm:h-8 — guest@tasostilsi:~/explore · theme · N/4 sections visited (aria-live) — **W-1 correction: 4 sections post-merge; never write /5**
+└ ⑤ Tour overlay (**in-flow fixed overlay, NOT portaled — W-6 correction: explore-tour.tsx:11, explore-shell.tsx:16 pin; the portaled Sheet is the DRAWER** — unchanged chrome, guard covers in-shell)
 ```
 
 Hierarchy change of record: panel headers gain a **second hierarchy layer** (accent chip → label → oversized mono index, §6). Panel bodies keep their pinned internal orders byte-identically except where §4/§5 refine them.
@@ -101,6 +101,8 @@ The only layout edit is `gap-4` → `gap-4 lg:gap-5` on the panels grid (explore
 | `tests/explore-visuals.test.mjs` — `buildCareerSpan` geometry tests (~239-360), `buildProjectCalendar` import (line 41), D-09 existence checks (lines ~489-506) | REMOVE; invert existence checks to assert absence of both files + both builders; drop `parseDuration` tracer tests (52, 115) if U-6 lands |
 | `tests/explore-visuals.test.mjs` — export test asserting calendar `aria-label` in exported HTML (~580-592) | REWRITE: assert calendar absence + tiles/cards presence |
 | `tests/explore-visuals.test.mjs` line 607 (`startYear` derivation), header comments (11), `explore-visuals-skills.test.mjs:154` comment | REMOVE/UPDATE with the rewrite |
+| **`tests/explore-visuals.test.mjs:357-436` cross-cutting block (B-2 resolution — missed by the table above):** `serverSlices` (357-361) includes both deleted chart files → three `codeOf()` tests go ENOENT-red: "client boundary" (369-386), "no matchMedia" (388-406), "interaction-free charts" (408-415) — **drop the deleted paths from `serverSlices`/`phaseTouchedComponents`**; the "viz-data is the SOLE parsing site" test (417-436) asserts `buildCareerSpan`/`buildProjectCalendar` EXIST — **the direct opposite of U-6: invert it to assert absence**, keeping the survivors (`skillGroupFill`/`skillsGroupCounts`/`projectStats`/`GLOBAL_YEAR_PATTERN`) pinned |
+| **`tests/explore-visuals-server.test.mjs` career-span block widens to ~28-107 (B-2): the two dual-path "gantt files" tests at 92-107 also read `ganttPath`** | REMOVE with the same disposition as the ~28-80 block; rewrite the composition test per the row above |
 | Suite count | Changes from ~200 — SPEC's "200-test suite" reads as "the full suite on the final tree"; record the delta in the phase SUMMARY |
 
 **Ripples expected: none** outside `/explore` (verified: the only src consumers of the charts/builders are the two sections, viz-data, and the tour copy — `/resume`, CLI, PDF never import them).
@@ -144,7 +146,7 @@ Target anatomy (chip + proof preserved; data verbatim):
                                     text-chart-3 border-chart-3/40">…</Badge>
   </div>
   <p class="mt-2 text-xs leading-relaxed text-muted-foreground">{proof}</p>
-</ul>
+</li>
 ```
 
 - **Alternation geometry:** even-index cards top-left chip, odd-index cards top-right chip. In the lg 2-col grid (8 cards, 4×2) this produces a column-wise zigzag rhythm; at base 1-col it reads as alternating left/right down the stack. Proof text stays left-aligned both ways (reading stability).
@@ -200,8 +202,6 @@ Target anatomy (chip + proof preserved; data verbatim):
 - The intro strip stays **typewriter-only** (default, U-2) — the typewriter is already the intro's motion; a second entrance device splits the vocabulary.
 - Reduced-motion: `animation: none !important` (guard) → keyframes never apply, `backwards` fill never hides content → panels render at natural opacity 1.
 
-### 6.3 Hover/focus vocabulary
-
 ```css
 /* globals.css, .explore-shell scope */
 .explore-shell .exp-lift {
@@ -212,26 +212,34 @@ Target anatomy (chip + proof preserved; data verbatim):
   transform: translateY(-2px);
   box-shadow: var(--panel-shadow-hover);
 }
+/* B-1 resolution: keyboard parity for M2 — the lift+bloom rides with the ring.
+   The bloom composes as an additional shadow layer AFTER Tailwind's ring layers:
+   box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow),
+               var(--panel-shadow-hover); — ring stays intact, bloom adds on. */
+.explore-shell .exp-lift:focus-visible {
+  transform: translateY(-2px);
+  box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--panel-shadow-hover);
+}
 .explore-shell .exp-nudge { transition: transform 220ms cubic-bezier(0.25, 1, 0.5, 1); }
 .explore-shell a:hover .exp-nudge,
 .explore-shell a:focus-visible .exp-nudge { transform: translateX(2px); }
 ```
 
-### 6.3 Shadow recipe (dark/light-agnostic, hsl-token tinted)
+### 6.4 Shadow recipe (dark/light-agnostic, hsl-token tinted) — renumbered from the duplicate 6.3 (checker W-3)
 
 ```css
 .explore-shell       { --panel-shadow-hover: 0 6px 16px -4px hsl(220 13% 5%  / 0.55); }  /* bg-hue tint on 220 13% 9% bg */
 .light .explore-shell { --panel-shadow-hover: 0 6px 16px -4px hsl(220 20% 20% / 0.15); }  /* slate tint, never pure black */
 ```
 
-Tinted to the background hue per the redesign skill ("no generic black shadows"); exact blur/alpha within Claude's discretion — **defaults above are the pinned starting values (U-1)**. Applied to: competency cards (all), linked project cards (only the anchors; unlinked divs stay static, §3.2). PanelShell containers do **not** lift (§17.6 pin survives; entrance animation only).
+Tinted to the background hue per the redesign skill ("no generic black shadows"); exact blur/alpha within Claude's discretion — **defaults above are the pinned starting values (U-1)**. Applied to: competency cards (all), linked project cards (only the anchors; unlinked divs stay static, §3.2). PanelShell containers do **not** lift (§17.6 pin survives; entrance animation only). *(Cross-reference fix, checker W-2: §0's "two `--panel-shadow-hover` lines (§7.3)" points HERE, §6.4; §0's "index device (§6)" points to §5.)*
 
 ### 6.5 Vocabulary inventory (closed set — nothing else animates)
 
 | # | Device | Target | Trigger | Motion |
 |---|---|---|---|---|
 | M1 | Panel stagger | `.panel-grid > *` (4 panels) | first paint | 240ms, 40ms stagger, translateY(8px)+fade, backwards fill |
-| M2 | Card lift+bloom | competency cards, linked project cards | hover | translateY(-2px) + shadow bloom, 220ms |
+| M2 | Card lift+bloom | competency cards, linked project cards | **hover + `:focus-visible` (B-1 resolution — keyboard parity; the focus lift composes with the Tailwind ring per the §6.4-following rule above)** | translateY(-2px) + shadow bloom, 220ms |
 | M3 | Icon nudge | 9 contact-row icons (`about-section.tsx` lucide icons) | row hover + row focus-visible | translateX(2px), 220ms |
 | M4 | Link underline | existing `group-hover:underline` (contact labels, resume label) | hover — unchanged | instant (kept; the nudge carries motion) |
 | M5 | Underline focus parity | same links | **NEW `group-focus-visible:underline`** (keyboard parity; Tailwind 3.4 ✓) | instant |
@@ -246,7 +254,7 @@ Everything else is pre-existing phase-3 motion (drawer Sheet animations, typewri
 |---|---|---|---|---|---|---|---|
 | Header: tour / theme / drawer / terminal (4× 44px ghost) | muted icon | `bg-muted` (existing) | §14 ring (existing) | **candidate audit row**: `active:bg-muted/80` (U-4, default: add) | n/a (never disabled) | n/a | n/a |
 | Theme toggle | — | same | same | same | — | — | **swap stays INSTANT — adding a transition here is a violation** |
-| Project card (linked `<a>`) | border card | name+arrow → accent (existing) **+ M2 lift+bloom** | ring **+ lift+bloom** (transform rides with the ring) | **candidate audit row**: `active:translate-y-0` press-settle ≤120ms (U-4, default: add) | n/a | n/a | n/a |
+| Project card (linked `<a>`) | border card | name+arrow → accent (existing) **+ M2 lift+bloom** | ring **+ lift+bloom** (composed per the §6.3 focus rule — ring layers intact, bloom appended) | **candidate audit row (W-5 re-pin): press-settle via an `.explore-shell .exp-lift:active` rule ORDERED AFTER the hover rule in the same CSS block (overriding specificity), dropping to translateY(0) with the same 220ms curve — the dead `active:translate-y-0` utility class is NOT used; the ≤120ms wording is dropped (the 220ms transition is the pinned duration; U-4 adjudicates the audit row)** | n/a | n/a | n/a |
 | Project card (unlinked `<div>`) | border card | **none** (static — interactivity legibility) | n/a | n/a | n/a | n/a | n/a |
 | Stat tiles | static | none | n/a | n/a | n/a | n/a | n/a |
 | Competency cards | border card | **M2 lift+bloom** (cursor stays default) | n/a (not focusable) | n/a | n/a | n/a | n/a |
@@ -334,7 +342,7 @@ Static-CSS note: the guard suppresses transitions but not hover property values;
 ## §10 Falsifiability — test plan the planner must decompose
 
 1. **Absence checks:** both chart files gone; `buildCareerSpan`/`buildProjectCalendar` (and per U-6 `parseDuration`) absent from `viz-data.ts`; suites dropped/rewritten per §2.2.
-2. **Tour copy:** `EXPLORE_TOUR_STEP_BODIES[1]` contains no `chart` substring.
+2. **Tour copy (W-7 fix):** the step-body assertion reads the SOURCE — `codeOf('src/components/explore/constants.ts')` contains no `chart` substring in the step-body literal (module-private `EXPLORE_TOUR_STEP_BODIES` at constants.ts:95 is not exported; the exported `EXPLORE_TOUR_STEPS[2].body` is the alternative) — assert via the established source-grep convention, not a non-exported identifier.
 3. **Stagger:** `@keyframes explore-panel-in` + `.panel-grid > *` animation + 40/80/120ms nth-child delays + `backwards` fill, all scoped under `.explore-shell`; `panel-grid` class present on the panels container.
 4. **Vocabulary greps:** `.exp-lift` on competency `<li>` + linked project `<a>` (not on unlinked `<div>`); `.exp-nudge` on channel icons; the pinned curve string; durations within 200-280ms.
 5. **Shadow tokens:** `--panel-shadow-hover` defined in both `.explore-shell` and `.light .explore-shell`.
