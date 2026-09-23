@@ -74,7 +74,7 @@ test('header: 52px bar, window glyphs, truncating data-driven title', () => {
   assert.ok(src.includes('{name}') || src.includes('name'), 'renders name prop');
 });
 
-test('status bar: breadcrumb + live theme label + LIVE N/5 counter', () => {
+test('status bar: breadcrumb + live theme label + LIVE N/4 counter', () => {
   const src = read('src/components/explore/explore-status-bar.tsx');
   assert.ok(src.includes('EXPLORE_STATUS_USER'), 'breadcrumb user from constants');
   assert.ok(src.includes('EXPLORE_STATUS_PATH'), 'breadcrumb path from constants');
@@ -87,7 +87,7 @@ test('status bar: breadcrumb + live theme label + LIVE N/5 counter', () => {
     'no literal-0 counter remains — the stale assertion is superseded (R-4 renewal)',
   );
   assert.ok(src.includes('visitedCount'), 'visitedCount prop flows in (UI-SPEC §5)');
-  assert.ok(src.includes('text-accent'), '5/5 celebration accent branch (E-13)');
+  assert.ok(src.includes('text-accent'), '4/4 celebration accent branch (E-13)');
   assert.ok(src.includes('aria-live="polite"'), 'right group announces (UI-SPEC §7)');
 });
 
@@ -388,7 +388,7 @@ test('static export: /explore IDE frame emitted into out/explore.html', () => {
   assert.ok(html.includes('Anastasios Tilsizoglou'), 'data-driven name (EXPLORE-07)');
   assert.ok(html.includes('guest@tasostilsi'), 'breadcrumb user');
   assert.ok(html.includes(':~/explore'), 'breadcrumb path');
-  assert.ok(html.includes('0/5 sections visited'), 'static counter (D-03)');
+  assert.ok(html.includes('0/4 sections visited'), 'static counter over 4 sections (D-03; REV-04)');
   assert.match(
     html,
     /classList\.remove\(["']dark["'],\s*["']light["']\)/,

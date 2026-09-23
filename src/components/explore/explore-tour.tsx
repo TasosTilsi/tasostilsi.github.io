@@ -406,7 +406,7 @@ export function ExploreTour({
       >
         {/* §9/W-5: SR step announcements — on step change and once on open. */}
         <span aria-live="polite" className="sr-only">
-          {`Step ${stepIndex + 1} of 7 — ${step.announce}`}
+          {`Step ${stepIndex + 1} of ${EXPLORE_TOUR_STEPS.length} — ${step.announce}`}
         </span>
         <div className="flex min-h-11 items-center gap-2">
           {step.sectionId !== null && (

@@ -59,20 +59,19 @@ test('tour accents: one chip class per section, explore-panels ACCENTS values (U
       experience: 'bg-chart-2',
       skills: 'bg-chart-3',
       projects: 'bg-chart-4',
-      contact: 'bg-chart-5',
     },
-    'chip accent map duplicated from the byte-untouched explore-panels.tsx (D-08)',
+    'chip accent map duplicated from explore-panels.tsx — 4 sections after the merge (REV-04/D-05)',
   );
 });
 
-test('step table: locked 7-entry sequence welcome → … → finish (D-02, UI-SPEC §3)', () => {
-  assert.equal(EXPLORE_TOUR_STEPS.length, 7, 'dots count = 7 ("Step N of 7")');
+test('step table: locked 6-entry sequence welcome → … → finish, no contact (REV-04/D-05, UI-SPEC §3)', () => {
+  assert.equal(EXPLORE_TOUR_STEPS.length, 6, 'dots count = 6 — counter derives from this length');
   assert.deepEqual(
     EXPLORE_TOUR_STEPS.map((s) => s.id),
-    ['welcome', 'about', 'experience', 'skills', 'projects', 'contact', 'finish'],
-    'locked id sequence (D-02)',
+    ['welcome', 'about', 'experience', 'skills', 'projects', 'finish'],
+    'locked id sequence after the merge (no contact step)',
   );
-  const content = EXPLORE_TOUR_STEPS.slice(1, 6);
+  const content = EXPLORE_TOUR_STEPS.slice(1, 5);
   content.forEach((step, i) => {
     assert.equal(
       step.sectionId,
@@ -87,15 +86,27 @@ test('step table: locked 7-entry sequence welcome → … → finish (D-02, UI-S
     assert.equal(
       step.announce,
       EXPLORE_SECTIONS[i].label,
-      'content announce strings derived from EXPLORE_SECTIONS labels (§9 "Step N of 7 — …")',
+      'content announce strings derived from EXPLORE_SECTIONS labels (§9 "Step N of M — …")',
     );
   });
   assert.equal(EXPLORE_TOUR_STEPS[0].sectionId, null, 'welcome is a no-target step');
   assert.equal(EXPLORE_TOUR_STEPS[0].heading, 'explore --tour', 'welcome chrome heading (§4)');
   assert.equal(EXPLORE_TOUR_STEPS[0].announce, 'welcome', 'welcome SR announce (§9)');
-  assert.equal(EXPLORE_TOUR_STEPS[6].sectionId, null, 'finish is a no-target step');
-  assert.equal(EXPLORE_TOUR_STEPS[6].heading, 'tour complete', 'finish chrome heading (§4)');
-  assert.equal(EXPLORE_TOUR_STEPS[6].announce, 'tour complete', 'finish SR announce (§9)');
+  assert.equal(EXPLORE_TOUR_STEPS[5].sectionId, null, 'finish is a no-target step');
+  assert.equal(EXPLORE_TOUR_STEPS[5].heading, 'tour complete', 'finish chrome heading (§4)');
+  assert.equal(EXPLORE_TOUR_STEPS[5].announce, 'tour complete', 'finish SR announce (§9)');
+});
+
+test('step counter: fully derived — no hardcoded "of 7" anywhere in the tour (OQ-9/E-14)', () => {
+  const src = read('src/components/explore/explore-tour.tsx');
+  assert.ok(
+    !src.includes('of 7'),
+    'the sr-only "Step N of 7" literal is gone — both counters derive from EXPLORE_TOUR_STEPS.length',
+  );
+  assert.ok(
+    (src.match(/EXPLORE_TOUR_STEPS\.length/g) || []).length >= 2,
+    'both step counters (sr-only + visible) derive from EXPLORE_TOUR_STEPS.length',
+  );
 });
 
 test('tour copy guard: chrome only, no digits beyond the allowed "60" (§12.4)', () => {
@@ -119,7 +130,41 @@ test('tour copy guard: chrome only, no digits beyond the allowed "60" (§12.4)',
     'the full story lives in the terminal — start with help',
     'finish terminal hint (§4, D-04)',
   );
-  assert.equal(EXPLORE_TOUR_STEPS[6].body, EXPLORE_TOUR_FINISH.congrats, 'finish body = congrats');
+  assert.equal(EXPLORE_TOUR_STEPS[5].body, EXPLORE_TOUR_FINISH.congrats, 'finish body = congrats');
+});
+
+test('welcome copy: the lap covers FOUR sections after the merge (D-05/OQ-9)', () => {
+  const welcome = EXPLORE_TOUR_STEPS[0].body;
+  assert.ok(
+    welcome.includes('four sections'),
+    'welcome body says "four sections" (REV-04)',
+  );
+  assert.ok(
+    !welcome.includes('five sections'),
+    'the stale "five sections" copy is gone',
+  );
+});
+
+test('step bodies: merged-panel about copy live, skills/projects copy untouched until plan 04 (D-05/W-3a)', () => {
+  const about = EXPLORE_TOUR_STEPS[1].body;
+  assert.ok(
+    about.includes('bio') && about.includes('contact channel') && about.includes('resume export'),
+    'about step body describes the merged panel (bio + role + location + channels + resume export)',
+  );
+  assert.ok(
+    EXPLORE_TOUR_STEPS[3].body.includes('treemap'),
+    'skills step copy untouched until plan 04 owns it atomically with the removal',
+  );
+  assert.ok(
+    EXPLORE_TOUR_STEPS[4].body.includes('projects'),
+    'projects step copy untouched until plan 04',
+  );
+  for (const step of EXPLORE_TOUR_STEPS) {
+    assert.ok(
+      !step.body.includes('say hi back'),
+      'the standalone-contact body sentence is gone — the contact step no longer exists',
+    );
+  }
 });
 
 // ---------------------------------------------------------------------------
@@ -134,7 +179,7 @@ import {
   visitThreshold,
 } from '../src/components/explore/tour-placement.ts';
 
-const VALID_IDS = ['about', 'experience', 'skills', 'projects', 'contact'];
+const VALID_IDS = ['about', 'experience', 'skills', 'projects'];
 
 test('placeCard: below fits under the panel (§3 first branch)', () => {
   const out = placeCard({
@@ -272,6 +317,14 @@ test('parseVisitedIds: filters invalid ids, dedupes preserving first-occurrence 
   assert.deepEqual(parseVisitedIds('["about","bogus"]', VALID_IDS), ['about']);
   assert.deepEqual(parseVisitedIds('["about","about","skills"]', VALID_IDS), ['about', 'skills']);
   assert.deepEqual(parseVisitedIds('["skills","about"]', VALID_IDS), ['skills', 'about']);
+});
+
+test('parseVisitedIds: stale stored contact ids filter out after the merge (REV-04/OQ-9)', () => {
+  assert.deepEqual(
+    parseVisitedIds('["about","contact","skills"]', VALID_IDS),
+    ['about', 'skills'],
+    'a stored "contact" visited-id filters exactly like "bogus" once the section is gone',
+  );
 });
 
 test('serializeVisitedIds: round-trips a deduped valid list (E-8)', () => {
@@ -497,14 +550,14 @@ test('tour auto-open: 800ms delayed, cancelled by pointerdown/keydown, suppresse
   );
 });
 
-test('status bar: LIVE N/5 counter fed by visitedCount, accent at 5/5 (§5, §12.7)', () => {
+test('status bar: LIVE N/4 counter fed by visitedCount, accent at 4/4 (§5, §12.7)', () => {
   const src = read('src/components/explore/explore-status-bar.tsx');
   assert.ok(src.includes('visitedCount'), 'visitedCount prop flows in (§5)');
   assert.ok(
     src.includes('${visitedCount}/${EXPLORE_SECTIONS.length} sections visited'),
-    'live template string — format byte-identical to the old literal (§5)',
+    'live template string derives from EXPLORE_SECTIONS.length (§5)',
   );
-  assert.ok(src.includes('text-accent'), '5/5 celebration accent (E-13)');
+  assert.ok(src.includes('text-accent'), '4/4 celebration accent (E-13)');
   assert.ok(src.includes('aria-live="polite"'), 'existing live region untouched (§5)');
 });
 
@@ -526,8 +579,8 @@ test('export: literal-0 SSR counter + Tour button survive, overlay still absent 
   assert.ok(existsSync(exportHtmlPath), 'out/explore.html missing — run `npm run build` first');
   const html = readFileSync(exportHtmlPath, 'utf8');
   assert.ok(
-    html.includes('0/5 sections visited'),
-    'SSR renders the literal-0 initial state — hydration syncs after mount (§12.6, R-5)',
+    html.includes('0/4 sections visited'),
+    'SSR renders the literal-0 initial state over 4 sections — hydration syncs after mount (§12.6, R-5; REV-04)',
   );
   assert.ok(html.includes('aria-label="Start the guided tour"'), 'Tour button SSRs (§12.6)');
   assert.ok(!html.includes('data-tour-overlay'), 'overlay still client-mount-only (§12.6)');

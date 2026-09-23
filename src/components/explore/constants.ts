@@ -97,7 +97,6 @@ const EXPLORE_TOUR_STEP_BODIES = [
   "Roles in order, with the career-span chart on top for the shape of it.",
   "Skills by category, then the treemap of what the actual work proves — full inventory below.",
   "Stat tiles up top, six projects underneath.",
-  "The part where you say hi back — resume export and every channel, exactly as listed.",
 ] as const;
 
 /**
@@ -113,7 +112,7 @@ export const EXPLORE_TOUR_STEPS: readonly TourStep[] = [
     sectionId: null,
     heading: "explore --tour",
     announce: "welcome",
-    body: "A 60-second lap of the five sections — Next and Back at your own pace, ESC whenever you're done. No timers.",
+    body: "A 60-second lap of the four sections — Next and Back at your own pace, ESC whenever you're done. No timers.",
   },
   ...EXPLORE_SECTIONS.map((section, index) => ({
     id: section.id,
