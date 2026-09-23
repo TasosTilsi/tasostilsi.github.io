@@ -9,13 +9,13 @@ next_phases: [6]
 progress:
   total_phases: 5
   completed_phases: 0
-  total_plans: 3
-  completed_plans: 13
+  total_plans: 4
+  completed_plans: 14
   percent: 0
 current_phase: 6
 current_phase_name: explore-revision
-current_plan: 3
-last_updated: "2026-09-23T06:36:46.487Z"
+current_plan: 2
+last_updated: "2026-09-23T06:48:08.390Z"
 state_head: null
 last_activity: 2026-09-23
 stopped_at: null
