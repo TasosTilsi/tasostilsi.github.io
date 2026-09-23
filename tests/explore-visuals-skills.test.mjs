@@ -91,6 +91,24 @@ test('skills-section: card anatomy pinned — ul/li grid (lg density), chip acce
   assert.ok(code.includes('competencies.length > 0'), 'cards block gated on data (graceful-hide, no fallback copy)');
   // The proof renders the data field directly.
   assert.match(code, /\{competency\.proof\}/, 'proof renders the data field verbatim');
+  // REV-09 presentation redesign (EXPLORE-07 plan 02, D-02/UI-SPEC §4).
+  assert.match(
+    code,
+    /className="flex flex-col rounded-md border border-border p-3 exp-lift"/,
+    'REV-09: the card li carries exp-lift (inert until plan 03 defines .exp-lift in globals.css — D-02/D-04)',
+  );
+  assert.match(
+    code,
+    /index % 2 === 0 \? "self-start" : "self-end"/,
+    'REV-09: chip wrapper alternates by index parity — even top-left, odd top-right (D-02, UI-SPEC §4)',
+  );
+  assert.match(
+    code,
+    /className="mt-2 text-xs leading-relaxed text-muted-foreground"/,
+    'REV-09: proof rhythm moves mt-1.5 → mt-2, left-aligned text unchanged (UI-SPEC §4)',
+  );
+  assert.ok(!code.includes('cursor-pointer'), 'cards are NOT interactive — cursor stays default (§4: no pointer, no 44px)');
+  assert.ok(!code.includes('tabIndex'), 'cards stay non-focusable (§9.2: no new focusables)');
 });
 
 // ---------------------------------------------------------------------------

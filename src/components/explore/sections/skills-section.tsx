@@ -22,6 +22,16 @@
  * GONE (D-06) — the section imports no chart library and no mention
  * machinery; the server-side experience prop reverted with them (OQ-10).
  *
+ * REV-09 (EXPLORE-07 plan 02, D-02/UI-SPEC §4): the card presentation is
+ * redesigned at taste level — the card li carries the exp-lift hook (inert
+ * until plan 03 defines .exp-lift in globals.css under the .explore-shell
+ * scope, D-02/D-04), the accent chip alternates left/right by index parity
+ * (column-wise zigzag in the lg 4×2 grid, alternating left/right down the
+ * stack at base) and the proof gap widens mt-1.5 → mt-2, proof text staying
+ * left-aligned both ways (reading stability). Cursor stays default — the
+ * cards are NOT interactive. Chips, overrides, TerminalPointer and
+ * graceful-hide stay byte-identical.
+ *
  * Server component (UI-SPEC §2): no client directive, no hooks — copy
  * arrives entirely from the portfolio data via props (D-07). Graceful-hide
  * (UI-SPEC §11): empty competencies renders no cards block while the chips
@@ -48,15 +58,17 @@ export function SkillsSection({
     <div className="space-y-3">
       {competencies.length > 0 && (
         <ul className="grid grid-cols-1 gap-2 lg:grid-cols-2">
-          {competencies.map((competency) => (
-            <li key={competency.name} className="rounded-md border border-border p-3">
-              <Badge
-                variant="outline"
-                className="font-normal pointer-events-none text-chart-3 border-chart-3/40"
-              >
-                {competency.name}
-              </Badge>
-              <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
+          {competencies.map((competency, index) => (
+            <li key={competency.name} className="flex flex-col rounded-md border border-border p-3 exp-lift">
+              <div className={index % 2 === 0 ? "self-start" : "self-end"}>
+                <Badge
+                  variant="outline"
+                  className="font-normal pointer-events-none text-chart-3 border-chart-3/40"
+                >
+                  {competency.name}
+                </Badge>
+              </div>
+              <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
                 {competency.proof}
               </p>
             </li>
