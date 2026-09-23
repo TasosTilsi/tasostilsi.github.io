@@ -8,9 +8,10 @@
  *  • phase EXPLORE-06 plan 04: rewritten to the post-removal contract — the
  *    recharts charts, the treemap and the techMentions mention machinery are
  *    deleted (D-06), the Skills panel is competency cards over the surviving
- *    chips (U-2), the Projects panel carries the year-grid calendar (D-07),
- *    and the buildCareerSpan Smartup fixture follows plan 01's U-4 3-role
- *    refresh.
+ *    chips (U-2), and the buildCareerSpan Smartup fixture follows plan 01's
+ *    U-4 3-role refresh.
+ *  • phase EXPLORE-07 plan 01: the year-grid calendar is deleted (REV-08) —
+ *    the calendar export test inverts to absence + the tiles/cards panel body.
  *
  * Runner: node --test tests/explore-visuals.test.mjs (no npm test script
  * exists — run directly).
@@ -38,7 +39,6 @@ import {
   skillsGroupCounts,
   projectStats,
   buildCareerSpan,
-  buildProjectCalendar,
 } from '../src/components/explore/viz-data.ts';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -356,7 +356,6 @@ const codeOf = (p) =>
 
 const serverSlices = [
   'src/components/explore/sections/career-span-chart.tsx',
-  'src/components/explore/sections/projects-calendar.tsx',
   'src/components/explore/sections/project-stat-tiles.tsx',
 ];
 const sectionBodies = [
@@ -428,7 +427,6 @@ test('cross-cutting: viz-data is the SOLE parsing site — the component files p
     'skillsGroupCounts',
     'projectStats',
     'buildCareerSpan',
-    'buildProjectCalendar',
     'YEAR_PATTERN',
   ]) {
     assert.ok(viz.includes(site), `viz-data.ts hosts ${site} — the one data-shaping module (D-05)`);
@@ -537,7 +535,7 @@ test('cross-cutting: scoped light-theme chart overrides pinned, chart-1 absent f
 // Plan 04 Task 2: Layer-3 export-level invariants — hold against the static
 // export (out/) produced by `npm run build`; they fail with a build hint
 // until then (suite convention). Post-removal the page is recharts-free —
-// every panel (Gantt, calendar, tiles, cards, chips) is fully
+// every panel (Gantt, tiles, cards, chips) is fully
 // server-rendered and must appear complete in the static HTML.
 // Manual checks deliberately NOT asserted here (static HTML cannot carry
 // them): rendered calendar bar placement fidelity, 375px no-scroll,
@@ -577,20 +575,30 @@ test('export: competency cards render every cluster name + proof from the refres
   }
 });
 
-test('export: year-grid calendar server-rendered — aria label + project rows + year ticks (REV-06)', () => {
+test('export: calendar removed — no year-grid remains, tiles + exactly 6 cards render (REV-08)', () => {
   assert.ok(existsSync(exportHtmlPath), 'out/explore.html missing — run `npm run build` first');
   const html = readExport();
   assert.ok(
-    html.includes('Projects calendar — '),
-    'the calendar aria-label prefix server-rendered (§5.3)',
+    !html.includes('Projects calendar — '),
+    'no calendar aria-label prefix in the export — the year-grid calendar is deleted (REV-08/D-03)',
   );
-  // Every project renders its calendar row (name + verbatim date), the same
-  // set the cards render — the count matches the data (R-4: JSON order).
-  for (const project of data.projects) {
-    assert.ok(html.includes(project.name), `calendar row "${project.name}" server-rendered`);
-    if (project.date) {
-      assert.ok(html.includes(project.date), `calendar date "${project.date}" for "${project.name}" verbatim`);
-    }
+  // The stat tiles survive the removal — the panel body opens with them
+  // (mb-3) now that the calendar wrapper is gone (UI-SPEC §3.2).
+  const stats = projectStats(data.projects);
+  assert.ok(
+    new RegExp(`>${escapeRe(String(stats.total))}</p><p class="[^"]*">Projects</p>`).test(html),
+    'stat tiles still server-rendered with the JSON-derived total',
+  );
+  // Exactly the 6 cards render — a names loop beyond slice(0, 6) would lie
+  // (OQ-D: only the card map renders projects, never an all-14 sweep).
+  for (const project of data.projects.slice(0, 6)) {
+    assert.ok(html.includes(project.name), `card "${project.name}" server-rendered`);
+  }
+  for (const project of data.projects.slice(6)) {
+    assert.ok(
+      !html.includes(project.name),
+      `"${project.name}" (beyond the top-6 cap) renders nowhere in the export — no calendar rows linger`,
+    );
   }
 });
 
