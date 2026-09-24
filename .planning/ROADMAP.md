@@ -1,6 +1,6 @@
 # Roadmap — Explore Visual Landing (v1.0)
 
-7 phase(s) | requirements mapped per phase
+8 phase(s) | requirements mapped per phase
 
 | # | Phase | Goal | Requirements |
 |---|-------|------|--------------|
@@ -11,6 +11,7 @@
 | 05 | explore-routing | Add a non-blocking toggle/link routing visitors between the CLI (/) and /explore, and polish responsive behaviour across breakpoints. | EXPLORE-05 … EXPLORE-06 |
 | 06 | explore-revision | Refresh the portfolio data to the user's current resume (docx) as source of truth and revise the visual surfaces accordingly — /resume + PDF rebuilt to the docx structure, About+Contact merged, skills as competency + proof cards, projects year-grid calendar — per the user's pre-ship revision list. | REV-01 … REV-07 |
 | 07 | look-and-feel-revision | Overall UI/UX look-and-feel revision under the newly installed design skills (motion-design + design-taste-frontend + redesign-existing-projects): both Gantt-style charts removed, skills cards' presentation redesigned, audit-first polish pass and restrained micro-motion across /explore — IDE aesthetic preserved. | REV-08 … REV-11 |
+| 08 | experience-showcase-revision | The Experience panel becomes a full-width interactive semicircular career timeline per the user's detailed brief — mathematically positioned arc with year markers for the 3 docx roles, scroll-driven timelineProgress driving positions/emphasis/content transitions, hand-rolled rAF (zero new deps), keyboard + reduced-motion contracts, mobile-adapted compact form — IDE aesthetic preserved. | REV-07, REV-12, REV-13 |
 
 ## Progress
 
@@ -23,3 +24,4 @@
 | 05 | explore-routing | pending |  |
 | 06 | explore-revision | pending |  |
 | 07 | look-and-feel-revision | pending |  |
+| 08 | experience-showcase-revision | pending |  |
