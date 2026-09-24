@@ -172,15 +172,21 @@ const serverSlices = [
 ];
 const sectionBodies = [
   'src/components/explore/sections/skills-section.tsx',
-  'src/components/explore/sections/experience-section.tsx',
   'src/components/explore/sections/projects-section.tsx',
 ];
-const phaseTouchedComponents = [...serverSlices, ...sectionBodies];
+// EXPLORE-08 plan 02 (UI-SPEC §9/§14 seams 2+3): the timeline stage moves to
+// the client slice — the stage component + its interaction hook carry
+// "use client"; the server set shrinks to skills/projects + the tiles.
+const clientBodies = [
+  'src/components/explore/sections/experience-section.tsx',
+  'src/components/explore/use-timeline-progress.ts',
+];
+const phaseTouchedComponents = [...serverSlices, ...sectionBodies, ...clientBodies];
 
-test('cross-cutting: client boundary — the Skills panel is 100% server-rendered, recharts gone (D-06, plan 04 rewrite)', () => {
+test('cross-cutting: client boundary — server slices stay server, the timeline stage is the phase\'s client slice (D-06, EXPLORE-08 rewrite)', () => {
   // Post-removal contract: the two recharts slices are DELETED (their files
   // must not exist) and no explore file imports recharts or carries a client
-  // directive among the panel-body slices.
+  // directive among the server panel-body slices.
   for (const deleted of ['src/components/explore/sections/skills-chart.tsx', 'src/components/explore/sections/skills-treemap.tsx']) {
     assert.equal(existsSync(join(root, deleted)), false, `${deleted}: deleted with the recharts removal (D-06)`);
   }
@@ -194,9 +200,15 @@ test('cross-cutting: client boundary — the Skills panel is 100% server-rendere
     const code = codeOf(p);
     assert.ok(!code.includes('use client'), `${p}: no client directive — server component (D-06)`);
   }
+  for (const p of clientBodies) {
+    assert.ok(
+      codeOf(p).includes('use client'),
+      `${p}: "use client" present — the timeline stage + hook are the phase's client slice (§9)`,
+    );
+  }
 });
 
-test('cross-cutting: motion — never isAnimationActive={true} under explore, no matchMedia in the phase-touched files (OQ-2, plan 04 rewrite)', () => {
+test('cross-cutting: motion — never isAnimationActive={true} under explore; matchMedia confined to the interaction hook (OQ-2, EXPLORE-08 rewrite)', () => {
   const exploreFiles = readdirSync(join(root, 'src/components/explore'), { recursive: true })
     .filter((f) => /\.(tsx|ts)$/.test(f));
   for (const rel of exploreFiles) {
@@ -206,14 +218,27 @@ test('cross-cutting: motion — never isAnimationActive={true} under explore, no
       `src/components/explore/${rel}: never isAnimationActive={true} (OQ-2)`,
     );
   }
-  // explore-intro.tsx keeps its own pre-existing matchMedia — out of scope
-  // and untouched; the phase-touched files gain none.
-  for (const p of phaseTouchedComponents) {
+  // The matchMedia ban narrows to the SERVER set (EXPLORE-08: the panels stay
+  // unconditionally static; explore-intro.tsx keeps its own pre-existing
+  // matchMedia — out of scope and untouched).
+  for (const p of [...serverSlices, ...sectionBodies]) {
     assert.ok(
       !codeOf(p).includes('matchMedia'),
-      `${p}: no matchMedia — panels are unconditionally static (OQ-2)`,
+      `${p}: no matchMedia — server components never read media state (OQ-2)`,
     );
   }
+  // The interaction hook reads exactly the two pinned queries: the
+  // reduced-motion mode (E-13 — fresh per derivation pass) and the md gate
+  // (§8 B-1 — with a change listener).
+  const hook = codeOf('src/components/explore/use-timeline-progress.ts');
+  assert.ok(
+    hook.includes("matchMedia('(prefers-reduced-motion: reduce)')"),
+    'use-timeline-progress reads the reduced-motion query (E-13)',
+  );
+  assert.ok(
+    hook.includes("matchMedia('(min-width: 768px)')"),
+    'use-timeline-progress reads the md breakpoint query (§8 B-1 gate)',
+  );
 });
 
 test('cross-cutting: viz-data is the sole data-shaping module — chart machinery GONE, survivors pinned (REV-08/U-6, D-05)', () => {
@@ -290,10 +315,11 @@ test('cross-cutting: registry spine — four total closures after the merge, ski
   );
 });
 
-test('cross-cutting: REV-08 — both chart files deleted, builders absent, the polished timeline survives (D-03)', () => {
+test('cross-cutting: REV-08 — both chart files deleted, builders absent, the arc stage replaces the rail (D-03, EXPLORE-08 rewrite)', () => {
   // The removal contract: no chart artefact remains on disk or in the two
-  // section files, while the rail+dots timeline (the REV-07-deferred
-  // showcase, polished at taste level only) stays as pinned.
+  // section files, while the semicircular arc stage (the REV-07 showcase,
+  // now realized per the phase-8 UI-SPEC) carries the pinned SVG geometry
+  // and the single-DOM compact year chip.
   for (const deleted of [
     'src/components/explore/sections/career-span-chart.tsx',
     'src/components/explore/sections/projects-calendar.tsx',
@@ -308,10 +334,17 @@ test('cross-cutting: REV-08 — both chart files deleted, builders absent, the p
     'experience-section carries no chart machinery',
   );
   assert.ok(
-    exp.includes('relative space-y-5 border-l border-border'),
-    'the rail+dots timeline survives as the polished non-chart showcase',
+    exp.includes('M 100 0 A 100 100 0 0 0 100 200'),
+    'the left-bulging C arc path is present (UI-SPEC §2.2 — the central visual metaphor)',
   );
-  assert.ok(!exp.includes('use client'), 'experience-section remains a server component');
+  assert.ok(
+    exp.includes('md:hidden'),
+    'the md:hidden year chip survives in the single-DOM layers (§8 B-1 — compact form, no second subtree)',
+  );
+  assert.ok(
+    exp.includes('use client'),
+    'experience-section is the client stage (§9 — inverted from the phase-7 server pin)',
+  );
 });
 
 test('cross-cutting: recharts removed — 38 dependency keys, no recharts key (OQ-2, plan 04)', () => {
@@ -556,14 +589,28 @@ test('motion: hover/focus/active vocabulary — lift+bloom, nudge, underline par
       assert.ok(!src.includes(banned), `src/components/explore/${rel}: ${banned} absent (CSS-only motion, REV-11)`);
     }
   }
+  // EXPLORE-08 plan 02 (recorded deviation): the timeline interaction hook
+  // joins the tour as the second sanctioned rAF site — UI-SPEC §6 pins the
+  // scroll-driven channel to hand-rolled rAF writes (D-04, zero new deps),
+  // so the invariant becomes "no rAF OUTSIDE the two sanctioned sites", with
+  // the hook's cancellation pinned below.
   for (const rel of exploreFiles) {
-    if (rel === join('explore-tour.tsx') || rel.endsWith('explore-tour.tsx')) continue;
+    if (String(rel).endsWith('explore-tour.tsx') || String(rel).endsWith('use-timeline-progress.ts')) continue;
     const src = codeOf(join('src/components/explore', rel));
     assert.ok(
       !src.includes('requestAnimationFrame'),
-      `src/components/explore/${rel}: requestAnimationFrame absent (CSS-only motion, REV-11)`,
+      `src/components/explore/${rel}: requestAnimationFrame absent (CSS-only motion, REV-11 + the two sanctioned sites)`,
     );
   }
+  const hookCode = codeOf('src/components/explore/use-timeline-progress.ts');
+  assert.ok(
+    hookCode.includes('requestAnimationFrame'),
+    'the timeline hook schedules its derivation pass via rAF (UI-SPEC §6 — the sanctioned scroll channel)',
+  );
+  assert.ok(
+    hookCode.includes('cancelAnimationFrame'),
+    'the timeline hook cancels its pending frame on unmount (E-7)',
+  );
 });
 
 // ---------------------------------------------------------------------------

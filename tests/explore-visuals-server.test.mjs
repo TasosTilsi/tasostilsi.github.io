@@ -1,17 +1,21 @@
 /**
- * Server-invariant carrier for the explore visuals — EXPLORE-07 edition: the
- * two chart slices are deleted (REV-08/D-03 — career-span Gantt + year-grid
- * calendar), so this suite pins the non-chart panel bodies: the Experience
- * rail+dots timeline as the polished non-chart showcase (U-8 merged meta
- * row, verbatim strings) and the Projects stat tiles above the cards.
+ * Server-invariant carrier for the explore visuals — EXPLORE-08 edition: the
+ * Experience panel body is now the full-width semicircular career-timeline
+ * stage (phase 8, REV-07/REV-12/REV-13), so this suite pins the stage
+ * composition contract — the single-DOM anatomy (§8 B-1: arc zone first,
+ * rail grammar GONE with gone-checks, year chips + merged meta row over the
+ * SAME layer nodes), the filter-governed role selection (D-06 superseding
+ * the phase-7 order-cap), the U-8 verbatim strings, and the client-boundary
+ * inversion (the stage IS the phase's client slice, §9) — alongside the
+ * Projects stat tiles above the cards.
  *
  * Runner: node --test tests/explore-visuals-server.test.mjs (no npm test
  * script exists — run directly).
  *
  * Local-only gate: CI (deploy.yml) runs Node 20 and never runs tests. These
  * are Layer-2 source-level invariants in the explore-shell.test.mjs style —
- * no export needed; the timeline and tiles are pure server components fully
- * present in the static export without JS.
+ * no export needed; the stage's SSR output (role-1 real text) is asserted
+ * export-level in the visuals suite after `npm run build`.
  *
  * Scope discipline: Experience/Projects panel bodies + the stat-tiles slice
  * only; Skills panel pins live in explore-visuals-skills.test.mjs.
@@ -31,10 +35,10 @@ const expPath = 'src/components/explore/sections/experience-section.tsx';
 const projPath = 'src/components/explore/sections/projects-section.tsx';
 
 // ---------------------------------------------------------------------------
-// Task 1 (EXPLORE-07): experience showcase — non-chart composition contract
-// (REV-08/D-03/U-8): the rail+dots timeline is the first body child, no
-// chart machinery remains, and one merged meta row carries duration and
-// location verbatim.
+// Task 1 (EXPLORE-08): the timeline stage composition contract (§8 B-1, §1.2)
+// — the arc zone is the first body child, the rail grammar is GONE
+// (gone-checks per the replacement discipline), and the single-DOM layers
+// carry the year chips + merged meta row.
 // ---------------------------------------------------------------------------
 
 test('career-span-chart.tsx deleted — experience-section imports no chart machinery (REV-08/D-03)', () => {
@@ -42,23 +46,24 @@ test('career-span-chart.tsx deleted — experience-section imports no chart mach
   const src = read(expPath);
   assert.ok(!src.includes('CareerSpanChart'), 'no CareerSpanChart import or composition');
   assert.ok(!src.includes('buildCareerSpan'), 'no buildCareerSpan import');
-  assert.ok(!src.includes("from '../viz-data'"), 'no viz-data import remains — the section neither parses nor charts');
+  assert.ok(!src.includes("from '../viz-data'"), 'no viz-data import remains — the stage imports the pure timeline module');
   assert.ok(!src.includes('mb-5'), 'the chart mb-5 wrapper is gone');
 });
 
-test('experience-section: the rail+dots <ol> is the first body child (§3.1, REV-07 still deferred)', () => {
+test('experience-section: the stage group root with the arc zone as first body child — rail grammar GONE (§8 B-1, §1.2)', () => {
   const src = read(expPath);
-  const olIdx = src.indexOf('<ol');
-  assert.ok(olIdx !== -1, '<ol> timeline present');
-  const returnIdx = src.lastIndexOf('return (', olIdx);
-  assert.ok(returnIdx !== -1, 'the component return is present');
-  assert.match(
-    src.slice(returnIdx, olIdx),
-    /return \(\s*<div>\s*$/,
-    'nothing renders between the root <div> and the timeline <ol> — the chart wrapper is gone',
-  );
-  assert.ok(src.includes('relative space-y-5 border-l border-border'), 'rail anatomy unchanged (D-03 keep)');
-  assert.ok(src.includes('bg-chart-2'), 'chart-2 timeline dot unchanged');
+  assert.ok(src.includes('role="group"'), 'the stage body root carries role="group" (§10)');
+  assert.ok(src.includes('aria-label="Career timeline"'), 'the group is labelled "Career timeline" (§10)');
+  const arcIdx = src.indexOf('data-timeline-arc-zone');
+  const layerIdx = src.indexOf('data-timeline-layer');
+  assert.ok(arcIdx !== -1, 'the arc zone hook (data-timeline-arc-zone) is present');
+  assert.ok(layerIdx !== -1, 'the content layer hooks (data-timeline-layer) are present');
+  assert.ok(arcIdx < layerIdx, 'the arc zone is the first body child — content column after it (§1.2 40/60 split)');
+  // Gone-checks (replacement discipline): the phase-7 rail grammar is dead.
+  assert.ok(!src.includes('relative space-y-5 border-l'), 'phase-7 rail anatomy gone (border-l rail replaced by the arc)');
+  assert.ok(!src.includes('-left-[4px]'), 'rail dot absolute-offset gone');
+  assert.ok(!src.includes('<ol'), 'the rail <ol> is gone — the single-DOM layer stack replaced it');
+  assert.ok(src.includes('bg-chart-2'), 'chart-2 STILL present — the active dot + md:hidden year chips (D-03)');
 });
 
 test('experience-section: merged duration·location meta row (U-8) — tabular-nums, aria-hidden separator, verbatim order', () => {
@@ -80,16 +85,23 @@ test('experience-section: merged duration·location meta row (U-8) — tabular-n
   );
 });
 
-test('experience-section: caps and fidelity byte-stable (slice(0,3), ≤3 bullets, no sort/normalize, pointer)', () => {
+test('experience-section: filter-governed roles + fidelity byte-stable (D-06, ≤3 bullets, AS-STORED strings, pointer, use client)', () => {
   const src = read(expPath);
-  assert.ok(src.includes('experience.slice(0, 3)'), 'D-01 3-role cap unchanged');
-  assert.ok(src.includes('(entry.responsibilities ?? []).slice(0, 3)'), '≤3 bullets unchanged');
+  assert.ok(src.includes('selectTimelineRoles'), 'role selection via the pure module (D-06 — the isTechRelated filter governs)');
+  assert.ok(
+    !src.includes('experience.slice(0, 3)'),
+    'the phase-7 order-cap is gone — filter-governed, not slice-governed (D-06 supersedes the phase-7 cap)',
+  );
+  assert.ok(src.includes('(entry.responsibilities ?? []).slice(0, 3)'), '≤3 bullets unchanged (U-3)');
   assert.ok(src.includes('{entry.duration}'), 'duration rendered AS STORED');
   assert.ok(src.includes('{entry.location}'), 'location rendered AS STORED');
   assert.ok(!src.includes('.sort('), 'no sorting of data-derived arrays (R-4/E-6)');
   assert.ok(!src.includes('.replace('), 'dash styles are display data, never normalized (D-02/§4)');
   assert.ok(src.includes('experience --all'), 'terminal pointer unchanged');
-  assert.ok(!src.includes('use client'), 'stays a server component (§2)');
+  assert.ok(
+    src.includes('"use client"'),
+    'the stage IS the phase\'s client slice (§9 — inverted from the phase-7 server pin)',
+  );
 });
 // ---------------------------------------------------------------------------
 // Task 2: project stat tiles — augment order, D-05 single-source, no literals

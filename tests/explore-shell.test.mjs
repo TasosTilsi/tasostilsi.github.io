@@ -323,7 +323,7 @@ test('panel-shell: chrome anatomy — chip, label, body slot; hover-inert; secti
   );
 });
 
-test('panels: responsive grid 2×2 after the merge — zero col-spans, per-section chart accents', () => {
+test('panels: responsive grid rebalance — placement whitelist, per-section chart accents (EXPLORE-08 D-01)', () => {
   const src = read('src/components/explore/explore-panels.tsx');
   assert.match(src, /grid-cols-1 gap-4 md:grid-cols-2/, '1/2-col grid (REV-04/D-04)');
   assert.ok(!src.includes('lg:grid-cols-3'), 'lg tier drops to 2 columns (D-04)');
@@ -332,13 +332,37 @@ test('panels: responsive grid 2×2 after the merge — zero col-spans, per-secti
   assert.ok(!src.includes('EXPLORE_PANEL_HUMOR'), 'humor constant gone (plan 02, D-06)');
   assert.ok(src.includes('<PanelShell'), 'shared §3 chrome composed');
   assert.ok(src.includes('SECTION_BODIES'), 'bodies from total registry (plan 02)');
-  // Zero-empty-cells invariant: no col-span class exists anywhere — every
-  // panel occupies exactly one cell of the 2×2 (D-04).
-  assert.ok(
-    (src.match(/(sm|md|lg|xl):col-span/g) || []).length === 0,
-    'no col-span classes anywhere — zero empty cells at every width (D-04)',
+  // Zero-empty-cells invariant, phase-8 edition (UI-SPEC §1.1/§13, D-01): the
+  // placement whitelist renders [Experience full-width] / [About+Contact |
+  // Skills] / [Projects full-width] — exactly two span-2 grid children
+  // re-derive the no-empty-cells acceptance over the 3-row md+ grid.
+  assert.equal(
+    (src.match(/md:col-span-2/g) || []).length,
+    2,
+    'exactly two span-2 grid children — the experience wrapper + the projects shell (D-01)',
   );
-  assert.ok(!/section\.id === ['"]about['"]/.test(src), 'no span conditional survives the merge');
+  assert.equal(
+    (src.match(/md:order-first/g) || []).length,
+    1,
+    'exactly one order-first placement — experience leads row 1 without a DOM reorder (R-2)',
+  );
+  assert.ok(src.includes('md:sticky md:top-0'), 'the stage pins via the sticky pair (D-02)');
+  assert.ok(
+    src.includes('md:h-[calc(100dvh-10rem)]'),
+    'stage pin-viewport height class present (UI-SPEC §1.1)',
+  );
+  assert.ok(
+    src.includes('md:h-[300vh]'),
+    'extended wrapper scroll-range class present (UI-SPEC §1.3, U-1 default)',
+  );
+  assert.ok(
+    !/(?<!md:)h-\[300vh\]/.test(src),
+    'no unprefixed scroll-range height — the extension is md-scoped so 375px stacks (R-9)',
+  );
+  assert.ok(
+    !/section\.id === ['"]about['"]/.test(src),
+    'no span conditional survives the merge — placement is a data-driven Record lookup',
+  );
 });
 
 // ---------------------------------------------------------------------------

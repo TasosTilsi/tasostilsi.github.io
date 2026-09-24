@@ -35,24 +35,32 @@ import { EXPLORE_TOUR_FINISH } from '../src/components/explore/constants.ts';
 // Type-P structural rows (Task 1)
 // ---------------------------------------------------------------------------
 
-test('sweep rows EXPLORE@375/768/1440/1920 (P): panels grid 1→2→2 cols, merged 2×2 with zero empty cells (REV-04)', () => {
+test('sweep rows EXPLORE@375/768/1440/1920 (P): panels grid 1→2 cols with the phase-8 placement whitelist (REV-04 + EXPLORE-08 D-01)', () => {
   const src = read('src/components/explore/explore-panels.tsx');
   assert.ok(
     src.includes('grid grid-cols-1 gap-4 md:grid-cols-2'),
-    'grid classes (explore-panels.tsx:67) — 1 col base (375), 2 cols at md AND lg (768/1440/1920) — D-04 2×2',
+    'grid classes (explore-panels.tsx) — 1 col base (375), 2 cols at md AND lg (768/1440/1920)',
   );
   assert.ok(
     !src.includes('lg:grid-cols-3'),
     'lg tier drops from 3 to 2 columns (D-04) — no lg:grid-cols-3 anywhere',
   );
-  assert.ok(
-    !src.includes('md:col-span-2'),
-    'About col-span removed — the merged panel occupies one 2×2 cell, zero empty cells at every width (D-04)',
+  // placement whitelist (UI-SPEC §1.1/§13, D-01): [Experience full-width] /
+  // [About+Contact | Skills] / [Projects full-width] — zero empty cells.
+  assert.equal(
+    (src.match(/md:col-span-2/g) || []).length,
+    2,
+    'exactly two span-2 grid children — experience wrapper + projects shell (D-01)',
+  );
+  assert.equal(
+    (src.match(/md:order-first/g) || []).length,
+    1,
+    'exactly one order-first placement — experience leads row 1 (R-2: DOM order locked)',
   );
   assert.ok(!/max-w-/.test(src), 'no max-width wrapper — full-bleed at 1920 (row EXPLORE@1920)');
 });
 
-test('sweep rows EXPLORE@* (P): 2×2 zero-empty-cells structure — 4 sections, 2 cols at md+, no col-span anywhere (REV-04/D-04)', () => {
+test('sweep rows EXPLORE@* (P): 3-row rebalance structure — order locked, spans whitelisted, stage pinned (EXPLORE-08 D-01/D-02)', () => {
   const constants = read('src/components/explore/constants.ts');
   const sectionsBlock = constants.slice(
     constants.indexOf('EXPLORE_SECTIONS = ['),
@@ -62,16 +70,57 @@ test('sweep rows EXPLORE@* (P): 2×2 zero-empty-cells structure — 4 sections, 
   assert.deepEqual(
     sections,
     ['about', 'experience', 'skills', 'projects'],
-    'exactly 4 section ids in EXPLORE_SECTIONS after the About+Contact merge',
+    'exactly 4 section ids in EXPLORE_SECTIONS — order LOCKED (R-2: drawer/tour/counter/chips derive from it)',
   );
   const src = read('src/components/explore/explore-panels.tsx');
   assert.ok(
     src.includes('md:grid-cols-2'),
-    '2 columns from md up (768/1440/1920) — 4 panels ÷ 2 cols = zero empty cells',
+    '2 columns from md up (768/1440/1920) — rows: [EXP full-width] / [About|Skills] / [Projects full-width]',
+  );
+  assert.equal(
+    (src.match(/md:col-span-2/g) || []).length,
+    2,
+    'exactly two span-2 grid children — zero empty cells re-derived over the 3-row md+ grid',
+  );
+  assert.equal(
+    (src.match(/md:order-first/g) || []).length,
+    1,
+    'exactly one order-first placement (D-01)',
   );
   assert.ok(
-    (src.match(/(sm|md|lg|xl):col-span/g) || []).length === 0,
-    'no col-span classes anywhere in explore-panels.tsx — every panel fills exactly one cell',
+    src.includes('md:sticky md:top-0'),
+    'the experience stage pins via the sticky classes (D-02 sticky-range mechanism)',
+  );
+});
+
+test('sweep row EXPLORE@375 (P): every new placement/height utility is md-scoped — 375px stacks 1-col (R-9)', () => {
+  const src = read('src/components/explore/explore-panels.tsx');
+  const offsetsOf = (src, token) => {
+    const out = [];
+    let idx = src.indexOf(token);
+    while (idx !== -1) {
+      out.push(idx);
+      idx = src.indexOf(token, idx + 1);
+    }
+    return out;
+  };
+  for (const token of ['col-span', 'h-[300vh]', 'h-[calc(100dvh-10rem)]']) {
+    const offsets = offsetsOf(src, token);
+    assert.ok(offsets.length > 0, `${token} present in the placement map`);
+    for (const idx of offsets) {
+      assert.ok(
+        src.slice(Math.max(0, idx - 3), idx) === 'md:',
+        `every ${token} occurrence is md:-prefixed (R-9: base stays 1-col at 375px)`,
+      );
+    }
+  }
+});
+
+test('sweep rows EXPLORE@* (P): sticky-breaker audit — no overflow utility on the panels grid (UI-SPEC §1.1)', () => {
+  const src = read('src/components/explore/explore-panels.tsx');
+  assert.ok(
+    !src.includes('overflow-'),
+    'no overflow-* class on the wrapper/stage/grid chain — position:sticky keeps attaching to the <main> scrollport (§1.1 audit)',
   );
 });
 
