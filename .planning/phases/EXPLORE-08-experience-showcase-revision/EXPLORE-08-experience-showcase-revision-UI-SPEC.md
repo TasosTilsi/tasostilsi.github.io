@@ -40,7 +40,7 @@ DOM order in `.panel-grid` stays exactly `about, experience-wrapper, skills, pro
 | Grid child (DOM order) | Base (<md) | md+ classes | md+ result |
 |---|---|---|---|
 | About+Contact panel | stacked row 1 | — | row 2, col 1 |
-| **Experience wrapper** (new `<div>`) | stacked row 2, natural height | `md:order-first md:col-span-2 md:h-[300vh]` | row 1, full width, extended scroll range |
+| **Experience wrapper** (new `<div>`) | stacked row 2, natural height | `md:order-first md:col-span-2` + **wrapper height is DATA-CONDITIONAL, not a static class (W-3 pin): the renderer computes it from the filtered roles — `roles.length > 1` → extended sticky range (≈300vh-equivalent, U-1 band 250–350vh, inline style or computed class); `roles.length ≤ 1` → natural height, stage in normal flow (E-1/E-2 honoured)** | row 1, full width, extended scroll range |
 | **Experience stage** (PanelShell, inside wrapper) | normal flow card | `md:sticky md:top-0 md:h-[calc(100dvh-10rem)]` (via the existing PanelShell `className` param) | pinned, fills the pin viewport |
 | Skills panel | stacked row 3 | — | row 2, col 2 |
 | Projects panel | stacked row 4 | `md:col-span-2` | row 3, full width |
@@ -56,7 +56,7 @@ DOM order in `.panel-grid` stays exactly `about, experience-wrapper, skills, pro
 ```
 ┌─ PanelShell section (sticky stage, chrome row unchanged) ──────────────┐
 │ ● Experience                                                    02     │
-│ ┌─ interior row: md:h-[calc(100dvh-14rem)] md:grid md:grid-cols-[2fr_3fr] ─┐
+│ ┌─ interior row: md:h-[calc(100dvh-14.25rem)] md:grid md:grid-cols-[2fr_3fr] gap-4 ─┐
 │ │ ┌─ ARC ZONE (40%) ────────┐  ┌─ CONTENT COLUMN (60%) ──────────────┐ │
 │ │ │  left-bulging semicircle │  │  grid-stack of 3 role layers        │ │
 │ │ │  (SVG stroke + markers)  │  │  (§4) — active layer in evidence,   │ │
@@ -77,7 +77,7 @@ DOM order in `.panel-grid` stays exactly `about, experience-wrapper, skills, pro
 
 | Quantity | Pin |
 |---|---|
-| Wrapper height | `md:h-[300vh]` (UNRESOLVED U-1: default 300vh; tunable band 250–350vh — 3 role bands ≈ 100vh of scroll each, "unhurried") |
+| Wrapper height | data-conditional (W-3): ≈300vh-equivalent at 3 roles (UNRESOLVED U-1 band 250–350vh — 3 role bands ≈ 100vh of scroll each, "unhurried"); 0/1 roles → natural height, no sticky |
 | Scrollable range | `range = wrapperHeight − stageHeight` (≈ 300vh − (100dvh−10rem) ≈ 2 scrollports) |
 | Sticky engage | stage `md:top-0` — pins flush with main's content-box top (sticky constraint rect = scrollport inset by main's padding; main's 24px padding remains visible above the pinned stage — intentional) |
 | Progress measurement | rAF-throttled `scroll` listener on **`<main>`** (the scroll container — never `window`). Per frame: `rel = (wrapperRect.top − mainRect.top) − mainPaddingTop`; `progress = clamp(−rel / range, 0, 1)`. `rel = 0` at engage → progress 0; `rel = −range` at release → progress 1; clamped outside — scrolling before/after the range flows naturally, **no hijack** |
@@ -110,7 +110,7 @@ SVG (server-rendered, aria-hidden, decorative):
   viewBox="0 0 100 200", preserveAspectRatio="xMidYMid meet",
   className="absolute inset-0 h-full w-full"
   path: M 100 0 A 100 100 0 0 0 100 200     (top end → left bulge → bottom end, sweep 0)
-  stroke: hsl(var(--border)) — "border token color"; stroke-width 1 (thin);
+  stroke: hsl(var(--border)) — "border token color"; stroke-width 1 with vector-effect="non-scaling-stroke" (W-5 pin — without it the meet-mapped scale s≈2.5 renders ~2.5px), rendering exactly 1px at every viewport scale;
   fill none. Dash detail: solid (Editorial-calm; dash is discretionary, default none).
 
 Scale mapping (pure, mirrors meet-alignment exactly — zero layout shift on hydration):
@@ -134,7 +134,7 @@ Marker polar points (angle θ in degrees, domain [90°, 270°]):
 | Function | Formula | Notes |
 |---|---|---|
 | `continuousIndex(progress, n)` | `(n−1)·progress` | n≥2; n=1 → 0 |
-| `activeIndex(c′)` | `Math.round(c′)` | role bands: [0,0.25)→0, [0.25,0.75)→1, [0.75,1]→2; band centers = keyboard step targets |
+| `activeIndex(c′)` | `Math.round(c′)` (normative — c′ ∈ [0, 2] for 3 roles; W-2 fix: the progress-space bands [0,0.25)/[0.25,0.75)/[0.75,1] are ILLUSTRATIVE ONLY and must not be implemented as c′-space if/else — Math.round boundaries sit at c′ = 0.5/1.5) | keyboard step targets = **role positions, not band centers**: stepping to role i sets progress to c′ = i (i.e. progress = i/(n−1)); targets 0 and 1 are legitimate band EDGES |
 | `markerAngle(i, c′, n)` | `180° − (i − c′)·Δ` , `Δ = 90°/(n−1)` | **Exact-fit Δ = 45° for n=3:** max offset `(n−1)·Δ = 90°` keeps every marker on the arc for every c′ — the train never leaves the curve. Generalizes to any n≥2 (data-driven, not 3-hardcoded) |
 | `markerPoint(center, radius, θ)` | §2.2 px mapping | dot on the arc; label at radius·(88/100) |
 | `markerEmphasis(i, c′)` | `t = 1 − min(|i − c′|, n−1)/(n−1)`; `opacity = 0.65 + 0.35·t`; `scale = 0.7 + 0.3·t` | ladder: active 1/1, adjacent 0.825/0.85, farthest 0.65/0.7 |
@@ -151,12 +151,12 @@ Each marker = **two** absolutely-positioned real-text elements inside the arc co
 | Element | Position | Active (i = activeIndex) | Inactive |
 |---|---|---|---|
 | Dot span | polar(100, θ), `transform: translate(Xpx,Ypx) translate(-50%,-50%) scale(S)` | `h-2 w-2 rounded-full bg-chart-2` (the experience accent) | `h-1.5 w-1.5 rounded-full bg-muted-foreground/40` (the tour's inactive-dot idiom) |
-| Year label | polar(88, θ), `transform: translate(Xpx,Ypx) translate(0,-50%)` — **left-aligned, extending inward toward the diameter** (never spills right past the diameter into the content gap); `whitespace-nowrap` | `font-mono text-sm font-medium tabular-nums text-foreground` + a **date line**: the role's `duration` AS STORED (U-8), `text-[10px] text-muted-foreground tabular-nums`, opacity tracking emphasis | `font-mono text-xs tabular-nums text-muted-foreground` |
+| Year label | polar(88, θ), `transform: translate(Xpx,Ypx) translate(0,-50%)` — **B-2 resolution (labels align toward the arc's interior): if the anchor's vx < 100 (left of the diameter) the label is right-aligned with `translateX(-100%)` (text extends toward the diameter); if vx ≥ 100 (on/crossing the diameter — exactly where the arc-end markers sit at θ=90°/270°) the label is left-aligned from the anchor** — the old unconditional left-align spilled right past the diameter BY CONSTRUCTION for the end markers the default data renders at rest and at full progress. `whitespace-nowrap` retained; the md width-constrained case (offsetX=0) resolves the same way | `font-mono text-sm font-medium tabular-nums text-foreground` + a **date line**: the role's `duration` AS STORED (U-8), `text-[10px] text-muted-foreground tabular-nums`, opacity tracking emphasis | `font-mono text-xs tabular-nums text-muted-foreground` |
 | Continuous writes | both elements | `opacity`/`scale` from `markerEmphasis` via rAF (§7) | same |
 
 - Markers are **readable text, not aria-hidden** (years are data; SR reads them in DOM role order). No roles, no `aria-current` — emphasis is visual; state is announced by the live region (§5) and carried by the content column.
 - `startYear → null` (unparseable/absent duration): dot-only marker, **no invented label** (D-03); content keeps duration AS STORED.
-- Active-marker date line at 768px width is the crowding risk — (UNRESOLVED U-6: default included per the acceptance's "+ date"; drop if it clips at md).
+- Active-marker date line at 768px width is the crowding risk — (UNRESOLVED U-6, **W-4 measurable predicate**: drop the date line when its rendered width (0.6em/char × string length at `text-[10px]`) exceeds the arc zone's inner width − 16px padding; the predicate is computed, not eyeballed).
 
 ---
 
@@ -237,7 +237,7 @@ Writes are `translate3d`-style transform strings; reads are batched per frame (r
 
 | # | Motion (default) | Reduced-motion behavior | Suppressor |
 |---|---|---|---|
-| RM-1 | Marker carousel glide (positions track c′ continuously) | **Positions FIXED**: `θ(i) = 180° − (i·Δ)` + … → pinned as constants `θ(i) = 180° − i·Δ + 90°·0`… concretely the frozen set `{180°, 135°, 90°}` for i=0,1,2 (chronological bottom→up, index order) — zero spatial movement ever; emphasis (dot fill, color, scale-of-dot via opacity only, date line) swaps opacity-only | derivation branch keyed off `matchMedia('(prefers-reduced-motion: reduce)').matches`, read per derivation pass (stateless, no listener needed) |
+| RM-1 | Marker carousel glide (positions track c′ continuously) | **Positions FIXED**: concretely the frozen set `{180°, 135°, 90°}` for i=0,1,2 (chronological bottom→up, index order) — zero spatial movement ever; emphasis (dot fill, color) swaps opacity-only; **the discrete dot size-class swap (h-1.5↔h-2) is SUPPRESSED under reduced motion (W-7 pin — a 2px size change is spatial movement; opacity-only means opacity-only), dot sizes stay at the inactive size** | derivation branch keyed off `matchMedia('(prefers-reduced-motion: reduce)').matches`, read per derivation pass (stateless, no listener needed) |
 | RM-2 | Content layer translateY slide | `translateY ≡ 0`; layers swap opacity-only (opacity still tracks c′ — opacity is not spatial) | same branch |
 | RM-3 | Keyboard-step smooth scroll | `behavior: 'auto'` (instant jump to the band center; markers/content land in one frame) | matchMedia branch at the call site (tour precedent) |
 | RM-4 | All CSS transitions/animations (marker swap smoothing, first-paint fade, entrance stagger) | killed globally — swaps become instant | existing guard `globals.css:647-660` (`.explore-shell *`), zero new CSS |
@@ -253,9 +253,9 @@ RM-1 pins FIXED positions (the strongest reading of D-04's "no spatial movement"
 | Aspect | Pin |
 |---|---|
 | Structure | Wrapper natural height (no `md:h-[300vh]`), stage in normal flow. Interior row: single column — arc zone `hidden`, content list full width |
-| Role entries | All 3 stacked (`space-y-5`), always visible — no scroll interaction on mobile (the sticky range is a md+ affordance; SPEC pins "compact vertical form", not a mobile scroll scene) |
+| Role entries | All 3 stacked (`space-y-5`), always visible — no scroll interaction on mobile (the sticky range is a md+ affordance; SPEC pins "compact vertical form", not a mobile scroll scene). **B-1 resolution — ONE DOM, three hydration paths pinned: (a) SSR/export: layers 1–2 carry `visibility:hidden` inline (§ export row below); (b) below md after hydration: the client CLEARS those inline styles once (static stacked list, all 3 visible, hook dormant) — the SSR hidden style never survives to a mobile user; (c) at ≥md: the hook takes ownership of per-layer visibility per the derivation. The hook is matchMedia-gated (`(min-width: 768px)`) with a change listener — dormant below md (no rAF loop, `computeProgress` never runs — the NaN/±∞ divide-by-zero path is unreachable); the mobile list is the SAME 3 layer nodes restyled by `md:`-scoped classes (no second subtree; the export's all-3-presence contract holds at every width)** |
 | Year marker per entry | One row: dot `h-2 w-2 rounded-full bg-chart-2` + year `font-mono text-xs tabular-nums text-muted-foreground` (dot + year chip replaces the phase-7 rail grammar; NO `border-l` rail — the year leads) |
-| Content per entry | The §4 layer anatomy verbatim (title > company > meta > ≤3 bullets), no transitions needed (all visible) |
+| Content per entry | The §3 layer anatomy verbatim (title > company > meta > ≤3 bullets), no transitions needed (all visible) |
 | Controls | Absent below md (no progress to step — dead controls would violate the no-dead-controls discipline) |
 | Overflow | Nothing nowrap exceeds the column (years are 4 chars); no horizontal scroll at 375px (R-9) — sweep-asserted |
 | Terminal pointer | Retained after the last entry (R-11) |
