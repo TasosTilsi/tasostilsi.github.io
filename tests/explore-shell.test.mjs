@@ -26,7 +26,9 @@ const exportHtml = join(root, 'out/explore.html');
 
 test('constants: 4 locked sections after the About+Contact merge, disjoint theme key, breadcrumb strings', () => {
   const src = read('src/components/explore/constants.ts');
-  for (const id of ['about', 'experience', 'skills', 'projects']) {
+  // Membership over the 4 locked ids (order-irrelevant to this check);
+  // listed in the phase-9 reflow order for consistency (REV-14/D-01).
+  for (const id of ['about', 'skills', 'experience', 'projects']) {
     assert.ok(src.includes(`id: "${id}"`), `section ${id} locked (D-01)`);
   }
   assert.ok(
