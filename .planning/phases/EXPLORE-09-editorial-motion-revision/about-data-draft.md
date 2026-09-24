@@ -6,7 +6,7 @@
 **Verbatim rule:** every value below is transcribed verbatim, no normalization. Values are data, never computed at render time.
 
 > ## APPROVAL BOX (to be filled by the user before the write — Tasks 2–3 of plan 02 are blocked until this box is filled)
-> **Approved:** _(fill in: date + choice per item)_
+> **Approved:** 2026-09-24 — user approved all three fields as drafted (interactive round: "Approve all as drafted")
 > - (1) **positioning** — the two pinned lines, verbatim as drafted: **APPROVE** / amend (propose replacement lines)
 > - (2) **availability** — `Open to selective part-time work` (verbatim from the CLI banner): **APPROVE** / amend (e.g. different availability wording)
 > - (3) **metrics** — the 4 × {value, label} array as drafted: **APPROVE** / amend (e.g. different labels, subset, or order)
