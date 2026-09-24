@@ -198,8 +198,8 @@ test('guards: zero new dependencies; the /explore → CLI return leg stays intac
   const pkg = JSON.parse(read('package.json'));
   assert.equal(
     Object.keys(pkg.dependencies).length,
-    38,
-    'dependency count pinned at 38 — recharts removed with its last explore consumer (OQ-2, plan 04)',
+    39,
+    'dependency count pinned at 39 — 38 post-recharts keys (OQ-2, plan 04) + TEMPORARY framer-motion for the /motion-demo engine-comparison prototype (returns to 38 when the prototype is deleted after the engine decision)',
   );
   assert.equal(
     pkg.dependencies.recharts,

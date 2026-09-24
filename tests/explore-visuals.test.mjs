@@ -352,9 +352,13 @@ test('cross-cutting: REV-08 — both chart files deleted, builders absent, the a
   );
 });
 
-test('cross-cutting: recharts removed — 38 dependency keys, no recharts key (OQ-2, plan 04)', () => {
+test('cross-cutting: recharts removed — 38 permanent + 1 temporary dependency keys, no recharts key (OQ-2, plan 04)', () => {
   const pkg = JSON.parse(read('package.json'));
-  assert.equal(Object.keys(pkg.dependencies).length, 38, 'recharts removed — dependencies 39→38 (OQ-2)');
+  assert.equal(
+    Object.keys(pkg.dependencies).length,
+    39,
+    'dependencies 38 (post-recharts, OQ-2) + TEMPORARY framer-motion for the /motion-demo engine prototype (deleted after the decision)',
+  );
   assert.equal(pkg.dependencies.recharts, undefined, 'no recharts key remains (OQ-2)');
 });
 
