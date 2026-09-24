@@ -198,5 +198,15 @@
     "started": "2026-09-24T12:58:15.067Z",
     "result": "SUMMARY written",
     "completed": "2026-09-24T13:11:36.423Z"
+  },
+  {
+    "id": "JOB-21",
+    "kind": "subagent",
+    "plan": "EXPLORE-08-experience-showcase-revision-03",
+    "phase": 8,
+    "status": "done",
+    "started": "2026-09-24T13:11:40.365Z",
+    "result": "SUMMARY written",
+    "completed": "2026-09-24T13:16:48.406Z"
   }
 ]
