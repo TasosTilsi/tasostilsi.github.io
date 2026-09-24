@@ -208,5 +208,15 @@
     "started": "2026-09-24T13:11:40.365Z",
     "result": "SUMMARY written",
     "completed": "2026-09-24T13:16:48.406Z"
+  },
+  {
+    "id": "JOB-22",
+    "kind": "subagent",
+    "plan": "EXPLORE-09-editorial-motion-revision-01",
+    "phase": 9,
+    "status": "done",
+    "started": "2026-09-24T16:19:16.754Z",
+    "result": "SUMMARY written",
+    "completed": "2026-09-24T16:21:40.590Z"
   }
 ]
