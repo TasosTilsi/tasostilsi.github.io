@@ -321,23 +321,23 @@ const exportText = () =>
     .replace(/<!-- -->/g, '');
 const exportRaw = () => read('out/explore.html');
 
-test('sweep E-6 (E, phase EXPLORE-09): entry 1 (first selectTimelineEntries result — BEng, education) renders real text in out/explore.html — data-derived (D-03/§9)', () => {
+test('sweep E-6 (E, phase EXPLORE-09): entry 1 (first selectTimelineEntries result — Chubb role, present-first) renders real text in out/explore.html — data-derived (D-03/§9 + user directive)', () => {
   assert.ok(existsSync(join(root, 'out/explore.html')), 'out/explore.html missing — run `npm run build` first');
   const html = exportText();
-  // The FIRST merged entry (year-ascending — 2012, BEng education) is the
+  // The FIRST merged entry (year-DESCENDING — 2023, the Chubb role) is the
   // SSR-visible layer the export must carry (D-03 → D-07 static-text
-  // contract). Every expectation is derived from the JSON THROUGH the pure
-  // module at test time, never copied. Education renders degree >
-  // institution > duration AS STORED — no location expectation, no bullet
-  // expectation (the §3.3 education template omits both).
+  // contract); it is the arc's focal point at rest (progress 0 → index 0).
+  // Every expectation is derived from the JSON THROUGH the pure module at
+  // test time, never copied. Roles render title > company > duration AS
+  // STORED — the §3.3 role template.
   const entries = selectTimelineEntries(portfolio.experience, portfolio.education);
   const first = entries[0];
   assert.ok(first, 'the merged derivation yields a first entry');
-  assert.equal(first.type, 'education', 'entry 1 is the earliest dated entry — the BEng education record');
-  assert.equal(first.year, '2012', 'entry 1 parses to 2012 (the BEng start year, data-derived)');
+  assert.equal(first.type, 'role', 'entry 1 is the present-first entry — the Chubb role at the arc focal point');
+  assert.equal(first.year, '2023', 'entry 1 parses to 2023 (the Chubb start year, data-derived)');
   for (const [field, value] of [
-    ['degree', first.entry.degree],
-    ['institution', first.entry.institution],
+    ['title', first.entry.title],
+    ['company', first.entry.company],
     ['duration AS STORED', first.entry.duration],
   ]) {
     assert.ok(

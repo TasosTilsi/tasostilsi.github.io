@@ -325,8 +325,10 @@ test('startYear: FIRST /\\b(?:19|20)\\d{2}\\b/ match wins (never max/min) — re
 // ---------------------------------------------------------------------------
 // 12. selectTimelineEntries — the phase-9 typed merged derivation (REV-16,
 //     D-03): experience.filter(isTechRelated) ∪ education.filter(featured),
-//     sorted by parsed start year ASCENDING (the phase's ONE deliberate
-//     sort), stable with null years LAST. These blocks are the renewed
+//     sorted by parsed start year DESCENDING — present-first, per user
+//     directive ("the experience must be shown from the present to the
+//     past"): Chubb 2023 first (the arc's focal point at rest), BEng 2012
+//     last; stable with null years LAST. These blocks are the renewed
 //     contract; they consume the module through the dynamic namespace
 //     import above (RED-locality — never a static import of the export
 //     Task 2 introduces).
@@ -338,29 +340,29 @@ test('TimelineEntry is a type-only export pinned at source — shape read from t
   assert.ok(src.includes("'role' | 'education'"), 'the type discriminator union is pinned in source');
 });
 
-test('selectTimelineEntries over the REAL JSON: exactly 5 entries, year-ascending — BEng 2012 · Netcompany-Intrasoft 2019 · MSc 2021 · Upstream Systems 2022 · Chubb 2023 (D-03)', () => {
+test('selectTimelineEntries over the REAL JSON: exactly 5 entries, year-DESCENDING (present-first) — Chubb 2023 · Upstream Systems 2022 · MSc 2021 · Netcompany-Intrasoft 2019 · BEng 2012 (D-03 + user directive)', () => {
   const entries = geometry.selectTimelineEntries(data.experience, data.education);
   assert.equal(entries.length, 5, '3 tech roles + 2 featured education records = 5');
   assert.deepEqual(
     entries.map((t) => t.year),
-    ['2012', '2019', '2021', '2022', '2023'],
-    'year-ascending from the parsed start years',
+    ['2023', '2022', '2021', '2019', '2012'],
+    'year-descending from the parsed start years — present-first',
   );
   assert.deepEqual(
     entries.map((t) => t.type),
-    ['education', 'role', 'education', 'role', 'role'],
+    ['role', 'role', 'education', 'role', 'education'],
     'the type discriminator per entry',
   );
   assert.deepEqual(
     entries.map((t) => (t.type === 'role' ? t.entry.company : t.entry.degree)),
     [
-      'Bachelor of Computer Engineering',
-      'Netcompany-Intrasoft',
-      'Master of Science in Computer Science',
-      'Upstream Systems',
       'Chubb',
+      'Upstream Systems',
+      'Master of Science in Computer Science',
+      'Netcompany-Intrasoft',
+      'Bachelor of Computer Engineering',
     ],
-    'primary identities per type (degree vs company) derive from the real JSON',
+    'primary identities per type (degree vs company) derive from the real JSON — Chubb first at rest',
   );
   for (const t of entries) {
     assert.equal(t.year, startYear(t.entry.duration), 'each year traces to startYear of the entry duration');
@@ -405,7 +407,7 @@ test('selection contracts consumed unchanged: isTechRelated roles (3) ∪ featur
   );
 });
 
-test('sort contract: stable year-ascending with null years LAST — synthetic null-year entry trails, order-stable within equal keys', () => {
+test('sort contract: stable year-DESCENDING with null years LAST — synthetic null-year entry trails, order-stable within equal keys', () => {
   const nullYear = {
     isTechRelated: true,
     duration: 'Ongoing',
@@ -431,7 +433,7 @@ test('sort contract: stable year-ascending with null years LAST — synthetic nu
   assert.deepEqual(
     entries.map((t) => t.entry.company),
     ['Earlier 2020', 'Later 2020', 'Null Year'],
-    'year-ascending; equal keys stay input-stable (Node sort stability); the null year is placed LAST',
+    'year-descending (equal keys stay input-stable either direction — Node sort stability); the null year is placed LAST',
   );
 });
 

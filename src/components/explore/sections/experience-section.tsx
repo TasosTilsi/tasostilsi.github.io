@@ -9,15 +9,18 @@
  * (arc zone + content layers + controls, driven by useTimelineProgress —
  * seam 2), the <md compact form (the SAME layer nodes restacked by
  * md:-scoped classes — year chip leads, all five entries visible, no cramped
- * arc), and the no-JS static export (entry 1 = BEng renders real text;
- * layers 2–5 carry visibility:hidden + aria-hidden — the SSR styles are the
- * §9 derivation evaluated at progress 0, no special-casing). The interaction
- * activates on hydration (D-07); no geometry-dependent layout (flow text).
+ * arc), and the no-JS static export (entry 1 = Chubb role renders real
+ * text; layers 2–5 carry visibility:hidden + aria-hidden — the SSR styles
+ * are the §9 derivation evaluated at progress 0, no special-casing). The
+ * interaction activates on hydration (D-07); no geometry-dependent layout
+ * (flow text).
  *
  * Entry selection is the phase-9 ONE derivation site: selectTimelineEntries
  * (timeline-geometry.ts) merges experience.filter(isTechRelated) with
- * education.filter(featured) sorted year-ascending (D-03/REV-16 — the
- * phase-6 isTechRelated filter still governs the role side; no slice).
+ * education.filter(featured) sorted year-DESCENDING — present-first (user
+ * directive: the experience is shown from the present to the past; Chubb
+ * 2023 is the arc's focal point at rest) (D-03/REV-16 — the phase-6
+ * isTechRelated filter still governs the role side; no slice).
  * Zero selected entries render nothing at all (E-1). Content templates are
  * type-aware (§3.3): roles render title > company > duration·location meta
  * (both strings AS STORED, R-7/U-8 — dash style never normalized) > the

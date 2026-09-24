@@ -27,8 +27,10 @@
  *
  * No sorting of data-derived arrays anywhere (D-06: JSON order is render
  * order) — with the ONE phase-9 scoped exception: selectTimelineEntries
- * sorts its merged entries year-ascending (the contradiction is scoped and
- * documented on that function below, UI-SPEC §3.1). All functions are total
+ * sorts its merged entries year-DESCENDING, present-first (user directive:
+ * the experience is shown from the present to the past — Chubb 2023 first,
+ * BEng 2012 last; the contradiction is scoped and documented on that
+ * function below, UI-SPEC §3.1). All functions are total
  * over their documented edge matrix (UI-SPEC §12 E-2/E-3/E-4) and never
  * touch the DOM.
  */
@@ -264,8 +266,11 @@ export function startYear(duration: string | null | undefined): string | null {
  * D-03 (phase 9) typed merged derivation — the ONE timeline-entry site:
  * entries = experience.filter(isTechRelated) ∪ education.filter(featured),
  * each carrying its parsed start year, merged and sorted by NUMERIC start
- * year ASCENDING (BEng 2012 · Netcompany 2019 · MSc 2021 · Upstream 2022 ·
- * Chubb 2023 over the real data). The phase-8 role-only selection is
+ * year DESCENDING — present-first (user directive: the experience is shown
+ * from the present to the past: Chubb 2023 · Upstream 2022 · MSc 2021 ·
+ * Netcompany 2019 · BEng 2012 over the real data). Chubb, the active
+ * present role, is the arc's focal point at rest (progress 0 → index 0).
+ * The phase-8 role-only selection is
  * deleted — ONE derivation site (OQ-8): roles round-trip through here as
  * `type: 'role'` entries with unchanged geometry/emphasis/keyboard
  * behaviour; education is a discriminator + template variant only.
@@ -274,14 +279,14 @@ export function startYear(duration: string | null | undefined): string | null {
  * it supersedes, for THIS FUNCTION ONLY, the module header's "no sorting of
  * data-derived arrays" rule above. D-06 (JSON order is render order) stays
  * the law for every other function; the merged arc is CHRONOLOGICAL by
- * contract, so its order is derived from the parsed start years, not a
- * render-order passthrough.
+ * contract (descending, present→past), so its order is derived from the
+ * parsed start years, not a render-order passthrough.
  *
  * Determinism: Array.prototype.sort is STABLE (ECMA-262 guarantee; relied on
  * here in Node ≥ 20) — equal-year entries keep input order (roles first,
  * from the input concatenation order). Null years (unparseable/absent
- * durations, E-4) sort LAST deterministically and render dot-only markers
- * downstream. Total: either input empty → the other's filtered entries;
+ * durations, E-4) sort LAST deterministically in either direction and render
+ * dot-only markers downstream. Total: either input empty → the other's filtered entries;
  * both empty → [] (E-1).
  */
 export function selectTimelineEntries(
@@ -300,7 +305,7 @@ export function selectTimelineEntries(
       if (a.year === null && b.year === null) return 0;
       if (a.year === null) return 1;
       if (b.year === null) return -1;
-      return Number(a.year) - Number(b.year);
+      return Number(b.year) - Number(a.year);
     });
 }
 
