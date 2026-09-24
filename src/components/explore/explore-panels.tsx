@@ -25,9 +25,10 @@
  * (4 panels − 2×(span-2) = rows [EXP] / [About|Skills] / [Projects], zero
  * empties). Placement is a data-driven Record lookup keyed by
  * ExploreSectionId — no id-comparison conditional — and BOTH Experience
- * placements are conditional on the filtered timeline roles (W-3):
- * selectTimelineRoles(...).length > 1 extends the wrapper into the sticky
- * range; ≤1 role renders natural height with no sticky (E-1/E-2). DOM
+ * placements are conditional on the merged timeline entries (W-3): the
+ * selected-entry count (tech roles ∪ featured education, the pure module's
+ * ONE derivation) > 1 extends the wrapper into the sticky
+ * range; ≤1 entry renders natural height with no sticky (E-1/E-2). DOM
  * order, the map-derived index chips (02 stays on Experience) and the
  * entrance-stagger nth-child delays are untouched (R-1/R-2);
  * the order-first placement only re-sorts grid auto-placement (visual-only
@@ -58,7 +59,7 @@
  */
 import type { ComponentType } from 'react';
 import { EXPLORE_SECTIONS, type ExploreSectionId } from './constants';
-import { selectTimelineRoles } from './timeline-geometry';
+import { selectTimelineEntries } from './timeline-geometry';
 import { PanelShell } from './panel-shell';
 import { AboutSection } from './sections/about-section';
 import { ExperienceSection } from './sections/experience-section';
@@ -89,7 +90,7 @@ const SECTION_BODIES: Record<
   ComponentType<SectionBodyProps>
 > = {
   about: ({ data }) => <AboutSection about={data.about} />,
-  experience: ({ data }) => <ExperienceSection experience={data.experience} />,
+  experience: ({ data }) => <ExperienceSection experience={data.experience} education={data.education} />,
   projects: ({ data }) => <ProjectsSection projects={data.projects} />,
   skills: ({ data }) => <SkillsSection skills={data.skills} competencies={data.core_competencies} />,
 };
@@ -118,7 +119,7 @@ const PLACEMENT: Record<ExploreSectionId, { wrapper: string; shell: string }> = 
 export function ExplorePanels({ data }: { data: PortfolioData }) {
   // W-3: the extension is DATA-CONDITIONAL, not a static class — the
   // filtered timeline roles decide whether the sticky range exists at all.
-  const extended = selectTimelineRoles(data.experience).length > 1;
+  const extended = selectTimelineEntries(data.experience, data.education).length > 1;
   return (
     <div className="grid panel-grid grid-cols-1 gap-4 md:grid-cols-2 lg:gap-5">
       {EXPLORE_SECTIONS.map((section, index) => {

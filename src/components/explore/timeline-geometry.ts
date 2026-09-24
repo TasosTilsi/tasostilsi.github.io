@@ -6,11 +6,12 @@
  * formula in UI-SPEC §1.3 (sticky-range progress), §2.2 (arc geometry and
  * the meet-mapping), §2.3 (the carousel derivation — the REV-12 "single
  * source of truth") and §3 (content-layer states), plus the §7 reduced-
- * motion variants, role selection (D-06) and start-year parsing (D-03,
- * R-14) lives here as pure functions. Components never shape timeline data
+ * motion variants, entry selection (D-06, generalized in phase 9 to the
+ * typed role|education merge — D-03) and start-year parsing (D-03, R-14)
+ * lives here as pure functions. Components never shape timeline data
  * inline; they receive precomputed values from the functions below. This
  * module intentionally supersedes the viz-data "single data-shaping site"
- * header for phase-8 derivations — viz-data.ts itself is NOT edited.
+ * header for phase-8/9 derivations — viz-data.ts itself is NOT edited.
  *
  * Contract (R-12, tour-placement.ts precedent): ZERO runtime imports — the
  * ONLY import line is the type-only ExperienceEntry import, erased at
@@ -25,15 +26,24 @@
  * FIRST year match wins ('Sept 2022 — Aug 2023' → '2022', never max/min).
  *
  * No sorting of data-derived arrays anywhere (D-06: JSON order is render
- * order). All functions are total over their documented edge matrix
- * (UI-SPEC §12 E-2/E-3/E-4) and never touch the DOM.
+ * order) — with the ONE phase-9 scoped exception: selectTimelineEntries
+ * sorts its merged entries year-ascending (the contradiction is scoped and
+ * documented on that function below, UI-SPEC §3.1). All functions are total
+ * over their documented edge matrix (UI-SPEC §12 E-2/E-3/E-4) and never
+ * touch the DOM.
  */
-import type { ExperienceEntry } from '@/data/portfolio-main-data';
+import type {
+  EducationEntry,
+  ExperienceEntry,
+} from '@/data/portfolio-main-data';
 
-/** A timeline role: the parsed start year (or null) + the raw entry. */
-export interface TimelineRole {
+/** A timeline entry: the type discriminator + the parsed start year (or
+ * null) + the raw entry. The phase-9 generalization of the phase-8 role-only
+ * representation — the ONE merged-arc noun (D-03/REV-16). */
+export interface TimelineEntry {
+  type: 'role' | 'education';
   year: string | null;
-  entry: ExperienceEntry;
+  entry: ExperienceEntry | EducationEntry;
 }
 
 /** Marker emphasis pair: opacity + scale, both pure functions of |i − c′|. */
@@ -251,14 +261,47 @@ export function startYear(duration: string | null | undefined): string | null {
 }
 
 /**
- * D-06 role selection: filter(isTechRelated) in JSON order — no sorting, no
- * slice (the pinned phase-6 contract governs; JSON order is render order).
- * Each role carries its parsed start year (dot-only marker when null).
+ * D-03 (phase 9) typed merged derivation — the ONE timeline-entry site:
+ * entries = experience.filter(isTechRelated) ∪ education.filter(featured),
+ * each carrying its parsed start year, merged and sorted by NUMERIC start
+ * year ASCENDING (BEng 2012 · Netcompany 2019 · MSc 2021 · Upstream 2022 ·
+ * Chubb 2023 over the real data). The phase-8 role-only selection is
+ * deleted — ONE derivation site (OQ-8): roles round-trip through here as
+ * `type: 'role'` entries with unchanged geometry/emphasis/keyboard
+ * behaviour; education is a discriminator + template variant only.
+ *
+ * SORT RULE SCOPE (UI-SPEC §3.1): this is the phase's ONE deliberate sort —
+ * it supersedes, for THIS FUNCTION ONLY, the module header's "no sorting of
+ * data-derived arrays" rule above. D-06 (JSON order is render order) stays
+ * the law for every other function; the merged arc is CHRONOLOGICAL by
+ * contract, so its order is derived from the parsed start years, not a
+ * render-order passthrough.
+ *
+ * Determinism: Array.prototype.sort is STABLE (ECMA-262 guarantee; relied on
+ * here in Node ≥ 20) — equal-year entries keep input order (roles first,
+ * from the input concatenation order). Null years (unparseable/absent
+ * durations, E-4) sort LAST deterministically and render dot-only markers
+ * downstream. Total: either input empty → the other's filtered entries;
+ * both empty → [] (E-1).
  */
-export function selectTimelineRoles(entries: ExperienceEntry[]): TimelineRole[] {
-  return entries
+export function selectTimelineEntries(
+  experience: ExperienceEntry[],
+  education: EducationEntry[],
+): TimelineEntry[] {
+  const roles: TimelineEntry[] = experience
     .filter((entry) => entry.isTechRelated)
-    .map((entry) => ({ year: startYear(entry.duration), entry }));
+    .map((entry) => ({ type: 'role', year: startYear(entry.duration), entry }));
+  const degrees: TimelineEntry[] = education
+    .filter((entry) => entry.featured)
+    .map((entry) => ({ type: 'education', year: startYear(entry.duration), entry }));
+  return roles
+    .concat(degrees)
+    .sort((a, b) => {
+      if (a.year === null && b.year === null) return 0;
+      if (a.year === null) return 1;
+      if (b.year === null) return -1;
+      return Number(a.year) - Number(b.year);
+    });
 }
 
 /**
