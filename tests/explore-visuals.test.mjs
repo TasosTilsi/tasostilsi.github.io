@@ -12,6 +12,11 @@
  *    U-4 3-role refresh.
  *  • phase EXPLORE-07 plan 01: the year-grid calendar is deleted (REV-08) —
  *    the calendar export test inverts to absence + the tiles/cards panel body.
+ *  • phase EXPLORE-08 plan 03: the interaction-quality contracts join as
+ *    permanent suite rows (UI-SPEC §13 "integration greps") — R-3 id
+ *    placement, the D-02 no-hijack greps, the E-7 cleanup tokens, the E-13
+ *    single RM read + §8 B-1 md gate, the §2.4/§4/§10 marker/a11y contract,
+ *    and the REV-07 geometry provenance.
  *
  * Runner: node --test tests/explore-visuals.test.mjs (no npm test script
  * exists — run directly).
@@ -749,4 +754,142 @@ test('export: the REV-11 motion vocabulary ships in the built stylesheet (UI-SPE
   assert.ok(compiled.includes('panel-shadow-hover'), 'the hover bloom token ships (M2/OQ-A)');
   assert.ok(compiled.includes('exp-lift'), 'the lift rules ship (M2)');
   assert.ok(compiled.includes('exp-nudge'), 'the nudge rules ship (M3)');
+});
+
+// ---------------------------------------------------------------------------
+// Phase EXPLORE-08 plan 03: the interaction-quality invariants as permanent
+// suite rows (UI-SPEC §2.4/§4/§5/§7/§10/§12/§13 — the falsifiability
+// hardening wave). These rows assert the DELIVERED contract and are expected
+// green immediately; any failure is a REAL defect in the delivered source —
+// fix it there honouring the UI-SPEC rails, never weaken the assertion.
+// Greps judge code, not prose (the codeOf convention).
+// ---------------------------------------------------------------------------
+
+const stageHook = () => codeOf('src/components/explore/use-timeline-progress.ts');
+const stageBody = () => codeOf('src/components/explore/sections/experience-section.tsx');
+
+test('EXPLORE-08 invariant (R-3): the section id lives ONLY on the sticky stage — the grid wrapper is anonymous', () => {
+  const panels = codeOf('src/components/explore/explore-panels.tsx');
+  assert.ok(
+    !/<div[^>]*\bid=/.test(panels),
+    'explore-panels.tsx: no <div> carries an id attribute — the extended wrapper stays anonymous (R-3: the tour hole, the IO threshold and the drawer anchors all measure the sticky SECTION by its stable id)',
+  );
+  assert.ok(
+    panels.includes('id={section.id}'),
+    'explore-panels.tsx: the section id flows from PanelShell id={section.id} onto the sticky <section> (panel-shell.tsx renders id={id})',
+  );
+});
+
+test('EXPLORE-08 invariant (D-02/R-5): no wheel/touch listeners and no document/window listener attachment — scrolling IS the progress input', () => {
+  for (const [name, code] of [
+    ['use-timeline-progress.ts', stageHook()],
+    ['experience-section.tsx', stageBody()],
+  ]) {
+    for (const banned of ['wheel', 'touchmove', 'touchstart']) {
+      assert.ok(!code.includes(banned), `${name}: "${banned}" absent (D-02 — no event hijacking; progress derives from scroll position through the sticky range)`);
+    }
+  }
+  const hook = stageHook();
+  for (const banned of ['document.addEventListener', 'window.addEventListener']) {
+    assert.ok(!hook.includes(banned), `use-timeline-progress.ts: "${banned}" absent — listeners attach to the main scroll element / stage refs only (REV-12: no scroll-jacking outside the section)`);
+  }
+});
+
+test('EXPLORE-08 invariant (E-7): every cleanup token is present in the hook — listeners, observer, pending frame', () => {
+  const hook = stageHook();
+  assert.ok(
+    (hook.match(/removeEventListener/g) || []).length >= 2,
+    'use-timeline-progress.ts: removeEventListener ≥ 2 (the scroll listener on main + the change listener on the md media query)',
+  );
+  assert.ok(hook.includes('disconnect()'), 'use-timeline-progress.ts: ResizeObserver.disconnect() present (E-6/E-7)');
+  assert.ok(hook.includes('cancelAnimationFrame'), 'use-timeline-progress.ts: cancelAnimationFrame present — the pending rAF frame is cancelled on unmount (E-7/REV-13)');
+});
+
+test('EXPLORE-08 invariant (E-13): exactly ONE raw prefers-reduced-motion read, and no change listener rides the RM query', () => {
+  const hook = stageHook();
+  assert.equal(
+    (hook.match(/prefers-reduced-motion/g) || []).length,
+    1,
+    'use-timeline-progress.ts: exactly one raw prefers-reduced-motion occurrence — the per-derivation-pass read (E-13: fresh per pass, no cached flag, no listener)',
+  );
+  assert.equal(
+    (hook.match(/addEventListener\('change'/g) || []).length,
+    1,
+    'exactly one change listener in the hook — the md gate; the reduced-motion query carries NONE (E-13)',
+  );
+  const changeIdx = hook.indexOf("addEventListener('change'");
+  const before = hook.slice(0, changeIdx);
+  const lastQuery = before.lastIndexOf('matchMedia(');
+  assert.ok(lastQuery > -1, 'the change listener attaches to a matchMedia handle');
+  assert.ok(
+    before.slice(lastQuery).includes('(min-width: 768px)'),
+    "the hook's ONLY change listener rides matchMedia('(min-width: 768px)') — never the reduced-motion query",
+  );
+});
+
+test('EXPLORE-08 invariant (§8 B-1): the md gate is a media query WITH its change listener — added and removed', () => {
+  const hook = stageHook();
+  assert.ok(
+    hook.includes("matchMedia('(min-width: 768px)')"),
+    "the md gate query matchMedia('(min-width: 768px)') is greppable (§8 B-1: dormant below md, computeProgress never runs)",
+  );
+  assert.ok(
+    hook.includes("addEventListener('change'"),
+    'the md gate carries its change listener (compact ↔ stage visibility handoff, B-1)',
+  );
+  assert.ok(
+    hook.includes("removeEventListener('change'"),
+    'the md change listener is removed on cleanup (E-7)',
+  );
+});
+
+test('EXPLORE-08 invariant (§2.4/§4/§10): marker non-interactivity + the two-control a11y contract', () => {
+  const exp = stageBody();
+  for (const [banned, why] of [
+    ['aria-current', 'emphasis is visual; state is announced by the sr-only live region (§2.4 — no current-state marker attribute)'],
+    ['tabIndex', 'no tabindex additions anywhere (§10)'],
+    ['cursor-pointer', 'markers/arc/content carry no hover/press/cursor affordance (§4 — the arc is emphasis, not navigation)'],
+  ]) {
+    assert.ok(!exp.includes(banned), `experience-section.tsx: ${banned} absent — ${why}`);
+  }
+  // The hover affordance lives ONLY on the Prev/Next controls, via the tour's
+  // GHOST_INTERACTION recipe verbatim held in ONE shared const. (Recorded
+  // deviation from the plan's row: it counted "hover:" twice — per-button
+  // copies — but the delivered form shares the recipe through the const, so
+  // the literal appears once and BOTH buttons interpolate it. Same §4
+  // contract, asserted against the delivered shape.)
+  assert.equal(
+    (exp.match(/hover:/g) || []).length,
+    1,
+    'experience-section.tsx: "hover:" appears exactly once — inside the shared GHOST_INTERACTION const (the tour recipe verbatim); no other element in the stage carries a hover affordance',
+  );
+  assert.equal(
+    (exp.match(/\$\{GHOST_INTERACTION\}/g) || []).length,
+    2,
+    'BOTH Prev/Next controls interpolate GHOST_INTERACTION (§4: hover + focus-visible recipe on each button, nowhere else)',
+  );
+  assert.ok(
+    exp.includes('aria-live="polite"'),
+    'the sr-only aria-live="polite" region is present (§10 — announces discrete role changes only, never per scroll frame)',
+  );
+  assert.ok(
+    exp.includes("padStart(2, '0')} /"),
+    "the control-row counter idiom padStart(2, '0')} / is present (§4: 01 / 03, the PanelShell index precedent)",
+  );
+});
+
+test('EXPLORE-08 invariant (REV-07): arc geometry derives from cos/sin over measured size — no hardcoded per-marker positions', () => {
+  const geo = codeOf('src/components/explore/timeline-geometry.ts');
+  assert.ok(geo.includes('Math.cos'), 'timeline-geometry.ts: Math.cos present (the locked polar formula, §2.2)');
+  assert.ok(geo.includes('Math.sin'), 'timeline-geometry.ts: Math.sin present');
+  for (const p of [
+    'src/components/explore/timeline-geometry.ts',
+    'src/components/explore/use-timeline-progress.ts',
+    'src/components/explore/sections/experience-section.tsx',
+  ]) {
+    assert.ok(
+      !/\btranslate\([^)]*\d{3,}/.test(codeOf(p)),
+      `${p}: no translate() string carries a hardcoded ≥3-digit coordinate — marker positions derive from the measured container geometry (REV-07 acceptance)`,
+    );
+  }
 });
