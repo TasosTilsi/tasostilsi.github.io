@@ -218,5 +218,25 @@
     "started": "2026-09-24T16:19:16.754Z",
     "result": "SUMMARY written",
     "completed": "2026-09-24T16:21:40.590Z"
+  },
+  {
+    "id": "JOB-23",
+    "kind": "subagent",
+    "plan": "EXPLORE-09-editorial-motion-revision-02",
+    "phase": 9,
+    "status": "done",
+    "started": "2026-09-24T16:47:18.862Z",
+    "result": "SUMMARY written",
+    "completed": "2026-09-24T16:56:30.857Z"
+  },
+  {
+    "id": "JOB-24",
+    "kind": "subagent",
+    "plan": "EXPLORE-09-editorial-motion-revision-03",
+    "phase": 9,
+    "status": "done",
+    "started": "2026-09-24T16:47:18.862Z",
+    "result": "SUMMARY written",
+    "completed": "2026-09-24T17:04:03.714Z"
   }
 ]
