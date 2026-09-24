@@ -199,7 +199,7 @@ test('guards: zero new dependencies; the /explore → CLI return leg stays intac
   assert.equal(
     Object.keys(pkg.dependencies).length,
     39,
-    'dependency count pinned at 39 — 38 post-recharts keys (OQ-2, plan 04) + TEMPORARY framer-motion for the /motion-demo engine-comparison prototype (returns to 38 when the prototype is deleted after the engine decision)',
+    'dependency count pinned at 39 — 38 post-recharts keys (OQ-2, plan 04) + framer-motion, adopted as a real dependency for phase-9 editorial compositions (engine decision; scratch /motion-demo prototype deleted)',
   );
   assert.equal(
     pkg.dependencies.recharts,
