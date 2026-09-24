@@ -338,3 +338,73 @@ test('dateLineFits: 6px/char against innerWidth − 16 — the real 19-char Chub
   assert.equal(dateLineFits(chubb, 100), false, '114 > 84 — does not fit');
   assert.equal(dateLineFits('', 100), true, 'empty label → nothing to drop');
 });
+
+// ---------------------------------------------------------------------------
+// 14. Edge hardening (Task 3) — E-1/E-2/E-4 edges and totality (UI-SPEC §12)
+// ---------------------------------------------------------------------------
+
+test('E-4 hyphen durations: the non-tech hyphen-U+002D strings parse a year via startYear yet stay excluded by the filter', () => {
+  assert.equal(
+    startYear('November 2017 - April 2018'),
+    '2017',
+    'hyphen U+002D parses identically — dash style is irrelevant to the regex',
+  );
+  const nonTech = data.experience.filter((e) => !e.isTechRelated);
+  assert.equal(nonTech.length, 4, 'premise: 4 non-tech entries in the real JSON');
+  for (const e of nonTech) {
+    assert.match(e.duration, /\b(?:19|20)\d{2}\b/, `premise: "${e.duration}" carries a year`);
+    assert.equal(typeof startYear(e.duration), 'string', `startYear parses the non-tech "${e.company}" duration`);
+  }
+  const techCompanies = new Set(selectTimelineRoles(data.experience).map((r) => r.entry.company));
+  for (const e of nonTech) {
+    assert.equal(techCompanies.has(e.company), false, `"${e.company}" excluded by the isTechRelated filter`);
+  }
+});
+
+test('E-1 zero-role totality: selectTimelineRoles on empty / all-non-tech input → [] (no invented roles)', () => {
+  assert.deepEqual(selectTimelineRoles([]), [], 'empty input → empty roles');
+  assert.deepEqual(
+    selectTimelineRoles(data.experience.filter((e) => !e.isTechRelated)),
+    [],
+    'all-non-tech input → empty roles',
+  );
+});
+
+test('E-2 single-role guard set: every n=1 path is total (divide-by-zero-free) — c′≡0, focal angle, full emphasis, active layer', () => {
+  assert.equal(continuousIndex(0.8, 1), 0, 'continuousIndex → 0 for any progress');
+  assert.equal(markerAngle(0, 0.35, 1), 180, 'markerAngle → 180 (focal) for any inputs');
+  assert.equal(reducedMotionAngle(0, 1), 180, 'RM angle → 180');
+  assert.equal(progressForRole(0, 1), 0, 'progressForRole → 0');
+  assert.equal(activeIndexFromContinuous(0.9, 1), 0, 'activeIndex → 0');
+  assert.deepEqual(markerEmphasis(0, 0.4, 1), { opacity: 1, scale: 1 }, 'markerEmphasis → {1,1}');
+  assert.deepEqual(reducedMotionEmphasis(0, 0.4, 1), { opacity: 1, scale: 1 }, 'RM emphasis → {1,1}, scale pinned');
+  assert.deepEqual(
+    contentLayer(0, 0, false),
+    { opacity: 1, translateY: 0, visible: true },
+    'c′=0 → active state (E-2 single-role stage math)',
+  );
+  assert.deepEqual(
+    contentLayer(0, 0, true),
+    { opacity: 1, translateY: 0, visible: true },
+    'RM c′=0 → active, translateY 0',
+  );
+});
+
+test('contentLayer extreme offsets: |d|>2 clamps translateY to ±28 (any n) with opacity 0, invisible', () => {
+  assert.deepEqual(contentLayer(0, 5, false), { opacity: 0, translateY: -28, visible: false }, 'far above → −28 clamp');
+  assert.deepEqual(contentLayer(5, 0, false), { opacity: 0, translateY: 28, visible: false }, 'far below → +28 clamp');
+  assert.equal(contentLayer(0, 5, true).translateY, 0, 'RM keeps translateY 0 at any offset');
+});
+
+test('release semantics: computeProgress clamps rel far beyond ±range — scrolling past the range flows naturally, no hijack', () => {
+  assert.equal(computeProgress(1000, 50), 0, 'far before engage → 0');
+  assert.equal(computeProgress(-1000, 50), 1, 'far past release → 1');
+  assert.ok(!Number.isNaN(computeProgress(-1e9, 1e-3)), 'no NaN at extreme magnitudes');
+});
+
+test('dateLineFits totality + startYear nullish inputs: empty label always fits; absent duration → null', () => {
+  assert.equal(dateLineFits('', 100), true, 'empty label → true');
+  assert.equal(dateLineFits('', 10), true, 'empty label → true even below the 16px padding floor (nothing to drop)');
+  assert.equal(startYear(undefined), null, 'absent duration → null (E-4)');
+  assert.equal(startYear(null), null, 'null duration → null (E-4)');
+});

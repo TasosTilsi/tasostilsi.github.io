@@ -265,8 +265,10 @@ export function selectTimelineRoles(entries: ExperienceEntry[]): TimelineRole[] 
  * §2.4 W-4 measurable predicate for the active-marker date line: the
  * rendered width is 0.6em/char × string length at text-[10px] = 6 px/char;
  * it fits when that width ≤ innerWidth − 16 (the zone's inner padding). An
- * empty label always fits (nothing to drop).
+ * empty (or absent) label ALWAYS fits — there is nothing to drop — even
+ * below the 16px padding floor.
  */
 export function dateLineFits(duration: string, innerWidthPx: number): boolean {
+  if (!duration) return true;
   return duration.length * 6 <= innerWidthPx - 16;
 }
