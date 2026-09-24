@@ -471,12 +471,17 @@ test('n=5 sweeps: every marker stays on the arc ∀ progress (Δ=22.5°); the em
   }
   const ladders = { opacity: [], scale: [] };
   for (const i of [0, 1, 2, 3, 4]) {
-    const e = markerEmphasis(i, i, 5);
+    // The §3.1 ladder is over the DISTANCE |i − c′| = 0..4 — sample at c′=0.
+    const e = markerEmphasis(i, 0, 5);
     ladders.opacity.push(e.opacity);
     ladders.scale.push(e.scale);
   }
-  assert.deepEqual(ladders.opacity, [1, 0.9125, 0.825, 0.7375, 0.65], 'the n=5 opacity ladder (exact)');
-  assert.deepEqual(ladders.scale, [1, 0.925, 0.85, 0.775, 0.7], 'the n=5 scale ladder (exact)');
+  const OPACITY_LADDER = [1, 0.9125, 0.825, 0.7375, 0.65];
+  const SCALE_LADDER = [1, 0.925, 0.85, 0.775, 0.7];
+  for (const i of [0, 1, 2, 3, 4]) {
+    approx(ladders.opacity[i], OPACITY_LADDER[i], `the n=5 opacity ladder at distance ${i} (exact)`);
+    approx(ladders.scale[i], SCALE_LADDER[i], `the n=5 scale ladder at distance ${i} (exact)`);
+  }
 });
 
 test('n=5 keyboard round-trip + RM/contentLayer variants unchanged: activeIndexFromContinuous(progressForRole(i, 5)) === i for i ∈ {0..4}', () => {
@@ -490,7 +495,7 @@ test('n=5 keyboard round-trip + RM/contentLayer variants unchanged: activeIndexF
   assert.equal(reducedMotionEmphasis(2, 2, 5).scale, 1, 'RM scale pinned to 1 at n=5');
   approx(reducedMotionEmphasis(4, 0, 5).opacity, 0.65, 'farthest RM opacity unchanged at n=5');
   assert.deepEqual(contentLayer(2, 2, false), { opacity: 1, translateY: 0, visible: true }, 'active layer at n=5');
-  assert.deepEqual(contentLayer(0, 5, false), { opacity: 0, translateY: 28, visible: false }, 'far offset clamps at n=5 too');
+  assert.deepEqual(contentLayer(0, 5, false), { opacity: 0, translateY: -28, visible: false }, 'far offset clamps at n=5 too (d=−5 exits upward to the −28 clamp)');
 });
 
 test('W-4 over the education durations: 24/30 chars × 6px ≤ 196 − 16 — both real durations fit the md inner width', () => {
