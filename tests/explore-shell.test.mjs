@@ -241,16 +241,29 @@ test('drawer: composes Sheet side="left" with portal-safe explore-shell class', 
   assert.ok(!code.includes('max-w-'), 'no width overrides — default left variant pinned');
 });
 
-test('drawer: 4 anchor items from EXPLORE_SECTIONS, 44px targets, decorative chart digits', () => {
+test('drawer: 4 anchor items from EXPLORE_SECTIONS, 44px targets, per-id chart digits (REV-14 D-01)', () => {
   const src = read('src/components/explore/explore-drawer.tsx');
   assert.ok(src.includes('EXPLORE_SECTIONS'), 'items derive from the locked constant');
   assert.ok(src.includes('`#${section.id}`'), 'anchor hrefs derived from section ids');
   assert.ok(src.includes('min-h-[44px]'), 'real px touch targets (EXPLORE-06)');
   assert.ok(src.includes('padStart(2'), 'leading index digits 01…04');
   assert.ok(src.includes('aria-hidden'), 'digits decorative (W-3 fix)');
-  for (let i = 1; i <= 4; i++) {
-    assert.ok(src.includes(`text-chart-${i}`), `digit accent chart-${i}`);
-  }
+  // Per-id accent Record (REV-14/OQ-7): digits follow the SECTION, not the
+  // position — a positional array would hand Skills (item 02) Experience's
+  // chart-2 under the reflowed order.
+  assert.match(
+    src,
+    /DIGIT_ACCENTS: Record<ExploreSectionId, string>/,
+    'digit accents are a per-id Record keyed by ExploreSectionId',
+  );
+  assert.ok(
+    src.includes('DIGIT_ACCENTS[section.id]'),
+    'accent lookup is by section id — never a positional index',
+  );
+  assert.ok(src.includes("about: 'text-chart-1'"), 'about digit accent chart-1 (per-id)');
+  assert.ok(src.includes("experience: 'text-chart-2'"), 'experience digit accent chart-2 (per-id)');
+  assert.ok(src.includes("skills: 'text-chart-3'"), 'skills digit accent chart-3 (per-id)');
+  assert.ok(src.includes("projects: 'text-chart-4'"), 'projects digit accent chart-4 (per-id)');
   assert.ok(!src.includes('text-chart-5'), 'no chart-5 digit — 4 sections after the merge (REV-04/E-14)');
   assert.ok(src.includes('hover:bg-sidebar-accent'), 'item hover state (UI-SPEC §5)');
   assert.ok(src.includes('tabular-nums'), 'digit numerals');
@@ -332,10 +345,10 @@ test('panels: responsive grid rebalance — placement whitelist, per-section cha
   assert.ok(!src.includes('EXPLORE_PANEL_HUMOR'), 'humor constant gone (plan 02, D-06)');
   assert.ok(src.includes('<PanelShell'), 'shared §3 chrome composed');
   assert.ok(src.includes('SECTION_BODIES'), 'bodies from total registry (plan 02)');
-  // Zero-empty-cells invariant, phase-8 edition (UI-SPEC §1.1/§13, D-01): the
-  // placement whitelist renders [Experience full-width] / [About+Contact |
-  // Skills] / [Projects full-width] — exactly two span-2 grid children
-  // re-derive the no-empty-cells acceptance over the 3-row md+ grid.
+  // Zero-empty-cells invariant, phase-9 reflow edition (UI-SPEC §1.1/§13,
+  // D-01): the placement whitelist renders [About+Contact | Skills] /
+  // [Experience full-width] / [Projects full-width] — exactly two span-2 grid
+  // children re-derive the no-empty-cells acceptance over the 3-row md+ grid.
   assert.equal(
     (src.match(/md:col-span-2/g) || []).length,
     2,
@@ -343,8 +356,8 @@ test('panels: responsive grid rebalance — placement whitelist, per-section cha
   );
   assert.equal(
     (src.match(/md:order-first/g) || []).length,
-    1,
-    'exactly one order-first placement — experience leads row 1 without a DOM reorder (R-2)',
+    0,
+    'zero order-first placements — the array reorder makes DOM order = visual order; the speech-order trick retires (UI-SPEC §8)',
   );
   assert.ok(src.includes('md:sticky md:top-0'), 'the stage pins via the sticky pair (D-02)');
   assert.ok(

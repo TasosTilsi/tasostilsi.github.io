@@ -48,8 +48,8 @@ test('sweep rows EXPLORE@375/768/1440/1920 (P): panels grid 1→2 cols with the 
     !src.includes('lg:grid-cols-3'),
     'lg tier drops from 3 to 2 columns (D-04) — no lg:grid-cols-3 anywhere',
   );
-  // placement whitelist (UI-SPEC §1.1/§13, D-01): [Experience full-width] /
-  // [About+Contact | Skills] / [Projects full-width] — zero empty cells.
+  // placement whitelist (UI-SPEC §1.1/§13, phase-9 D-01 reflow): [About+Contact |
+  // Skills] / [Experience full-width] / [Projects full-width] — zero empty cells.
   assert.equal(
     (src.match(/md:col-span-2/g) || []).length,
     2,
@@ -57,13 +57,13 @@ test('sweep rows EXPLORE@375/768/1440/1920 (P): panels grid 1→2 cols with the 
   );
   assert.equal(
     (src.match(/md:order-first/g) || []).length,
-    1,
-    'exactly one order-first placement — experience leads row 1 (R-2: DOM order locked)',
+    0,
+    'zero order-first placements — the array reorder makes DOM order = visual order; the speech-order caveat retires (UI-SPEC §8)',
   );
   assert.ok(!/max-w-/.test(src), 'no max-width wrapper — full-bleed at 1920 (row EXPLORE@1920)');
 });
 
-test('sweep rows EXPLORE@* (P): 3-row rebalance structure — order locked, spans whitelisted, stage pinned (EXPLORE-08 D-01/D-02)', () => {
+test('sweep rows EXPLORE@* (P): 3-row rebalance structure — order locked, spans whitelisted, stage pinned (EXPLORE-09 D-01 reflow)', () => {
   const constants = read('src/components/explore/constants.ts');
   const sectionsBlock = constants.slice(
     constants.indexOf('EXPLORE_SECTIONS = ['),
@@ -72,13 +72,13 @@ test('sweep rows EXPLORE@* (P): 3-row rebalance structure — order locked, span
   const sections = [...sectionsBlock.matchAll(/id: "([a-z]+)"/g)].map((m) => m[1]);
   assert.deepEqual(
     sections,
-    ['about', 'experience', 'skills', 'projects'],
-    'exactly 4 section ids in EXPLORE_SECTIONS — order LOCKED (R-2: drawer/tour/counter/chips derive from it)',
+    ['about', 'skills', 'experience', 'projects'],
+    'exactly 4 section ids in EXPLORE_SECTIONS — phase-9 reflow order LOCKED (D-01: About leads row 1; drawer/chips/stagger derive from it)',
   );
   const src = read('src/components/explore/explore-panels.tsx');
   assert.ok(
     src.includes('md:grid-cols-2'),
-    '2 columns from md up (768/1440/1920) — rows: [EXP full-width] / [About|Skills] / [Projects full-width]',
+    '2 columns from md up (768/1440/1920) — rows: [About|Skills] / [EXP full-width] / [Projects full-width]',
   );
   assert.equal(
     (src.match(/md:col-span-2/g) || []).length,
@@ -87,8 +87,8 @@ test('sweep rows EXPLORE@* (P): 3-row rebalance structure — order locked, span
   );
   assert.equal(
     (src.match(/md:order-first/g) || []).length,
-    1,
-    'exactly one order-first placement (D-01)',
+    0,
+    'zero order-first placements — the reflow reorders the array so DOM order IS visual order (UI-SPEC §8)',
   );
   assert.ok(
     src.includes('md:sticky md:top-0'),

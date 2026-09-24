@@ -64,37 +64,63 @@ test('tour accents: one chip class per section, explore-panels ACCENTS values (U
   );
 });
 
-test('step table: locked 6-entry sequence welcome → … → finish, no contact (REV-04/D-05, UI-SPEC §3)', () => {
+test('step table: locked 6-entry sequence welcome → … → finish, CONTENT order id-keyed (REV-14 D-01, UI-SPEC §1.2)', () => {
   assert.equal(EXPLORE_TOUR_STEPS.length, 6, 'dots count = 6 — counter derives from this length');
   assert.deepEqual(
     EXPLORE_TOUR_STEPS.map((s) => s.id),
     ['welcome', 'about', 'experience', 'skills', 'projects', 'finish'],
-    'locked id sequence after the merge (no contact step)',
+    'locked CONTENT id sequence — the phase-9 reflow reorders EXPLORE_SECTIONS (DOM), never the tour (D-01)',
   );
-  const content = EXPLORE_TOUR_STEPS.slice(1, 5);
-  content.forEach((step, i) => {
-    assert.equal(
-      step.sectionId,
-      EXPLORE_SECTIONS[i].id,
-      `content step ${i + 2} targets ${EXPLORE_SECTIONS[i].id} in EXPLORE_SECTIONS order`,
-    );
+  // ID-KEYED contract (REV-14/OQ-6): every content step targets and derives
+  // from its OWN section id — looked up by id, never positionally (the
+  // positional zip silently re-pairs labels AND bodies after the reorder).
+  const labelOf = Object.fromEntries(EXPLORE_SECTIONS.map((s) => [s.id, s.label]));
+  for (const step of EXPLORE_TOUR_STEPS.slice(1, 5)) {
+    assert.equal(step.sectionId, step.id, `content step targets its OWN panel id (${step.id})`);
     assert.equal(
       step.heading,
-      EXPLORE_SECTIONS[i].label,
-      'content headings derived from EXPLORE_SECTIONS labels (never duplicated literals)',
+      labelOf[step.id],
+      'content heading derived from the matching section label BY ID (never duplicated literals)',
     );
     assert.equal(
       step.announce,
-      EXPLORE_SECTIONS[i].label,
-      'content announce strings derived from EXPLORE_SECTIONS labels (§9 "Step N of M — …")',
+      labelOf[step.id],
+      'content announce derived from the matching section label BY ID (§9 "Step N of M — …")',
     );
-  });
+  }
+  // Per-id body pairing (REV-14/OQ-6): each chrome body stays paired to its
+  // OWN section under ANY array order — the plan's pinned per-section copy.
+  const bodyFragmentOf = {
+    about: ['bio', 'contact channel', 'resume export'],
+    experience: ['Roles in order', 'shape of the career as a timeline'],
+    skills: ['Competency cards'],
+    projects: ['Stat tiles up top'],
+  };
+  for (const [id, fragments] of Object.entries(bodyFragmentOf)) {
+    const step = EXPLORE_TOUR_STEPS.find((s) => s.id === id);
+    assert.ok(step, `${id} content step exists`);
+    for (const fragment of fragments) {
+      assert.ok(step.body.includes(fragment), `the ${id} body carries "${fragment}" — paired to its OWN section id`);
+    }
+  }
   assert.equal(EXPLORE_TOUR_STEPS[0].sectionId, null, 'welcome is a no-target step');
   assert.equal(EXPLORE_TOUR_STEPS[0].heading, 'explore --tour', 'welcome chrome heading (§4)');
   assert.equal(EXPLORE_TOUR_STEPS[0].announce, 'welcome', 'welcome SR announce (§9)');
   assert.equal(EXPLORE_TOUR_STEPS[5].sectionId, null, 'finish is a no-target step');
   assert.equal(EXPLORE_TOUR_STEPS[5].heading, 'tour complete', 'finish chrome heading (§4)');
   assert.equal(EXPLORE_TOUR_STEPS[5].announce, 'tour complete', 'finish SR announce (§9)');
+});
+
+test('tour generation: the positional zip is GONE — a literal id-keyed table only (REV-14/OQ-6)', () => {
+  const src = read('src/components/explore/constants.ts');
+  assert.ok(
+    !src.includes('EXPLORE_SECTIONS.map'),
+    'the EXPLORE_SECTIONS.map zip generation is gone — after the reorder it would silently re-pair labels AND bodies',
+  );
+  assert.ok(
+    !src.includes('EXPLORE_TOUR_STEP_BODIES'),
+    'the positional step-bodies array is gone — bodies are literals keyed to their own section in the table',
+  );
 });
 
 test('step counter: fully derived — no hardcoded "of 7" anywhere in the tour (OQ-9/E-14)', () => {
@@ -133,19 +159,18 @@ test('tour copy guard: chrome only, no digits beyond the allowed "60" (§12.4)',
   assert.equal(EXPLORE_TOUR_STEPS[5].body, EXPLORE_TOUR_FINISH.congrats, 'finish body = congrats');
 });
 
-test('tour step bodies: no chart machinery mention in the source literal (REV-08/U-10, UI-SPEC §10.2)', () => {
-  // EXPLORE_TOUR_STEP_BODIES is module-private (not exported), so the
-  // assertion reads the SOURCE per the established source-grep convention:
-  // extract the array literal and ban the "chart" substring inside it.
-  const src = read('src/components/explore/constants.ts');
-  const block = src.match(/const EXPLORE_TOUR_STEP_BODIES = \[([\s\S]*?)\] as const;/);
-  assert.ok(block, 'the module-private step-body literal is present in the source');
+test('tour step bodies: no chart machinery mention in any body (REV-08/U-10, UI-SPEC §10.2)', () => {
+  // The positional module-private bodies array is GONE (REV-14/OQ-6) — bodies
+  // are literals in the exported table, so the ban is asserted on the values.
+  for (const step of EXPLORE_TOUR_STEPS) {
+    assert.ok(
+      !/chart/i.test(step.body),
+      `no "chart" substring in the ${step.id} body — the dangling career-span reference is rewritten (U-10)`,
+    );
+  }
+  const experience = EXPLORE_TOUR_STEPS.find((s) => s.id === 'experience');
   assert.ok(
-    !/chart/i.test(block[1]),
-    'no "chart" substring in any step body — the dangling career-span reference is rewritten (U-10)',
-  );
-  assert.ok(
-    block[1].includes('shape of the career as a timeline'),
+    experience.body.includes('shape of the career as a timeline'),
     'the experience step body carries the replacement copy (UI-SPEC §2.1)',
   );
 });
@@ -200,7 +225,9 @@ import {
   visitThreshold,
 } from '../src/components/explore/tour-placement.ts';
 
-const VALID_IDS = ['about', 'experience', 'skills', 'projects'];
+// Valid-id SET for parseVisitedIds — membership only, order-irrelevant to the
+// function; listed in the phase-9 DOM order for consistency (REV-14).
+const VALID_IDS = ['about', 'skills', 'experience', 'projects'];
 
 test('placeCard: below fits under the panel (§3 first branch)', () => {
   const out = placeCard({
