@@ -78,6 +78,12 @@ export interface PortfolioData {
       twitch?: string;
     };
     profileImageUrl: string;
+    /** Two pinned positioning lines, rendered as two block spans, never joined (EXPLORE-09 UI-SPEC §2.2). */
+    positioning?: string[];
+    /** Verbatim transcription of the CLI welcome-banner availability line (WelcomeMessage.tsx:42). */
+    availability?: string;
+    /** Impact-metric stats; values are data transcriptions, never computed at render (UI-SPEC §2.3). */
+    metrics?: { value: string; label: string }[];
   };
   core_competencies: { name: string; proof: string }[];
   experience: ExperienceEntry[];

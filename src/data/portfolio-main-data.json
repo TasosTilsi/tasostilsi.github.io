@@ -25,7 +25,18 @@
       "twitch": "http://twitch.tv/tasostilsi",
       "portfolio": "https://tasostilsi.github.io/"
     },
-    "profileImageUrl":"https://tinyurl.com/5cfm72u7"
+    "profileImageUrl":"https://tinyurl.com/5cfm72u7",
+    "positioning": [
+      "I design test automation frameworks and AI-driven QA infrastructure that entire engineering organizations adopt.",
+      "— not just run."
+    ],
+    "availability": "Open to selective part-time work",
+    "metrics": [
+      { "value": "12+", "label": "engineering teams" },
+      { "value": "30+", "label": "engineers" },
+      { "value": "7+", "label": "years" },
+      { "value": "600+", "label": "npm launch week" }
+    ]
   },
   "core_competencies": [
     {"name": "Test Automation Architecture & Framework Design", "proof": "Internal NPM framework used by 12+ engineering teams across 20+ projects — 5 adopted it immediately; now the QA chapter standard."},

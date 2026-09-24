@@ -476,3 +476,82 @@ test('ledger: 4 non-docx roles intact; docx roles + all projects/other collectio
     ],
   );
 });
+
+// ---------------------------------------------------------------------------
+// 10. About package (phase EXPLORE-09 plan 02 — REV-15/D-02): the 3 approved
+//     new fields. Values approved verbatim in
+//     .planning/phases/EXPLORE-09-editorial-motion-revision/about-data-draft.md
+//     (APPROVAL BOX, 2026-09-24: all three fields approved as drafted).
+//     availability is a verbatim transcription of the CLI welcome-banner line
+//     (src/components/cli/outputs/WelcomeMessage.tsx:33/:42 — read-only
+//     source; the CLI file itself is NOT edited). Metric values are
+//     transcriptions of already-approved data strings, never computed at
+//     render time. Write mechanics (draft §5): inserted after
+//     profileImageUrl; .d.ts typing lands in the same commit (R-7).
+// ---------------------------------------------------------------------------
+
+const APPROVED_POSITIONING = [
+  'I design test automation frameworks and AI-driven QA infrastructure that entire engineering organizations adopt.',
+  '— not just run.',
+];
+
+const APPROVED_AVAILABILITY = 'Open to selective part-time work';
+
+const APPROVED_METRICS = [
+  { value: '12+', label: 'engineering teams' },
+  { value: '30+', label: 'engineers' },
+  { value: '7+', label: 'years' },
+  { value: '600+', label: 'npm launch week' },
+];
+
+test('about.positioning: exactly the 2 approved lines, verbatim, in order (about-data-draft.md approval)', () => {
+  assert.ok(Array.isArray(data.about.positioning), 'positioning is a string array');
+  assert.equal(data.about.positioning.length, 2);
+  assert.deepStrictEqual(data.about.positioning, APPROVED_POSITIONING);
+});
+
+test('about.availability: verbatim CLI banner transcription (WelcomeMessage.tsx:33/:42)', () => {
+  assert.equal(data.about.availability, APPROVED_AVAILABILITY);
+});
+
+test('about.metrics: exactly the 4 approved {value,label} stats in approved order', () => {
+  assert.ok(Array.isArray(data.about.metrics), 'metrics is an array');
+  assert.equal(data.about.metrics.length, 4);
+  assert.deepStrictEqual(data.about.metrics, APPROVED_METRICS);
+  for (const metric of data.about.metrics) {
+    assert.equal(typeof metric.value, 'string');
+    assert.equal(typeof metric.label, 'string');
+    assert.equal(metric.label, metric.label.toLowerCase(), `label stored lowercase: ${metric.label}`);
+  }
+});
+
+test('metric values are transcriptions of already-approved data strings (never computed)', () => {
+  assert.ok(
+    data.core_competencies[0].proof.includes('12+ engineering teams'),
+    '12+ source: Test Automation Architecture competency proof',
+  );
+  assert.ok(
+    data.core_competencies[3].proof.includes('30+ engineers'),
+    '30+ source: AI-Driven QA competency proof',
+  );
+  assert.ok(data.about.description.includes('7+ years'), '7+ source: about.description');
+  assert.ok(
+    data.projects[0].description.includes('600+ downloads in launch week'),
+    '600+ source: DeepIndex description',
+  );
+});
+
+test('the 3 new about fields are purely additive — every pre-existing key survives', () => {
+  const keys = Object.keys(data.about);
+  for (const key of ['name', 'title', 'location', 'dob', 'email', 'description', 'contact', 'profileImageUrl']) {
+    assert.ok(keys.includes(key), `pre-existing about key retained: ${key}`);
+  }
+  for (const key of ['positioning', 'availability', 'metrics']) {
+    assert.ok(keys.includes(key), `new about key present: ${key}`);
+  }
+  // write mechanics (draft §5): the new fields ride after profileImageUrl
+  assert.ok(
+    keys.indexOf('positioning') > keys.indexOf('profileImageUrl'),
+    'new fields inserted after profileImageUrl',
+  );
+});
