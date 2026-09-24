@@ -212,3 +212,54 @@ test("rowYear: absent/empty/unparseable → null (E-8 → the caller's em-dash)"
   assert.equal(rowYear('n.d.'), null, 'no 4-digit year pattern → null');
   assert.equal(rowYear('the 19th century'), null, "'19th' is not a \\b(?:19|20)\\d{2}\\b match");
 });
+
+test('integration: the editorial composition is wired into the server panel + placement map (plan-04 Task 3)', () => {
+  const readSrc = (rel) => readFileSync(join(root, rel), 'utf8');
+  const panels = readSrc('src/components/explore/explore-panels.tsx');
+  // The projects wrapper + shell recipe (the Experience recipe verbatim) and
+  // the stage's scroll-target attribute on the generic wrapper (R-3: plain
+  // div, NO id — the tour hole, IO and drawer anchors measure the section).
+  assert.equal(
+    (panels.match(/md:col-span-2 md:h-\[300vh\]/g) || []).length,
+    2,
+    'both sticky ranges carry the 300vh wrapper (E-15: sequential wrappers)',
+  );
+  assert.equal(
+    (panels.match(/md:sticky md:top-0 md:z-10 md:h-\[calc\(100dvh-10rem\)\]/g) || []).length,
+    2,
+    'both sticky shells carry the pinned recipe (E-15: both md:z-10)',
+  );
+  assert.ok(
+    panels.includes('data-editorial-wrapper="true"'),
+    "the stage's scroll-target attribute rides the wrapper (R-3)",
+  );
+  assert.ok(panels.includes('slice(0, 6).length > 1'), 'the W-3 mirror gate over the top-6 slice');
+  const section = readSrc('src/components/explore/sections/projects-section.tsx');
+  assert.ok(section.includes('ProjectsEditorialStage'), 'the server panel imports the client stage');
+  assert.ok(section.includes('hidden md:block'), 'the md+ rows viewport');
+  assert.ok(section.includes('md:hidden'), 'the compact card grid owns <md (byte-identical tier)');
+  assert.ok(
+    section.includes('md:overflow-hidden'),
+    'the sanctioned descendant overflow clips the ±H sweeps (UI-SPEC §1.3 — the one descendant overflow)',
+  );
+  // §4.1 literal DOM sequence: tiles → rows viewport (stage) → compact list → pointer LAST (W-1).
+  const idxTiles = section.indexOf('<ProjectStatTiles');
+  const idxStage = section.indexOf('<EditorialStage');
+  const idxCompact = section.indexOf('md:hidden');
+  const idxPointer = section.indexOf('<TerminalPointer');
+  assert.ok(
+    idxTiles > -1 && idxTiles < idxStage && idxStage < idxCompact && idxCompact < idxPointer,
+    'the literal DOM sequence: stat tiles → rows viewport → compact list → pointer LAST (W-1)',
+  );
+  // Isolation: the stage is the framer-motion import site across the
+  // integration set (D-05; the cross-cutting §10.7 scan asserts it repo-wide).
+  const stage = readSrc('src/components/explore/sections/projects-editorial-stage.tsx');
+  assert.ok(stage.includes("from 'framer-motion'"), 'the stage is the ONE framer-motion import site');
+  for (const rel of [
+    'src/components/explore/projects-row-state.ts',
+    'src/components/explore/explore-panels.tsx',
+    'src/components/explore/sections/projects-section.tsx',
+  ]) {
+    assert.ok(!readSrc(rel).includes('framer-motion'), `${rel}: framer-motion absent (isolation, D-05)`);
+  }
+});

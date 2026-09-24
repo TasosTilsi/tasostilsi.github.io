@@ -53,7 +53,7 @@ test('sweep rows EXPLORE@375/768/1440/1920 (P): panels grid 1→2 cols with the 
   assert.equal(
     (src.match(/md:col-span-2/g) || []).length,
     2,
-    'exactly two span-2 grid children — experience wrapper + projects shell (D-01)',
+    'exactly two span-2 grid children — experience wrapper + projects wrapper (D-01)',
   );
   assert.equal(
     (src.match(/md:order-first/g) || []).length,

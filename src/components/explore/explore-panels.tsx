@@ -16,18 +16,19 @@
  * Phase-9 grid reflow (REV-14, D-01, UI-SPEC §1.1): the DOM order IS the
  * visual order — EXPLORE_SECTIONS is reordered to [about, skills, experience,
  * projects], so About+Contact and Skills lead row 1, Experience lands
- * full-width row 2 (its wrapper carries the span-2 + extended-height classes;
- * the order-first utility RETIRED — the speech-order caveat is gone since
- * DOM order = tab order = visual order), and Projects spans row 3. The index
- * chips
+ * full-width row 2 and Projects spans row 3, EACH now carrying its own
+ * sticky range (wrapper span-2 + extended height, shell pinned inside it —
+ * the W-3 pair below; two sequential ranges, E-15). The order-first utility
+ * RETIRED with the reflow — DOM order = tab order = visual order, the
+ * speech-order caveat is gone. The index chips
  * (01 About · 02 Skills · 03 Experience · 04 Projects) and the entrance-
  * stagger nth-child delays re-derive from the array/DOM position — zero
  * literal renumbering. The placement map stays the data-driven Record keyed
- * by ExploreSectionId — no id-comparison conditional. BOTH Experience
- * placements are conditional on the merged timeline entries (W-3): the
- * selected-entry count (tech roles ∪ featured education, the pure module's
- * ONE derivation) > 1 extends the wrapper into the sticky range; ≤1 entry
- * renders natural height with no sticky (E-1/E-2).
+ * by ExploreSectionId — no id-comparison conditional. EACH system's sticky
+ * placements are conditional on its own data gate (W-3, the phase-9 pair):
+ * experience on the selected-entry count (tech roles ∪ featured education,
+ * the pure module's ONE derivation) > 1, projects on the top-6 slice > 1 —
+ * ≤1 renders natural height with no sticky (E-1/E-2).
  *
  * Responsive grid: 1 column base, 2 columns from md up, gutters widen
  * gap-4 → gap-5 at the lg tier ONLY (D-02, UI-SPEC §1.2 — no max-width
@@ -90,32 +91,52 @@ const SECTION_BODIES: Record<
 };
 
 /**
- * Placement map (UI-SPEC §1.1 — the phase-9 seam): a data-driven Record
+ * Placement map factory (UI-SPEC §1.1/§4.1 — the phase-9 seam): a Record
  * keyed by ExploreSectionId whose values carry the ONLY placement classes
- * of the phase — the Experience wrapper (spans both columns as row 2 and
- * extends the sticky scroll range) and shell (pins inside the range, above
- * the later siblings via the explicit z-index the research stacking pitfall
- * requires), plus the Projects shell (spans row 3). About and Skills occupy
- * one cell each in row 1. Every value is md:-scoped (R-9) and the Experience
- * placements are applied CONDITIONALLY on the merged entry count (W-3):
- * ≤1 timeline entry → natural height, no pin, E-1/E-2 honoured. R-3: any
- * wrapper stays a plain div with NO id — the tour hole, the IO threshold and
- * the drawer anchors measure the sticky section by its stable id.
+ * of the phase — the Experience AND Projects wrappers (each spans both
+ * columns and extends ITS OWN sticky scroll range) and shells (each pins
+ * inside its range, above the later siblings via the explicit z-index the
+ * research stacking pitfall requires; E-15: two SEQUENTIAL sticky ranges on
+ * one page — wrappers never overlap, both shells md:z-10). About and Skills
+ * occupy one cell each in row 1. Every value is md:-scoped (R-9). The W-3
+ * pair rides IN the map as data-derived gate booleans — experience on the
+ * merged timeline entries > 1 (plan-01's ONE derivation preserved),
+ * projects on the top-6 slice > 1 (the W-3 mirror; ≤1 project → natural
+ * height, no pin, E-1/E-2 honoured) — so the render loop reads
+ * placement.gate with NO section-id conditionals (the shell test pin
+ * holds). R-3: any wrapper stays a plain div with NO id — the tour hole,
+ * the IO threshold and the drawer anchors measure the sticky section by
+ * its stable id; the wrapper carries the stage's scroll-target data
+ * attribute instead, the
+ * projects stage's useScroll target.
  */
-const PLACEMENT: Record<ExploreSectionId, { wrapper: string; shell: string }> = {
-  about: { wrapper: '', shell: '' },
-  experience: {
-    wrapper: 'md:col-span-2 md:h-[300vh]',
-    shell: 'md:sticky md:top-0 md:z-10 md:h-[calc(100dvh-10rem)]',
-  },
-  skills: { wrapper: '', shell: '' },
-  projects: { wrapper: '', shell: 'md:col-span-2' },
-};
+function buildPlacement(
+  data: PortfolioData,
+): Record<ExploreSectionId, { wrapper: string; shell: string; gate: boolean }> {
+  const experienceGate =
+    selectTimelineEntries(data.experience, data.education).length > 1;
+  const projectsGate = data.projects.slice(0, 6).length > 1;
+  return {
+    about: { wrapper: '', shell: '', gate: false },
+    experience: {
+      wrapper: 'md:col-span-2 md:h-[300vh]',
+      shell: 'md:sticky md:top-0 md:z-10 md:h-[calc(100dvh-10rem)]',
+      gate: experienceGate,
+    },
+    skills: { wrapper: '', shell: '', gate: false },
+    projects: {
+      wrapper: 'md:col-span-2 md:h-[300vh]',
+      shell: 'md:sticky md:top-0 md:z-10 md:h-[calc(100dvh-10rem)]',
+      gate: projectsGate,
+    },
+  };
+}
 
 export function ExplorePanels({ data }: { data: PortfolioData }) {
-  // W-3: the extension is DATA-CONDITIONAL, not a static class — the merged
-  // timeline entries decide whether the sticky range exists at all.
-  const extended = selectTimelineEntries(data.experience, data.education).length > 1;
+  // W-3 pair: each sticky extension is DATA-CONDITIONAL per system — the
+  // placement factory carries each gate (no section-id conditionals; the
+  // shell test pin holds).
+  const PLACEMENT = buildPlacement(data);
   return (
     <div className="grid panel-grid grid-cols-1 gap-4 md:grid-cols-2 lg:gap-5">
       {EXPLORE_SECTIONS.map((section, index) => {
@@ -128,7 +149,7 @@ export function ExplorePanels({ data }: { data: PortfolioData }) {
             label={section.label}
             accent={ACCENTS[section.id]}
             index={String(index + 1).padStart(2, '0')}
-            className={extended && placement.shell ? placement.shell : undefined}
+            className={placement.gate && placement.shell ? placement.shell : undefined}
           >
             <Body data={data} />
           </PanelShell>
@@ -136,11 +157,17 @@ export function ExplorePanels({ data }: { data: PortfolioData }) {
         if (!placement.wrapper) {
           return shell;
         }
-        // R-3: plain wrapper — no id, no chrome. The entrance stagger
-        // animates it as the grid child; the sticky section inside keeps
-        // the stable section id the tour/IO/drawer flows measure.
+        // R-3: plain wrapper — no id, no chrome; the scroll-target data
+        // attribute below is the projects stage's useScroll target. The
+        // entrance stagger animates
+        // it as the grid child; the sticky section inside keeps the stable
+        // section id the tour/IO/drawer flows measure.
         return (
-          <div key={section.id} className={extended ? placement.wrapper : undefined}>
+          <div
+            key={section.id}
+            className={placement.gate ? placement.wrapper : undefined}
+            data-editorial-wrapper="true"
+          >
             {shell}
           </div>
         );

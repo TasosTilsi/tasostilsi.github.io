@@ -595,12 +595,40 @@ test('motion: hover/focus/active vocabulary — lift+bloom, nudge, underline par
   );
   const exploreFiles = readdirSync(join(root, 'src/components/explore'), { recursive: true })
     .filter((f) => /\.(tsx|ts)$/.test(f));
-  for (const banned of ['.animate(', 'framer-motion', 'gsap', 'lottie']) {
+  // Phase-9 dual-engine renewal (plan 04, D-05 — renewed, never deleted): the
+  // vocabulary stays CSS-only for DISCRETE color motion, with two sanctioned
+  // JS engines now — the hand-rolled rAF channels (pinned below) and the
+  // projects editorial scroll's framer-motion stage. The '.animate('/'gsap'/
+  // 'lottie' universal bans continue over EVERY explore .ts/.tsx unchanged;
+  // the framer-motion ban becomes the ALLOWLIST — the editorial stage is the
+  // ONE import site (it must contain it), every other file bans it.
+  for (const banned of ['.animate(', 'gsap', 'lottie']) {
     for (const rel of exploreFiles) {
       const src = codeOf(join('src/components/explore', rel));
       assert.ok(!src.includes(banned), `src/components/explore/${rel}: ${banned} absent (CSS-only motion, REV-11)`);
     }
   }
+  for (const rel of exploreFiles) {
+    const src = codeOf(join('src/components/explore', rel));
+    const hasFramer = src.includes('framer-motion');
+    if (String(rel).endsWith('projects-editorial-stage.tsx')) {
+      assert.ok(hasFramer, `src/components/explore/${rel}: framer-motion present (the ONE sanctioned editorial-scroll import site, D-05)`);
+    } else {
+      assert.ok(!hasFramer, `src/components/explore/${rel}: framer-motion absent outside the editorial stage (dual-engine contract, D-05)`);
+    }
+  }
+  // The pure row-state module pins the R-12 zero-runtime-import contract in
+  // the cross-cutting suite: zero import STATEMENTS of any kind and no
+  // scroll-engine substring (the timeline-geometry precedent, now asserted).
+  const rowStateCode = codeOf('src/components/explore/projects-row-state.ts');
+  assert.ok(
+    !/^import\s/m.test(rowStateCode),
+    'projects-row-state.ts: zero import statements (R-12, erasable-TS-only, node --test loads it directly)',
+  );
+  assert.ok(
+    !rowStateCode.includes('framer-motion'),
+    'projects-row-state.ts: framer-motion absent (the pure row math stays framer-free)',
+  );
   // EXPLORE-08 plan 02 (recorded deviation): the timeline interaction hook
   // joins the tour as the second sanctioned rAF site — UI-SPEC §6 pins the
   // scroll-driven channel to hand-rolled rAF writes (D-04, zero new deps),
