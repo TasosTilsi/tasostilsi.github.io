@@ -15,7 +15,7 @@ progress:
 current_phase: 8
 current_phase_name: experience-showcase-revision
 current_plan: 3
-last_updated: "2026-09-24T12:22:51.898Z"
+last_updated: "2026-09-24T12:23:59.709Z"
 state_head: null
 last_activity: 2026-09-24
 stopped_at: null
@@ -60,6 +60,7 @@ _No active phase._
 - Phase 7: planned — 3 plan(s) across 3 wave(s).
 - Phase 7: plan 01 executed — 3 tasks committed (audit-first table 0a06623 → calendar removal daba677 → career-span removal + non-chart showcase d3c587d); full gate green (build + typecheck + 176/176); suite delta 200→176 recorded in SUMMARY.
 - Phase 8: SPEC.md sealed (ambiguity 0.215)
+- Phase 8: SPEC.md sealed (ambiguity 0.181)
 
 ### Blockers / Concerns
 - Shipping decision (user, 2026-09-21): ship the milestone AS A WHOLE at milestone close — no per-phase PRs. phase-1 and phase-2 branches pushed to origin (backup only); gsd_ship deferred for both phases. phase-2 branch contains phase-1 commits (stacked).
