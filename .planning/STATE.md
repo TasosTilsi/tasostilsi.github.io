@@ -15,7 +15,7 @@ progress:
 current_phase: 9
 current_phase_name: editorial-motion-revision
 current_plan: 3
-last_updated: "2026-09-24T14:39:44.942Z"
+last_updated: "2026-09-24T14:41:29.683Z"
 state_head: null
 last_activity: 2026-09-24
 stopped_at: null
@@ -69,6 +69,7 @@ _No active phase._
 - quick 2026-09-24-motion-engine-prototype: Create a throwaway engine-comparison prototype page at src/app/motion-demo/page.tsx on the current branch (phase-8) and install framer-motion as a TEMPORARY dependency for the comparison. Purpose: let the user visually decide between two animation engines for an upcoming scroll-driven editorial content transition (outgoing content translateY up + fade, incoming enters from below + fade, both temporarily coexisting — continuous scroll-linked interpolation, no discrete state swaps).
 - quick 2026-09-24-motion-demo-decision-applied: The user picked the engine: framer-motion for the upcoming editorial compositions (projects scroll + About enhancements), while the Experience semicircular timeline keeps its existing hand-rolled rAF hook (phase-8 system stays as-is). Apply the decision and clean up the scratch prototype:
 - Phase 9: SPEC.md sealed (ambiguity 0.207)
+- Phase 9: SPEC.md sealed (ambiguity 0.191)
 
 ### Blockers / Concerns
 - Shipping decision (user, 2026-09-21): ship the milestone AS A WHOLE at milestone close — no per-phase PRs. phase-1 and phase-2 branches pushed to origin (backup only); gsd_ship deferred for both phases. phase-2 branch contains phase-1 commits (stacked).
