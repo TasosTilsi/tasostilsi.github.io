@@ -60,8 +60,8 @@
  * ONLY on handled keys.
  *
  * Reduced motion (E-13): the mode is read FRESH per derivation pass and
- * per invocation via the ONE matchMedia('(prefers-reduced-motion: reduce)')
- * read below — no listener, no stale flag. The discrete channel re-reads
+ * per invocation via the ONE reduced-motion matchMedia read below — no
+ * listener, no stale flag. The discrete channel re-reads
  * it post-mount inside the activeIndex-change effect (hydration-safe,
  * never during render) to gate the dot size-class swap (W-7). The sticky
  * range itself is RETAINED (RM-5 — scroll position is user input).

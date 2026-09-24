@@ -30,7 +30,8 @@
  * absolutely-positioned REAL TEXT (dot + year label) positioned by the
  * hook's rAF writes (rendered at inline opacity 0 pre-measurement, fading
  * in 150ms after the first measured frame — §9); markers carry NO
- * hover/press/cursor affordance and no aria-current — emphasis is visual,
+ * hover/press/cursor affordance and no current-state marker attribute —
+ * emphasis is visual,
  * state is announced by the sr-only aria-live region on DISCRETE
  * activeIndex changes only (§4/§10).
  *
