@@ -311,7 +311,10 @@ test('cross-cutting: registry spine — four total closures after the merge, ski
     !src.includes('contact: ({ data })'),
     'no contact closure — Contact merged into AboutSection (REV-04/D-05)',
   );
-  assert.ok(src.includes('experience: ({ data }) => <ExperienceSection experience={data.experience} />,'));
+  assert.ok(
+    src.includes('experience: ({ data }) => <ExperienceSection experience={data.experience} education={data.education} />,'),
+    'the education-passing experience adapter (phase 9 REV-16 — the merged derivation feeds the stage)',
+  );
   assert.ok(src.includes('projects: ({ data }) => <ProjectsSection projects={data.projects} />,'));
   assert.equal(
     (src.match(/\w+: \(\{ data \}\) => </g) || []).length,
@@ -878,7 +881,7 @@ test('EXPLORE-08 invariant (§2.4/§4/§10): marker non-interactivity + the two-
   );
   assert.ok(
     exp.includes("padStart(2, '0')} /"),
-    "the control-row counter idiom padStart(2, '0')} / is present (§4: 01 / 03, the PanelShell index precedent)",
+    "the control-row counter idiom padStart(2, '0')} / is present (§4: 01 / 05, the PanelShell index precedent)",
   );
 });
 

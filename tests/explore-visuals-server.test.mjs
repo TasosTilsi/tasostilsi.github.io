@@ -87,7 +87,7 @@ test('experience-section: merged duration·location meta row (U-8) — tabular-n
 
 test('experience-section: filter-governed roles + fidelity byte-stable (D-06, ≤3 bullets, AS-STORED strings, pointer, use client)', () => {
   const src = read(expPath);
-  assert.ok(src.includes('selectTimelineRoles'), 'role selection via the pure module (D-06 — the isTechRelated filter governs)');
+  assert.ok(src.includes('selectTimelineEntries'), 'entry selection via the pure module (D-06/D-03 — the isTechRelated filter ∪ featured education govern)');
   assert.ok(
     !src.includes('experience.slice(0, 3)'),
     'the phase-7 order-cap is gone — filter-governed, not slice-governed (D-06 supersedes the phase-7 cap)',

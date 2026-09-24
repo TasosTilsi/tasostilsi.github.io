@@ -153,7 +153,10 @@ test('explore-panels: skills closure carries competencies={data.core_competencie
   );
   assert.ok(src.includes('about: ({ data }) => <AboutSection about={data.about} />,'));
   assert.ok(!src.includes('contact: ({ data })'), 'no contact closure — Contact merged into AboutSection (REV-04/D-05)');
-  assert.ok(src.includes('experience: ({ data }) => <ExperienceSection experience={data.experience} />,'));
+  assert.ok(
+    src.includes('experience: ({ data }) => <ExperienceSection experience={data.experience} education={data.education} />,'),
+    'the education-passing experience adapter (phase 9 REV-16 — the merged derivation feeds the stage)',
+  );
   assert.ok(src.includes('projects: ({ data }) => <ProjectsSection projects={data.projects} />,'));
   assert.equal((src.match(/\w+: \(\{ data \}\) => </g) || []).length, 4, 'exactly four adapter closures (D-04/D-07)');
 });

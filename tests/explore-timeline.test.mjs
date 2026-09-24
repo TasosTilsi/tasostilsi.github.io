@@ -1,10 +1,13 @@
 /**
  * Pure derivation contract suite for the semicircular career timeline —
- * plan EXPLORE-08-experience-showcase-revision-01 (phase 8, RED-first TDD).
+ * plan EXPLORE-08-experience-showcase-revision-01 (phase 8, RED-first TDD);
+ * renewed to the phase-9 5-entry typed contract by
+ * EXPLORE-09-editorial-motion-revision-01 (REV-16, D-03: education merged
+ * onto the arc through the ONE typed derivation site).
  *
  * Pins the NORMATIVE UI-SPEC formulas (§1.3 sticky-range progress, §2.2 arc
  * geometry, §2.3 carousel derivation, §3 content layers, §7 reduced-motion
- * variants) plus role selection and start-year parsing (D-03/D-06,
+ * variants) plus entry selection and start-year parsing (D-03/D-06,
  * R-13/R-14) and the W-4 date-line predicate. These formulas supersede the
  * research's band-model sketch: activeIndex is Math.round(c′), keyboard
  * targets are role positions i/(n−1), not band centers.
@@ -16,6 +19,12 @@
  * The direct .ts import below is itself the R-12 proof: the module must
  * carry zero runtime imports and erasable TS so Node 24 type stripping can
  * load it here.
+ *
+ * RED-locality (phase 9): the new-contract blocks consume the module through
+ * ONE dynamic namespace import (top-level await is valid .mjs) and touch
+ * the not-yet-existing export ONLY inside those blocks — a static import of
+ * a missing export fails the ENTIRE module load and would take every
+ * retained phase-8 assertion down with it.
  *
  * Runner: node --test tests/explore-timeline.test.mjs (no npm test script
  * exists — run directly).
@@ -40,12 +49,18 @@ import {
   progressForRole,
   scrollTargetForRole,
   startYear,
-  selectTimelineRoles,
   dateLineFits,
 } from '../src/components/explore/timeline-geometry.ts';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const data = JSON.parse(readFileSync(join(root, 'src/data/portfolio-main-data.json'), 'utf8'));
+
+// The phase-9 new-contract blocks access the module through this ONE dynamic
+// namespace import; `geometry.selectTimelineEntries` (Task 2's export) is
+// referenced ONLY inside those blocks. `TimelineEntry` is a type-only export
+// — it is never value-imported at runtime; its shape is pinned via a source
+// read in the phase-9 suite below.
+const geometry = await import('../src/components/explore/timeline-geometry.ts');
 
 /** Float-safe equality — pure math asserted to 1e-9 (float dust only). */
 const approx = (actual, expected, msg) =>
@@ -308,23 +323,183 @@ test('startYear: FIRST /\\b(?:19|20)\\d{2}\\b/ match wins (never max/min) — re
 });
 
 // ---------------------------------------------------------------------------
-// 12. selectTimelineRoles — D-06 filter, JSON order, no sorting
+// 12. selectTimelineEntries — the phase-9 typed merged derivation (REV-16,
+//     D-03): experience.filter(isTechRelated) ∪ education.filter(featured),
+//     sorted by parsed start year ASCENDING (the phase's ONE deliberate
+//     sort), stable with null years LAST. These blocks are the renewed
+//     contract; they consume the module through the dynamic namespace
+//     import above (RED-locality — never a static import of the export
+//     Task 2 introduces).
 // ---------------------------------------------------------------------------
 
-test('selectTimelineRoles: isTechRelated filter yields exactly [Chubb, Upstream Systems, Netcompany-Intrasoft] in JSON order', () => {
-  const roles = selectTimelineRoles(data.experience);
-  assert.equal(roles.length, 3, 'exactly the 3 tech roles');
+test('TimelineEntry is a type-only export pinned at source — shape read from timeline-geometry.ts, never value-imported at runtime', () => {
+  const src = readFileSync(join(root, 'src/components/explore/timeline-geometry.ts'), 'utf8');
+  assert.ok(src.includes('interface TimelineEntry'), 'the typed entry interface exists in the pure module');
+  assert.ok(src.includes("'role' | 'education'"), 'the type discriminator union is pinned in source');
+});
+
+test('selectTimelineEntries over the REAL JSON: exactly 5 entries, year-ascending — BEng 2012 · Netcompany-Intrasoft 2019 · MSc 2021 · Upstream Systems 2022 · Chubb 2023 (D-03)', () => {
+  const entries = geometry.selectTimelineEntries(data.experience, data.education);
+  assert.equal(entries.length, 5, '3 tech roles + 2 featured education records = 5');
   assert.deepEqual(
-    roles.map((r) => r.entry.company),
-    ['Chubb', 'Upstream Systems', 'Netcompany-Intrasoft'],
-    'companies in JSON order — the filter governs, not a slice',
+    entries.map((t) => t.year),
+    ['2012', '2019', '2021', '2022', '2023'],
+    'year-ascending from the parsed start years',
   );
-  assert.deepEqual(roles.map((r) => r.year), ['2023', '2022', '2019'], 'years derive from each entry');
-  const excluded = data.experience.filter((e) => !e.isTechRelated).map((e) => e.company);
-  assert.equal(roles.filter((r) => excluded.includes(r.entry.company)).length, 0, 'all 4 non-tech entries excluded');
-  for (const r of roles) {
-    assert.equal(r.year, startYear(r.entry.duration), 'each year traces to its entry duration');
+  assert.deepEqual(
+    entries.map((t) => t.type),
+    ['education', 'role', 'education', 'role', 'role'],
+    'the type discriminator per entry',
+  );
+  assert.deepEqual(
+    entries.map((t) => (t.type === 'role' ? t.entry.company : t.entry.degree)),
+    [
+      'Bachelor of Computer Engineering',
+      'Netcompany-Intrasoft',
+      'Master of Science in Computer Science',
+      'Upstream Systems',
+      'Chubb',
+    ],
+    'primary identities per type (degree vs company) derive from the real JSON',
+  );
+  for (const t of entries) {
+    assert.equal(t.year, startYear(t.entry.duration), 'each year traces to startYear of the entry duration');
+    assert.ok(t.year !== null, 'premise: the real data has no null years — all 5 durations parse');
   }
+});
+
+test('selection contracts consumed unchanged: isTechRelated roles (3) ∪ featured education (2) — the pinned filters govern, the data file is untouched', () => {
+  const roles = data.experience.filter((e) => e.isTechRelated);
+  assert.equal(roles.length, 3, 'exactly the 3 tech roles (the phase-6 filter pin)');
+  assert.deepEqual(
+    roles.map((r) => r.company),
+    ['Chubb', 'Upstream Systems', 'Netcompany-Intrasoft'],
+    'roles in JSON order — the filter governs, not a slice',
+  );
+  const featured = data.education.filter((e) => e.featured);
+  assert.equal(featured.length, 2, 'exactly the 2 featured education records');
+  assert.deepEqual(
+    featured.map((e) => e.institution),
+    ['University of Macedonia', 'TEI of Central Macedonia'],
+    'featured education in JSON order (the flags are test-pinned in portfolio-data-integrity.test.mjs)',
+  );
+  const entries = geometry.selectTimelineEntries(data.experience, data.education);
+  const roleCompanies = new Set(roles.map((r) => r.company));
+  const featuredDegrees = new Set(featured.map((e) => e.degree));
+  const typeCounts = { role: 0, education: 0 };
+  for (const t of entries) {
+    typeCounts[t.type] += 1;
+    if (t.type === 'role') {
+      assert.ok(roleCompanies.has(t.entry.company), `role entry "${t.entry.company}" traces to the isTechRelated filter`);
+    } else {
+      assert.ok(featuredDegrees.has(t.entry.degree), `education entry "${t.entry.degree}" traces to the featured flag`);
+    }
+  }
+  assert.equal(typeCounts.role, 3, '3 role entries in the merge');
+  assert.equal(typeCounts.education, 2, '2 education entries in the merge');
+  const excluded = data.experience.filter((e) => !e.isTechRelated).map((e) => e.company);
+  assert.equal(
+    entries.filter((t) => t.type === 'role' && excluded.includes(t.entry.company)).length,
+    0,
+    'all 4 non-tech experience entries excluded',
+  );
+});
+
+test('sort contract: stable year-ascending with null years LAST — synthetic null-year entry trails, order-stable within equal keys', () => {
+  const nullYear = {
+    isTechRelated: true,
+    duration: 'Ongoing',
+    location: 'x',
+    title: 'Null Year',
+    company: 'Null Year',
+  };
+  const earlier = {
+    isTechRelated: true,
+    duration: 'March 2020 — Present',
+    location: 'x',
+    title: 'Earlier 2020',
+    company: 'Earlier 2020',
+  };
+  const sameYearLater = {
+    isTechRelated: true,
+    duration: 'June 2020 — Aug 2020',
+    location: 'x',
+    title: 'Later 2020',
+    company: 'Later 2020',
+  };
+  const entries = geometry.selectTimelineEntries([nullYear, earlier, sameYearLater], []);
+  assert.deepEqual(
+    entries.map((t) => t.entry.company),
+    ['Earlier 2020', 'Later 2020', 'Null Year'],
+    'year-ascending; equal keys stay input-stable (Node sort stability); the null year is placed LAST',
+  );
+});
+
+test('gone-check: the phase-8 role-only derivation export is deleted — ONE derivation site (OQ-8)', () => {
+  assert.ok(
+    !('selectTimelineRoles' in geometry),
+    "the phase-8 role-only export no longer exists on the module's exports",
+  );
+});
+
+test('template field mapping (pure data level): role exposes title/company/duration/location/responsibilities; education exposes degree/institution/duration/specialization-optional', () => {
+  const entries = geometry.selectTimelineEntries(data.experience, data.education);
+  const msc = entries.find((t) => t.type === 'education' && t.entry.degree.startsWith('Master of Science'));
+  assert.ok(msc, 'the MSc education entry is in the merge');
+  assert.equal(msc.entry.specialization, 'Software Quality Assurance Engineering', 'MSc specialization AS STORED');
+  assert.equal(msc.entry.institution, 'University of Macedonia', 'institution is the education primary');
+  const beng = entries.find((t) => t.type === 'education' && t.entry.degree.startsWith('Bachelor'));
+  assert.ok(beng, 'the BEng education entry is in the merge');
+  assert.equal(beng.entry.specialization, undefined, 'BEng has no specialization — the template line omits gracefully (OQ-10)');
+  assert.ok(beng.entry.location, 'premise: education entries carry a location field — the education TEMPLATE omits it (UI-SPEC §3.3), not the data');
+  const chubb = entries.find((t) => t.type === 'role' && t.entry.company === 'Chubb');
+  assert.ok(chubb, 'the Chubb role entry is in the merge');
+  assert.ok(
+    chubb.entry.title && chubb.entry.company && chubb.entry.duration && chubb.entry.location && Array.isArray(chubb.entry.responsibilities),
+    'the role picker surface (title/company/duration/location/responsibilities) is intact',
+  );
+});
+
+test('n=5 sweeps: every marker stays on the arc ∀ progress (Δ=22.5°); the emphasis ladder at n=5 is exactly [1, 0.9125, 0.825, 0.7375, 0.65] / [1, 0.925, 0.85, 0.775, 0.7]', () => {
+  for (let k = 0; k <= 100; k++) {
+    const c = continuousIndex(k / 100, 5);
+    for (const i of [0, 1, 2, 3, 4]) {
+      const a = markerAngle(i, c, 5);
+      approx(a, 180 - (i - c) * 22.5, `formula identity (Δ=22.5°) at i=${i} k=${k}`);
+      assert.ok(a >= 90 - 1e-9 && a <= 270 + 1e-9, `angle ∈ [90,270] at i=${i} k=${k}`);
+    }
+  }
+  const ladders = { opacity: [], scale: [] };
+  for (const i of [0, 1, 2, 3, 4]) {
+    const e = markerEmphasis(i, i, 5);
+    ladders.opacity.push(e.opacity);
+    ladders.scale.push(e.scale);
+  }
+  assert.deepEqual(ladders.opacity, [1, 0.9125, 0.825, 0.7375, 0.65], 'the n=5 opacity ladder (exact)');
+  assert.deepEqual(ladders.scale, [1, 0.925, 0.85, 0.775, 0.7], 'the n=5 scale ladder (exact)');
+});
+
+test('n=5 keyboard round-trip + RM/contentLayer variants unchanged: activeIndexFromContinuous(progressForRole(i, 5)) === i for i ∈ {0..4}', () => {
+  for (const i of [0, 1, 2, 3, 4]) {
+    const p = progressForRole(i, 5);
+    const c = continuousIndex(p, 5);
+    assert.equal(activeIndexFromContinuous(c, 5), i, `keyboard target for entry ${i} lands on entry ${i}`);
+  }
+  approx(reducedMotionAngle(0, 5), 180, 'i=0 frozen at the focal point (n=5)');
+  approx(reducedMotionAngle(4, 5), 90, 'i=4 frozen at the bottom end (n=5)');
+  assert.equal(reducedMotionEmphasis(2, 2, 5).scale, 1, 'RM scale pinned to 1 at n=5');
+  approx(reducedMotionEmphasis(4, 0, 5).opacity, 0.65, 'farthest RM opacity unchanged at n=5');
+  assert.deepEqual(contentLayer(2, 2, false), { opacity: 1, translateY: 0, visible: true }, 'active layer at n=5');
+  assert.deepEqual(contentLayer(0, 5, false), { opacity: 0, translateY: 28, visible: false }, 'far offset clamps at n=5 too');
+});
+
+test('W-4 over the education durations: 24/30 chars × 6px ≤ 196 − 16 — both real durations fit the md inner width', () => {
+  const msc = data.education.find((e) => e.degree.startsWith('Master of Science')).duration;
+  const beng = data.education.find((e) => e.degree.startsWith('Bachelor')).duration;
+  assert.equal(msc.length, 24, 'premise: the MSc duration is 24 chars');
+  assert.equal(beng.length, 30, 'premise: the BEng duration is 30 chars');
+  assert.equal(dateLineFits(msc, 196), true, '144 ≤ 180 — fits');
+  assert.equal(dateLineFits(beng, 196), true, '180 ≤ 180 — fits');
 });
 
 // ---------------------------------------------------------------------------
@@ -355,18 +530,28 @@ test('E-4 hyphen durations: the non-tech hyphen-U+002D strings parse a year via 
     assert.match(e.duration, /\b(?:19|20)\d{2}\b/, `premise: "${e.duration}" carries a year`);
     assert.equal(typeof startYear(e.duration), 'string', `startYear parses the non-tech "${e.company}" duration`);
   }
-  const techCompanies = new Set(selectTimelineRoles(data.experience).map((r) => r.entry.company));
+  const techCompanies = new Set(
+    geometry
+      .selectTimelineEntries(data.experience, data.education)
+      .filter((t) => t.type === 'role')
+      .map((t) => t.entry.company),
+  );
   for (const e of nonTech) {
     assert.equal(techCompanies.has(e.company), false, `"${e.company}" excluded by the isTechRelated filter`);
   }
 });
 
-test('E-1 zero-role totality: selectTimelineRoles on empty / all-non-tech input → [] (no invented roles)', () => {
-  assert.deepEqual(selectTimelineRoles([]), [], 'empty input → empty roles');
+test('E-1 zero-entry totality: selectTimelineEntries on empty / all-non-tech / no-featured input → [] (no invented entries)', () => {
+  assert.deepEqual(geometry.selectTimelineEntries([], []), [], 'empty input → empty entries');
   assert.deepEqual(
-    selectTimelineRoles(data.experience.filter((e) => !e.isTechRelated)),
+    geometry.selectTimelineEntries(data.experience.filter((e) => !e.isTechRelated), []),
     [],
-    'all-non-tech input → empty roles',
+    'all-non-tech experience + no education input → empty entries',
+  );
+  assert.deepEqual(
+    geometry.selectTimelineEntries([], data.education.filter((e) => !e.featured)),
+    [],
+    'no experience + all-unfeatured education input → empty entries',
   );
 });
 
