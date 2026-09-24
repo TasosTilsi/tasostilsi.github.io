@@ -286,6 +286,7 @@ Draft values (verbatim, no normalization):
 | U-12 | Avatar image element | Plain `<img>` (tinyurl not in remotePatterns) |
 | U-13 | Row interpolation shape / travel | Full-interior sweep, `clamp(1−|d|)` opacity, no springs |
 | U-14 | Hidden-target / resize measurement guards | Clamp progress at 0; re-measure on container resize |
+| U-15 | Projects rows-viewport inner height | `md:h-[calc(100dvh-14.5rem)]` — tunable 13.5–15.5rem (B-1 starting value; the sticky recipe minus the measured chrome stack) |
 
 ---
 
