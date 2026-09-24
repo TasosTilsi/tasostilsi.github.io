@@ -30,6 +30,9 @@ const read = (p) => readFileSync(join(root, p), 'utf8');
 // Read-only import from the explore constants module — house precedent
 // (tests/explore-header.test.mjs:27, tests/explore-routing.test.mjs:38)
 import { EXPLORE_TOUR_FINISH } from '../src/components/explore/constants.ts';
+// The phase-9 ONE derivation site — the E-6 expectation derives entry 1 from
+// the real JSON THROUGH the pure module (zero copied literals).
+import { selectTimelineEntries } from '../src/components/explore/timeline-geometry.ts';
 
 // ---------------------------------------------------------------------------
 // Type-P structural rows (Task 1)
@@ -292,12 +295,14 @@ test('sweep E-5: two-way routing loop composite — all four legs in one asserti
 });
 
 // ---------------------------------------------------------------------------
-// Phase EXPLORE-08 plan 03 — Type-E export rows for the timeline stage
-// (UI-SPEC §9/§4/§2.2; the §13 "SSR-export role-1 grep"). The sweep
+// Phase EXPLORE-08 plan 03 — Type-E export rows for the timeline stage;
+// renewed to the phase-9 5-entry contract (EXPLORE-09 plan 01, REV-16)
+// (UI-SPEC §9/§4/§2.2; the §13 "SSR-export entry-1 grep"). The sweep
 // convention holds: `npm run build` must precede the run — these rows read
-// the built artifact. Expectations over role 1's content are DATA-DERIVED
-// from the real src/data/portfolio-main-data.json at test time (house
-// precedent, explore-visuals.test.mjs header) — zero copied literals.
+// the built artifact. Expectations over entry 1's content are DATA-DERIVED
+// from the real src/data/portfolio-main-data.json at test time THROUGH the
+// pure derivation module (house precedent, explore-visuals.test.mjs
+// header) — zero copied literals.
 // ---------------------------------------------------------------------------
 
 const portfolio = JSON.parse(read('src/data/portfolio-main-data.json'));
@@ -305,7 +310,7 @@ const portfolio = JSON.parse(read('src/data/portfolio-main-data.json'));
 // React SSR serialization handling, per the explore-visuals export-row
 // convention (entity decode) extended with the text-node separator drop:
 // React inserts <!-- --> between adjacent text nodes, so a rendered
-// "01 / 03" counter only matches after the separators are stripped.
+// "01 / 05" counter only matches after the separators are stripped.
 const exportText = () =>
   read('out/explore.html')
     .replace(/&amp;/g, '&')
@@ -316,69 +321,73 @@ const exportText = () =>
     .replace(/<!-- -->/g, '');
 const exportRaw = () => read('out/explore.html');
 
-test('sweep E-6 (E, phase EXPLORE-08): role 1 (first isTechRelated entry) renders real text in out/explore.html — data-derived (D-07/§9)', () => {
+test('sweep E-6 (E, phase EXPLORE-09): entry 1 (first selectTimelineEntries result — BEng, education) renders real text in out/explore.html — data-derived (D-03/§9)', () => {
   assert.ok(existsSync(join(root, 'out/explore.html')), 'out/explore.html missing — run `npm run build` first');
   const html = exportText();
-  // The FIRST isTechRelated entry in JSON order is the SSR-visible layer the
-  // export must carry (D-06 filter → D-07 static-text contract). Every
-  // expectation is read from the JSON at test time, never copied.
-  const role1 = portfolio.experience.filter((entry) => entry.isTechRelated)[0];
-  assert.ok(role1, 'the JSON yields a first tech role (the D-06 filter is non-empty)');
+  // The FIRST merged entry (year-ascending — 2012, BEng education) is the
+  // SSR-visible layer the export must carry (D-03 → D-07 static-text
+  // contract). Every expectation is derived from the JSON THROUGH the pure
+  // module at test time, never copied. Education renders degree >
+  // institution > duration AS STORED — no location expectation, no bullet
+  // expectation (the §3.3 education template omits both).
+  const entries = selectTimelineEntries(portfolio.experience, portfolio.education);
+  const first = entries[0];
+  assert.ok(first, 'the merged derivation yields a first entry');
+  assert.equal(first.type, 'education', 'entry 1 is the earliest dated entry — the BEng education record');
+  assert.equal(first.year, '2012', 'entry 1 parses to 2012 (the BEng start year, data-derived)');
   for (const [field, value] of [
-    ['title', role1.title],
-    ['company', role1.company],
-    ['duration', role1.duration],
-    ['location', role1.location],
-    ['first bullet', role1.responsibilities[0]],
+    ['degree', first.entry.degree],
+    ['institution', first.entry.institution],
+    ['duration AS STORED', first.entry.duration],
   ]) {
     assert.ok(
       html.includes(value),
-      `role-1 ${field} server-rendered as real text (derived from portfolio-main-data.json)`,
+      `entry-1 ${field} server-rendered as real text (derived from portfolio-main-data.json)`,
     );
   }
 });
 
-test('sweep E-7 (E, phase EXPLORE-08): layers 2-3 SSR visibility:hidden — layer 1 visible (§9)', () => {
+test('sweep E-7 (E, phase EXPLORE-09): layers 2-5 SSR visibility:hidden — layer 1 visible (§9)', () => {
   assert.ok(existsSync(join(root, 'out/explore.html')), 'out/explore.html missing — run `npm run build` first');
   const hidden = (exportRaw().match(/visibility:hidden/g) || []).length;
   assert.ok(
-    hidden >= 2,
-    `layers 2-3 carry SSR visibility:hidden — found ${hidden} ≥ 2 (the §9 derivation evaluated at progress 0, no special-casing)`,
+    hidden >= 4,
+    `entries 2-5 carry SSR visibility:hidden — found ${hidden} ≥ 4 (5 entries, 1 visible; the §9 derivation evaluated at progress 0, no special-casing)`,
   );
 });
 
-test('sweep E-8 (E, phase EXPLORE-08): stage anatomy markers — group, controls, counter, arc path (§9/§4)', () => {
+test('sweep E-8 (E, phase EXPLORE-09): stage anatomy markers — group, controls, counter, arc path (§9/§4)', () => {
   assert.ok(existsSync(join(root, 'out/explore.html')), 'out/explore.html missing — run `npm run build` first');
   const html = exportText();
   assert.ok(html.includes('aria-label="Career timeline"'), 'the role="group" aria-label="Career timeline" renders (§10 landmark)');
   assert.ok(html.includes('Previous role'), 'the Prev control aria-label renders (§4 — the accessible non-scroll alternative)');
   assert.ok(html.includes('Next role'), 'the Next control aria-label renders (§4)');
-  assert.ok(html.includes('01 / 03'), 'the control-row counter renders 01 / 03 (§4 — role 1 active at SSR over the 3 data roles)');
+  assert.ok(html.includes('01 / 05'), 'the control-row counter renders 01 / 05 (§4 — entry 1 active at SSR over the 5 merged entries)');
   assert.ok(
     html.includes('d="M 100 0 A 100 100 0 0 0 100 200"'),
     'the left-bulging C arc path renders via the fixed viewBox (§2.2 — server-rendered stroke, zero hydration shift)',
   );
 });
 
-test('sweep E-9 (E, phase EXPLORE-08): pre-JS markers render at inline opacity 0 — 3 dots + 3 labels unpositioned (§9)', () => {
+test('sweep E-9 (E, phase EXPLORE-09): pre-JS markers render at inline opacity 0 — 5 dots + 5 labels unpositioned (§9)', () => {
   assert.ok(existsSync(join(root, 'out/explore.html')), 'out/explore.html missing — run `npm run build` first');
   const html = exportRaw();
   const opaque = (html.match(/opacity:0/g) || []).length;
   assert.ok(
-    opaque >= 6,
-    `inline opacity:0 elements ≥ 6 — found ${opaque} (3 marker dots + 3 marker labels, plus the 2 SSR-hidden content layers)`,
+    opaque >= 10,
+    `inline opacity:0 elements ≥ 10 — found ${opaque} (5 marker dots + 5 marker labels, plus the 4 SSR-hidden content layers)`,
   );
-  // The precise mechanism plan 02 specified: exactly the 3 dot spans and the
-  // 3 year labels render at inline opacity:0 — present but unpositioned
+  // The precise mechanism plan 02 specified: exactly the 5 dot spans and the
+  // 5 year labels render at inline opacity:0 — present but unpositioned
   // until the first measured frame fades them in (§9 markers contract).
   assert.equal(
     (html.match(/data-timeline-dot="true"[^>]*style="opacity:0"/g) || []).length,
-    3,
-    'exactly 3 marker dots render at opacity:0 pre-measurement (§9)',
+    5,
+    'exactly 5 marker dots render at opacity:0 pre-measurement (§9)',
   );
   assert.equal(
     (html.match(/data-timeline-label="true"[^>]*style="opacity:0"/g) || []).length,
-    3,
-    'exactly 3 year labels render at opacity:0 pre-measurement (§9)',
+    5,
+    'exactly 5 year labels render at opacity:0 pre-measurement (§9)',
   );
 });
