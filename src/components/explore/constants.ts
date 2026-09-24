@@ -6,11 +6,19 @@
  *
  * D-01: section order and labels are locked by the SPEC acceptance
  * (drawer anchors + panel ids + status-bar counter all derive from this list).
+ *
+ * D-01 phase-9 amendment (REV-14): the grid reflows About-first — the DOM
+ * order is [about, skills, experience, projects] (About|Skills row 1,
+ * Experience full-width row 2, Projects row 3) and every order consumer
+ * (drawer items, index chips, entrance stagger, drawer anchors, IO, tour
+ * scroll targets, visited counter) derives from THIS array. The tour's
+ * CONTENT step order is unchanged — the step table below is a literal,
+ * id-keyed table that no longer zips against this array.
  */
 export const EXPLORE_SECTIONS = [
   { id: "about", label: "About" },
-  { id: "experience", label: "Experience" },
   { id: "skills", label: "Skills" },
+  { id: "experience", label: "Experience" },
   { id: "projects", label: "Projects" },
 ] as const;
 
@@ -91,21 +99,28 @@ export const EXPLORE_TOUR_FINISH = {
   hint: "the full story lives in the terminal — start with help",
 } as const;
 
-/** §4 bodies in EXPLORE_SECTIONS order — chrome orientation copy only, zero invented portfolio facts. */
-const EXPLORE_TOUR_STEP_BODIES = [
-  "The short version of who's typing — bio, role, location, every contact channel, and the resume export.",
-  "Roles in order — title, company, tenure, and the shape of the career as a timeline.",
-  "Competency cards with the quantified proof behind each — full inventory below.",
-  "Stat tiles up top, six projects underneath.",
-] as const;
-
 /**
- * D-02 (REV-04 amended): locked 6-step table — welcome → about → experience →
- * skills → projects → finish. Indices drive the progress dots and the
- * step counter, always derived from this array's length (UI-SPEC §3);
- * content steps are generated from EXPLORE_SECTIONS so headings/announce
- * never duplicate the labels.
+ * D-02 (REV-04 amended; REV-14 phase-9 edition): locked 6-step table —
+ * welcome → about → experience → skills → projects → finish. The CONTENT
+ * order is unchanged by the phase-9 grid reflow (D-01): the DOM order is
+ * About → Skills → Experience → Projects, but the tour still walks
+ * about → experience → skills → projects. The table is a LITERAL, id-keyed
+ * table — each content step targets its own panel id, derives heading +
+ * announce from the matching EXPLORE_SECTIONS entry BY ID, and keeps its
+ * body string keyed to its own section — so the array reorder can never
+ * silently re-pair labels or bodies. Indices drive the progress dots and
+ * the step counter, always derived from this array's length (UI-SPEC §3).
  */
+
+/** Id-keyed label lookup — headings/announce derive from the section's own label, never a positional zip. */
+const tourLabel = (id: ExploreSectionId): string => {
+  const section = EXPLORE_SECTIONS.find((section) => section.id === id);
+  if (!section) {
+    throw new Error(`EXPLORE_TOUR_STEPS: unknown section id "${id}"`);
+  }
+  return section.label;
+};
+
 export const EXPLORE_TOUR_STEPS: readonly TourStep[] = [
   {
     id: "welcome",
@@ -114,13 +129,34 @@ export const EXPLORE_TOUR_STEPS: readonly TourStep[] = [
     announce: "welcome",
     body: "A 60-second lap of the four sections — Next and Back at your own pace, ESC whenever you're done. No timers.",
   },
-  ...EXPLORE_SECTIONS.map((section, index) => ({
-    id: section.id,
-    sectionId: section.id,
-    heading: section.label,
-    announce: section.label,
-    body: EXPLORE_TOUR_STEP_BODIES[index],
-  })),
+  {
+    id: "about",
+    sectionId: "about",
+    heading: tourLabel("about"),
+    announce: tourLabel("about"),
+    body: "The short version of who's typing — bio, role, location, every contact channel, and the resume export.",
+  },
+  {
+    id: "experience",
+    sectionId: "experience",
+    heading: tourLabel("experience"),
+    announce: tourLabel("experience"),
+    body: "Roles in order — title, company, tenure, and the shape of the career as a timeline.",
+  },
+  {
+    id: "skills",
+    sectionId: "skills",
+    heading: tourLabel("skills"),
+    announce: tourLabel("skills"),
+    body: "Competency cards with the quantified proof behind each — full inventory below.",
+  },
+  {
+    id: "projects",
+    sectionId: "projects",
+    heading: tourLabel("projects"),
+    announce: tourLabel("projects"),
+    body: "Stat tiles up top, six projects underneath.",
+  },
   {
     id: "finish",
     sectionId: null,

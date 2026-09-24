@@ -27,15 +27,20 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
-import { EXPLORE_SECTIONS } from './constants';
+import { EXPLORE_SECTIONS, type ExploreSectionId } from './constants';
 
-/** Digit accent per section order: About=chart-1 … Projects=chart-4 (UI-SPEC §5; 4 sections since REV-04). */
-const DIGIT_ACCENTS = [
-  'text-chart-1',
-  'text-chart-2',
-  'text-chart-3',
-  'text-chart-4',
-] as const;
+/**
+ * Digit accent per SECTION (REV-14/OQ-7): a per-id Record mirroring the
+ * panels' ACCENTS/EXPLORE_TOUR_ACCENTS maps — the digit color follows the
+ * section under ANY drawer order. (The phase-8 positional array would hand
+ * Skills — item 02 after the About-first reflow — Experience's chart-2.)
+ */
+const DIGIT_ACCENTS: Record<ExploreSectionId, string> = {
+  about: 'text-chart-1',
+  experience: 'text-chart-2',
+  skills: 'text-chart-3',
+  projects: 'text-chart-4',
+};
 
 export function ExploreDrawer({ trigger }: { trigger: ReactNode }) {
   const [open, setOpen] = useState(false);
@@ -59,7 +64,7 @@ export function ExploreDrawer({ trigger }: { trigger: ReactNode }) {
             >
               <span
                 aria-hidden="true"
-                className={`text-xs tabular-nums ${DIGIT_ACCENTS[i]}`}
+                className={`text-xs tabular-nums ${DIGIT_ACCENTS[section.id]}`}
               >
                 {String(i + 1).padStart(2, '0')}
               </span>
