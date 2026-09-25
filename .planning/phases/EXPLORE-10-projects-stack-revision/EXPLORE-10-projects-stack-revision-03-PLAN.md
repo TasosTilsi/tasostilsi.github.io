@@ -97,6 +97,7 @@ Read before implementing:
     <action>
       Update `tests/explore-visuals.test.mjs` to reflect the stack replacement (stale-test-triage discipline):
       - In the framer-motion allowlist loop, change the allowed file from `projects-editorial-stage.tsx` to `projects-stack-stage.tsx`; assert every other explore .tsx/.ts lacks framer-motion.
+      - **Client-boundary additions (checker W-3): add `projects-stack-stage.tsx` and `projects-mobile-stack.tsx` to the suite's `clientBodies` list — both are `'use client'` islands and the cross-cutting boundary assertions must cover them; update the seam comment accordingly.**
       - Change the pure-module zero-import assertion from `projects-row-state.ts` to `projects-card-state.ts`: assert zero import statements and no `'framer-motion'` in the module.
       - Replace row-specific gone-checks with stack-specific checks:
         * assert `src/components/explore/projects-row-state.ts` does not exist;

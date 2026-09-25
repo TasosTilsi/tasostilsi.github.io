@@ -58,8 +58,8 @@ Build the two stack presentations: the scroll-driven md+ framer-motion stage and
 </assumption_delta_decision>
 
 <context_reconciliation>
-- **Generative visual selection** is locked to a stable `djb2(project.name) % 4` hash per CONTEXT.md D-03 / RESEARCH.md OQ-3. DeepIndex is always variant 0 (`terminal-mock`) and Clarif-AI is always variant 1 (`contract-analysis`) outside the hash; the remaining four projects are mapped by the hash to `['glyph','report','dashboard','network']` (exact composition labels are executor discretion). The UI-SPEC §4.4 table is illustrative of the resulting compositions, not a hard-coded assignment.
-- **Mobile tier** is the new `ProjectsMobileStack` per REV-20 / UI-SPEC §2.3. The phase-9 compact card grid is retired; see the updated D-06 / OQ-5.
+- **Generative visual selection** is locked to a stable `djb2(project.name) % 4` hash per CONTEXT.md D-03 / RESEARCH.md OQ-3. DeepIndex is always variant 0 (`terminal-mock`) and Clarif-AI is always variant 1 (`contract-analysis`) outside the hash; the remaining four projects are mapped by the hash to `['glyph','report','dashboard','network']` (exact composition labels are executor discretion). **Recorded decision note (checker W-1): the UI-SPEC §4.4 table's NAMED per-project assignments are superseded by this hash contract — the table is illustrative of the resulting compositions, not a binding assignment; this note is the deviation record so no executor treats the table as hard-coded.**
+- **Mobile tier** is the new `ProjectsMobileStack` per REV-20 / UI-SPEC §2.3. The phase-9 compact card grid is retired; see the updated D-06 / OQ-5. **Reconciliation note (checker W-2): CONTEXT.md D-06's "compact list fallback per the phase-9 <md pattern" phrase is OVERRIDDEN by this phase's mobile stack — the phase-9 compact grid is retired, not kept as a fallback; this note is the recorded override so the executor does not honor the stale phrase.**
 </context_reconciliation>
 
 <context>
@@ -104,7 +104,7 @@ Read before implementing:
       - The file imports from `'framer-motion'` exactly once.
       - `npm run build` exits 0.
       - Grep confirms `data-editorial-wrapper` is consumed via `closest('[data-editorial-wrapper]')`.
-      - Grep confirms `ResizeObserver` or `window.addEventListener('resize'` is present in the file.
+      - Grep confirms **BOTH** `ResizeObserver` **AND** `window.addEventListener('resize'` are present in the file (checker W-5 — the action mandates the observer plus the fallback; the acceptance requires the redundancy, not either-or).
       - Grep confirms a `cards.length <= 1` short-circuit branch.
       - Grep confirms `projectVisualVariant` is imported from `../projects-card-state` and used in the visual variant selection path; no hard-coded mapping of the four remaining project names to variant labels.
     </acceptance_criteria>
