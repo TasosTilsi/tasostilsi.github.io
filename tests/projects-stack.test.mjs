@@ -262,10 +262,11 @@ test('cardState: reduced-motion branch pins translate/scale/rotation to 0, keeps
 });
 
 test('cardState: visibility drops below the 0.05 opacity cutoff', () => {
-  // At progress 0 only card 0 is active; deep cards still have opacity above cutoff.
-  // Sweep far beyond the stack to force opacity collapse.
-  const far = cardState(0, 3, COUNT, false);
-  assert.ok(!far.visible, 'far-out progress makes card 0 invisible');
+  // In the 6-card stack progress is clamped to [0,1], so card 0 never gets
+  // far enough to drop below the cutoff. Use an 8-card stack at progress=1:
+  // activeCenter = 7, card 0 has l = 7 and opacity extrapolates below 0.05.
+  const far = cardState(0, 1, 8, false);
+  assert.ok(!far.visible, 'far-out card position makes card invisible');
   assert.ok(far.opacity <= 0.05 || far.opacity === 0, 'opacity at or below cutoff');
 });
 
