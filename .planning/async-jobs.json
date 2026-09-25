@@ -258,5 +258,15 @@
     "started": "2026-09-25T16:03:03.085Z",
     "result": "SUMMARY written",
     "completed": "2026-09-25T16:11:30.441Z"
+  },
+  {
+    "id": "JOB-27",
+    "kind": "subagent",
+    "plan": "EXPLORE-10-projects-stack-revision-02",
+    "phase": 10,
+    "status": "done",
+    "started": "2026-09-25T16:11:33.693Z",
+    "result": "SUMMARY written",
+    "completed": "2026-09-25T16:25:44.498Z"
   }
 ]
