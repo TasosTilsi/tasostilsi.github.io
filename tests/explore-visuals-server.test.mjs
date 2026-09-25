@@ -136,14 +136,16 @@ test('project-stat-tiles: zero stat literals in code (EXPLORE-07 — doc comment
   }
 });
 
-test('projects-section: ProjectStatTiles composed BEFORE the cards map with an mb-3 wrapper', () => {
+test('projects-section: ProjectStatTiles composed BEFORE the stack stages with an mb-3 wrapper', () => {
   const src = read(projPath);
   const tilesIdx = src.indexOf('<ProjectStatTiles');
-  const cardsIdx = src.indexOf('cards.map(');
+  const stageIdx = src.indexOf('<ProjectsStackStage');
+  const mobileIdx = src.indexOf('<ProjectsMobileStack');
   assert.ok(tilesIdx !== -1, '<ProjectStatTiles present');
-  assert.ok(cardsIdx !== -1, 'cards map present');
-  assert.ok(tilesIdx < cardsIdx, 'tiles compose BEFORE the 6 cards (§1 ③)');
-  assert.ok(src.includes('mb-3'), 'tiles wrapper carries mb-3 (§1: 12px tiles→cards gap)');
+  assert.ok(stageIdx !== -1, '<ProjectsStackStage present');
+  assert.ok(mobileIdx !== -1, '<ProjectsMobileStack present');
+  assert.ok(tilesIdx < stageIdx && stageIdx < mobileIdx, 'tiles → stack stage → mobile stack order (§2.1)');
+  assert.ok(src.includes('mb-3'), 'tiles wrapper carries mb-3 (§1: 12px tiles→stack gap)');
 });
 
 test('projects-section: tile values from projectStats(projects) (D-05/EXPLORE-07)', () => {
@@ -152,9 +154,14 @@ test('projects-section: tile values from projectStats(projects) (D-05/EXPLORE-07
   assert.ok(src.includes("from '../viz-data'"), 'imports from the viz-data module');
 });
 
-test('projects-section: cards body byte-stable (slice(0,6), one-link card, TerminalPointer)', () => {
-  const src = read(projPath);
-  assert.ok(src.includes('projects.slice(0, 6)'), 'D-01 top-6 cap unchanged');
-  assert.ok(src.includes('target="_blank"'), 'linked-card anchor unchanged');
-  assert.ok(src.includes('projects --all'), 'terminal pointer unchanged');
+test('projects-section: top-6 slice unchanged and links still exposed in the stack surfaces (TerminalPointer intact)', () => {
+  const sectionSrc = read(projPath);
+  const stackSrc = read('src/components/explore/sections/projects-stack-stage.tsx');
+  const mobileSrc = read('src/components/explore/sections/projects-mobile-stack.tsx');
+  assert.ok(sectionSrc.includes('projects.slice(0, 6)'), 'D-01 top-6 cap unchanged');
+  assert.ok(
+    stackSrc.includes('target="_blank"') || mobileSrc.includes('target="_blank"'),
+    'active-card links remain reachable in the stack surfaces',
+  );
+  assert.ok(sectionSrc.includes('projects --all'), 'terminal pointer unchanged');
 });
