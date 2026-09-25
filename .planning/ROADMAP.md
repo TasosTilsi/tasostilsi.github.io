@@ -13,6 +13,7 @@
 | 07 | look-and-feel-revision | Overall UI/UX look-and-feel revision under the newly installed design skills (motion-design + design-taste-frontend + redesign-existing-projects): both Gantt-style charts removed, skills cards' presentation redesigned, audit-first polish pass and restrained micro-motion across /explore — IDE aesthetic preserved. | REV-08 … REV-11 |
 | 08 | experience-showcase-revision | The Experience panel becomes a full-width interactive semicircular career timeline per the user's detailed brief — mathematically positioned arc with year markers for the 3 docx roles, scroll-driven timelineProgress driving positions/emphasis/content transitions, hand-rolled rAF (zero new deps), keyboard + reduced-motion contracts, mobile-adapted compact form — IDE aesthetic preserved. | REV-07, REV-12, REV-13 |
 | 09 | editorial-motion-revision | Panel order (About first), the About presentation package (positioning lead, impact metrics, availability badge, avatar), education merged onto the semicircular arc (5 entries, type-aware), and the Projects panel converted to a framer-motion-driven editorial scroll composition (top-6 rows entering from below) — experience stage stays hand-rolled. | REV-14 … REV-17 |
+| 10 | projects-stack-revision | The Projects panel's editorial scroll is replaced by a curated stacked-card carousel per the user's visual brief — 6 visual-first cards physically stacked in depth, continuous cardPosition = f(cardIndex, carouselProgress) with framer-motion, generative IDE-language visuals, curated imperfection, in-card info on the active card, keyboard + reduced-motion contracts, mobile simplified stack — IDE aesthetic preserved. | REV-18 … REV-20 |
 
 ## Progress
 
@@ -27,3 +28,4 @@
 | 07 | look-and-feel-revision | pending |  |
 | 08 | experience-showcase-revision | pending |  |
 | 09 | editorial-motion-revision | pending |  |
+| 10 | projects-stack-revision | pending |  |
