@@ -52,8 +52,8 @@ function expectedSentence(description) {
   return idx === -1 ? description : description.slice(0, idx + 1);
 }
 
-test('firstSentence: the four short top-6 rows render whole, INCLUDING the terminal period', () => {
-  for (const name of ['SDK4ED-TD', 'ServicedMetricsCalculator', 'Avoid Traffic Extended', 'Uom Track']) {
+test('firstSentence: the three short top-6 rows render whole, INCLUDING the terminal period', () => {
+  for (const name of ['SDK4ED-TD', 'ServicedMetricsCalculator', 'Avoid Traffic Extended']) {
     const p = top6.find((x) => x.name === name);
     const expected = expectedSentence(p.description);
     assert.ok(expected.length <= 120, `${name}: fixture expectation — first sentence fits the budget`);
@@ -63,8 +63,8 @@ test('firstSentence: the four short top-6 rows render whole, INCLUDING the termi
   }
 });
 
-test('firstSentence: the two over-budget top-6 rows truncate at a word boundary with an ellipsis', () => {
-  for (const name of ['DeepIndex', 'Clarif-AI']) {
+test('firstSentence: the three over-budget top-6 rows truncate at a word boundary with an ellipsis', () => {
+  for (const name of ['DeepIndex', 'Clarif-AI', 'Uom Track']) {
     const p = top6.find((x) => x.name === name);
     const expected = expectedSentence(p.description);
     assert.ok(expected.length > 120, `${name}: fixture expectation — first sentence exceeds 120 chars (with-period count)`);
@@ -137,7 +137,7 @@ test('projectTechnologies: derives chips deterministically from description, fir
     { name: 'SDK4ED-TD', expected: ['Technical Debt'] },
     { name: 'ServicedMetricsCalculator', expected: ['metrics'] },
     { name: 'Avoid Traffic Extended', expected: ['route optimization'] },
-    { name: 'Uom Track', expected: ['tracking'] },
+    { name: 'Uom Track', expected: ['Web', 'tracking'] },
   ];
   for (const { name, expected } of cases) {
     const p = top6.find((x) => x.name === name);
