@@ -2,9 +2,9 @@
 gsd_state_version: 1
 milestone: v1.0
 milestone_name: "Explore Visual Landing"
-status: ui
+status: execute
 active_phase: 10
-next_action: ui-phase
+next_action: execute-phase
 next_phases: [10]
 progress:
   total_phases: 5
@@ -15,7 +15,7 @@ progress:
 current_phase: 10
 current_phase_name: projects-stack-revision
 current_plan: 4
-last_updated: "2026-09-25T14:58:17.771Z"
+last_updated: "2026-09-25T16:01:11.364Z"
 state_head: null
 last_activity: 2026-09-25
 stopped_at: null
@@ -75,6 +75,7 @@ _No active phase._
 - quick 2026-09-24-arc-present-first-order: Flip the semicircular arc's entry order to present-first (user directive: "the experience must be shown from the present to the past"). Current state: the phase-9 arc derivation in src/components/explore/viz-data.ts (or the entries derivation module) sorts the 5 entries year-ASCENDING (BEng 2012 → Netcompany 2019 → MSc 2021 → Upstream 2022 → Chubb 2023). Flip to year-DESCENDING: Chubb 2023 first (the arc's focal point at rest), then Upstream 2022, MSc 2021, Netcompany 2019, BEng 2012 last.
 - Phase 10: SPEC.md sealed (ambiguity UNAVAILABLE)
 - Phase 10: CONTEXT.md sealed — 6 decisions
+- Phase 10: planned — 3 plan(s) across 3 wave(s); checker issues remain after 3 iterations (manual review).
 
 ### Blockers / Concerns
 - Shipping decision (user, 2026-09-21): ship the milestone AS A WHOLE at milestone close — no per-phase PRs. phase-1 and phase-2 branches pushed to origin (backup only); gsd_ship deferred for both phases. phase-2 branch contains phase-1 commits (stacked).
