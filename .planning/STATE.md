@@ -2,22 +2,22 @@
 gsd_state_version: 1
 milestone: v1.0
 milestone_name: "Explore Visual Landing"
-status: verify
-active_phase: 9
-next_action: verify-phase
-next_phases: [9]
+status: spec
+active_phase: 10
+next_action: discuss-phase
+next_phases: [10]
 progress:
   total_phases: 5
   completed_phases: 0
   total_plans: 4
   completed_plans: 28
   percent: 0
-current_phase: 9
-current_phase_name: editorial-motion-revision
+current_phase: 10
+current_phase_name: projects-stack-revision
 current_plan: 4
-last_updated: "2026-09-24T18:31:18.967Z"
+last_updated: "2026-09-25T14:57:37.018Z"
 state_head: null
-last_activity: 2026-09-24
+last_activity: 2026-09-25
 stopped_at: null
 paused_at: null
 ---
@@ -73,12 +73,7 @@ _No active phase._
 - Phase 9: CONTEXT.md sealed — 5 decisions
 - Phase 9: planned — 4 plan(s) across 3 wave(s).
 - quick 2026-09-24-arc-present-first-order: Flip the semicircular arc's entry order to present-first (user directive: "the experience must be shown from the present to the past"). Current state: the phase-9 arc derivation in src/components/explore/viz-data.ts (or the entries derivation module) sorts the 5 entries year-ASCENDING (BEng 2012 → Netcompany 2019 → MSc 2021 → Upstream 2022 → Chubb 2023). Flip to year-DESCENDING: Chubb 2023 first (the arc's focal point at rest), then Upstream 2022, MSc 2021, Netcompany 2019, BEng 2012 last.
-
-Requirements:
-1. Locate the sort in the derivation (search for the sort call producing the 5-entry entries array — likely `.sort((a, b) => a.startYear - b.startYear)` or similar ascending comparator) and flip it to descending (b - a). The merge logic (roles.filter(isTechRelated) ∪ education.filter(featured)) stays unchanged — ONLY the sort direction flips.
-2. Update the stale-test assertions that pin the ascending order (grep the test suites for the entry order: tests/explore-visuals*.test.mjs, tests/projects-calendar.test.mjs if it pins entry order, tests/resume-docx-order.test.mjs — CAREFUL: only the ARC/timeline entry-order assertions flip; the /resume + PDF experience section stays reverse-chronological by its own existing contract (it already renders most-recent-first via data order — verify it does NOT break; the resume's role order comes from the data array order which the sort must NOT touch — flip ONLY the arc's own derived entries array sort, inside the arc derivation module, not the data file or the resume surfaces).
-3. Verify the rendered arc: after the flip, the FIRST/best-positioned marker at rest (progress 0) should be Chubb (2023, the active present role), and BEng 2012 should be the last. Run the affected test suites to green.
-4. Gate chronologically last: npm run typecheck && npm run build && node --test tests/*.mjs — all green. Commit atomically: "fix(explore): arc order flips to present-first (Chubb focal at rest) per user directive". Do NOT push. Report the commit hash + the new marker order.
+- Phase 10: SPEC.md sealed (ambiguity UNAVAILABLE)
 
 ### Blockers / Concerns
 - Shipping decision (user, 2026-09-21): ship the milestone AS A WHOLE at milestone close — no per-phase PRs. phase-1 and phase-2 branches pushed to origin (backup only); gsd_ship deferred for both phases. phase-2 branch contains phase-1 commits (stacked).
