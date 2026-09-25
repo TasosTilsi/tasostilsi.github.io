@@ -1,16 +1,16 @@
 /**
- * Pure card-state contract suite for the projects stacked-card carousel —
- * plan EXPLORE-10-projects-stack-revision-01 (phase 10, REV-18/19/20).
+ * Pure card-state contract suite for the projects swipe-driven stacked-card
+ * carousel — phase-10 REV-21 (user directive 2026-09-25).
  *
- * RED-first TDD: this suite is written against the not-yet-existing
- * src/components/explore/projects-card-state.ts and the failed static import
- * IS the red signal.
+ * RED-first TDD: this suite is written against the ring-buffer cardState
+ * signature and the swipe-decision helpers.
  *
- * Pins the NORMATIVE UI-SPEC contracts:
- *   §3   cardState(cardIndex, carouselProgress) continuous geometry
+ * Pins the NORMATIVE contracts:
+ *   §3   cardState(cardIndex, frontIndex) ring-buffer geometry
  *   §4.2 first-sentence tagline rule (terminal period kept, word-boundary ellipsis)
  *   §4.5 deterministic technology lexicon (description-derived, no data-field change)
  *   §9   projectYear mirror of the retired rowYear
+ *   §10   swipe acceptance thresholds
  *
  * Data assertions run against the REAL src/data/portfolio-main-data.json at
  * test time — never copied literals.
@@ -34,6 +34,9 @@ import {
   projectVisualVariant,
   djb2,
   cardState,
+  swipeAccepts,
+  SWIPE_THRESHOLD,
+  SWIPE_VELOCITY_THRESHOLD,
 } from '../src/components/explore/projects-card-state.ts';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -170,7 +173,7 @@ test('djb2 and projectVisualVariant: stable, deterministic, flagship names pinne
   }
 });
 
-test('cardState: progress 0 geometry — foreground card 0, behind cards 1..5', () => {
+test('cardState: frontIndex 0 geometry — foreground card 0, behind cards 1..5', () => {
   const fg = cardState(0, 0, COUNT, false);
   assert.equal(fg.translateY, 0);
   assert.equal(fg.translateX, -4); // IMPERFECTION_X[0]
@@ -201,8 +204,8 @@ test('cardState: progress 0 geometry — foreground card 0, behind cards 1..5', 
   }
 });
 
-test('cardState: progress 1 geometry — last card foreground, previous card leaving', () => {
-  const fg = cardState(COUNT - 1, 1, COUNT, false);
+test('cardState: frontIndex 3 geometry — card 3 foreground, cyclic wrap keeps finite values', () => {
+  const fg = cardState(3, 3, COUNT, false);
   assert.equal(fg.translateY, 0);
   assert.equal(fg.scale, 1);
   assert.equal(fg.opacity, 1);
@@ -210,63 +213,85 @@ test('cardState: progress 1 geometry — last card foreground, previous card lea
   assert.equal(fg.activeAmount, 1);
   assert.equal(fg.visible, true);
 
-  const leaving = cardState(COUNT - 2, 1, COUNT, false);
-  assert.equal(leaving.translateY, -94, 'leaving y = -l*38 - 56');
-  assert.equal(leaving.scale, 0.96);
-  assert.equal(leaving.opacity, 0.95);
-  assert.equal(leaving.zIndex, 85, 'leaving card one z-step below active, extra -5 for s>0');
+  // Cards behind card 3 in the ring are 4, 5, 0, 1, 2.
+  const behind = [
+    { index: 4, depth: 1, y: -38, scale: 0.96, opacity: 0.95, zIndex: 90, rotation: 0.75 },
+    { index: 5, depth: 2, y: -76, scale: 0.92, opacity: 0.85, zIndex: 80, rotation: -0.75 },
+    { index: 0, depth: 3, y: -114, scale: 0.88, opacity: 0.70, zIndex: 70, rotation: -1 },
+    { index: 1, depth: 4, y: -152, scale: 0.84, opacity: 0.50, zIndex: 60, rotation: -0.5 },
+    { index: 2, depth: 5, y: -190, scale: 0.80, opacity: 0.30, zIndex: 50, rotation: 0.5 },
+  ];
+  for (const exp of behind) {
+    const s = cardState(exp.index, 3, COUNT, false);
+    assert.equal(s.translateY, exp.y, `card ${exp.index}: translateY`);
+    assert.equal(s.scale, exp.scale, `card ${exp.index}: scale`);
+    assert.equal(s.opacity, exp.opacity, `card ${exp.index}: opacity`);
+    assert.equal(s.zIndex, exp.zIndex, `card ${exp.index}: zIndex`);
+    assert.equal(s.rotation, exp.rotation, `card ${exp.index}: rotation`);
+  }
 });
 
-test('cardState: monotonicity, clamping and finite values over a progress sweep', () => {
+test('cardState: loop invariant — a full cycle of 6 frontIndex steps returns the initial arrangement', () => {
+  const initial = top6.map((_, i) => cardState(i, 0, COUNT, false));
+  for (let step = 1; step <= COUNT; step++) {
+    const front = step % COUNT;
+    for (let i = 0; i < COUNT; i++) {
+      const expectedDepth = (COUNT + i - front) % COUNT;
+      const s = cardState(i, front, COUNT, false);
+      assert.equal(s.zIndex, 100 - expectedDepth * 10, `card ${i} step ${step}: zIndex depth ${expectedDepth}`);
+      assert.equal(s.activeAmount, expectedDepth === 0 ? 1 : 0, `card ${i} step ${step}: activeAmount`);
+    }
+  }
+  const afterCycle = top6.map((_, i) => cardState(i, COUNT, COUNT, false));
+  assert.deepEqual(afterCycle, initial, 'after 6 frontIndex advances the stack geometry is identical to frontIndex 0');
+});
+
+test('cardState: monotonicity, clamping and finite values over a frontIndex sweep', () => {
   for (let i = 0; i < COUNT; i++) {
-    for (let step = 0; step <= 100; step++) {
-      const p = step / 100;
-      const s = cardState(i, p, COUNT, false);
-      assert.ok(Number.isFinite(s.translateY), `card ${i} p=${p}: finite translateY`);
-      assert.ok(Number.isFinite(s.translateX), `card ${i} p=${p}: finite translateX`);
-      assert.ok(Number.isFinite(s.scale), `card ${i} p=${p}: finite scale`);
-      assert.ok(Number.isFinite(s.opacity), `card ${i} p=${p}: finite opacity`);
-      assert.ok(Number.isFinite(s.rotation), `card ${i} p=${p}: finite rotation`);
-      assert.ok(Number.isFinite(s.zIndex), `card ${i} p=${p}: finite zIndex`);
-      assert.ok(s.scale >= 0.8 && s.scale <= 1, `card ${i} p=${p}: scale in [0.8,1]`);
-      assert.ok(s.opacity >= 0 && s.opacity <= 1, `card ${i} p=${p}: opacity in [0,1]`);
-      assert.ok(s.opacity <= 0.05 || s.visible, `card ${i} p=${p}: visible iff opacity > 0.05`);
+    for (let front = 0; front < COUNT; front++) {
+      const s = cardState(i, front, COUNT, false);
+      assert.ok(Number.isFinite(s.translateY), `card ${i} front=${front}: finite translateY`);
+      assert.ok(Number.isFinite(s.translateX), `card ${i} front=${front}: finite translateX`);
+      assert.ok(Number.isFinite(s.scale), `card ${i} front=${front}: finite scale`);
+      assert.ok(Number.isFinite(s.opacity), `card ${i} front=${front}: finite opacity`);
+      assert.ok(Number.isFinite(s.rotation), `card ${i} front=${front}: finite rotation`);
+      assert.ok(Number.isFinite(s.zIndex), `card ${i} front=${front}: finite zIndex`);
+      assert.ok(s.scale >= 0.8 && s.scale <= 1, `card ${i} front=${front}: scale in [0.8,1]`);
+      assert.ok(s.opacity >= 0 && s.opacity <= 1, `card ${i} front=${front}: opacity in [0,1]`);
+      assert.ok(s.opacity <= 0.05 || s.visible, `card ${i} front=${front}: visible iff opacity > 0.05`);
       assert.equal(typeof s.visible, 'boolean');
     }
   }
 });
 
-test('cardState: reversibility — same progress yields identical geometry', () => {
-  for (const p of [0, 0.12, 0.37, 0.5, 0.88, 1]) {
+test('cardState: reversibility — same frontIndex yields identical geometry', () => {
+  for (const front of [0, 1, 2, 3, 4, 5]) {
     for (let i = 0; i < COUNT; i++) {
-      const a = cardState(i, p, COUNT, false);
-      const b = cardState(i, p, COUNT, false);
-      assert.deepEqual(a, b, `card ${i} p=${p}: deterministic / reversible`);
+      const a = cardState(i, front, COUNT, false);
+      const b = cardState(i, front, COUNT, false);
+      assert.deepEqual(a, b, `card ${i} front=${front}: deterministic / reversible`);
     }
   }
 });
 
 test('cardState: reduced-motion branch pins translate/scale/rotation to 0, keeps opacity/zIndex', () => {
-  for (let step = 0; step <= 100; step++) {
-    const p = step / 100;
+  for (let front = 0; front < COUNT; front++) {
     for (let i = 0; i < COUNT; i++) {
-      const rm = cardState(i, p, COUNT, true);
-      assert.equal(rm.translateY, 0, `card ${i} p=${p}: RM translateY pinned to 0`);
-      assert.equal(rm.translateX, 0, `card ${i} p=${p}: RM translateX pinned to 0`);
-      assert.equal(rm.scale, 1, `card ${i} p=${p}: RM scale pinned to 1`);
-      assert.equal(rm.rotation, 0, `card ${i} p=${p}: RM rotation pinned to 0`);
-      assert.ok(rm.opacity >= 0 && rm.opacity <= 1, `card ${i} p=${p}: RM opacity still in [0,1]`);
-      assert.ok(Number.isFinite(rm.zIndex), `card ${i} p=${p}: RM zIndex finite`);
+      const rm = cardState(i, front, COUNT, true);
+      assert.equal(rm.translateY, 0, `card ${i} front=${front}: RM translateY pinned to 0`);
+      assert.equal(rm.translateX, 0, `card ${i} front=${front}: RM translateX pinned to 0`);
+      assert.equal(rm.scale, 1, `card ${i} front=${front}: RM scale pinned to 1`);
+      assert.equal(rm.rotation, 0, `card ${i} front=${front}: RM rotation pinned to 0`);
+      assert.ok(rm.opacity >= 0 && rm.opacity <= 1, `card ${i} front=${front}: RM opacity still in [0,1]`);
+      assert.ok(Number.isFinite(rm.zIndex), `card ${i} front=${front}: RM zIndex finite`);
     }
   }
 });
 
 test('cardState: visibility drops below the 0.05 opacity cutoff', () => {
-  // In the 6-card stack progress is clamped to [0,1], so card 0 never gets
-  // far enough to drop below the cutoff. Use an 8-card stack at progress=1:
-  // activeCenter = 7, card 0 has l = 7 and opacity extrapolates below 0.05.
+  // In an 8-card ring, the deepest card from the foreground has depth 7.
   const far = cardState(0, 1, 8, false);
-  assert.ok(!far.visible, 'far-out card position makes card invisible');
+  assert.ok(!far.visible, 'deepest card position makes card invisible');
   assert.ok(far.opacity <= 0.05 || far.opacity === 0, 'opacity at or below cutoff');
 });
 
@@ -286,4 +311,26 @@ test('cardState: count edge cases preserve finite output', () => {
   assert.equal(single.opacity, 1);
   assert.equal(single.visible, true);
   assert.equal(single.activeAmount, 1);
+});
+
+test('swipeAccepts: threshold semantics — offset or velocity must cross the pin, direction is preserved', () => {
+  assert.equal(swipeAccepts(0, 0), 0, 'zero offset and zero velocity rejects');
+  assert.equal(swipeAccepts(50, 200), 0, 'both below thresholds rejects');
+  assert.equal(swipeAccepts(-50, -200), 0, 'negative below thresholds rejects');
+
+  assert.equal(swipeAccepts(SWIPE_THRESHOLD, 0), 1, 'right offset exactly at threshold accepts');
+  assert.equal(swipeAccepts(-SWIPE_THRESHOLD, 0), -1, 'left offset exactly at threshold accepts');
+  assert.equal(swipeAccepts(SWIPE_THRESHOLD + 1, 0), 1, 'right offset past threshold accepts');
+  assert.equal(swipeAccepts(-(SWIPE_THRESHOLD + 1), 0), -1, 'left offset past threshold accepts');
+
+  assert.equal(swipeAccepts(0, SWIPE_VELOCITY_THRESHOLD), 1, 'positive velocity exactly at threshold accepts');
+  assert.equal(swipeAccepts(0, -SWIPE_VELOCITY_THRESHOLD), -1, 'negative velocity exactly at threshold accepts');
+  assert.equal(swipeAccepts(20, SWIPE_VELOCITY_THRESHOLD + 100), 1, 'low offset but high velocity accepts');
+
+  assert.equal(swipeAccepts(NaN, 0), 0, 'non-finite offset rejects');
+  assert.equal(swipeAccepts(0, NaN), 0, 'non-finite velocity rejects');
+
+  // Direction follows the dominant signed input.
+  assert.equal(swipeAccepts(120, -300), 1, 'right offset dominates left velocity');
+  assert.equal(swipeAccepts(-120, 300), -1, 'left offset dominates right velocity');
 });

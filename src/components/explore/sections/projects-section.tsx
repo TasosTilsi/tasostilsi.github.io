@@ -1,16 +1,15 @@
 /**
- * ProjectsSection — Projects panel body (phase-10 REV-18/19/20).
+ * ProjectsSection — Projects panel body (phase-10 REV-21).
  *
  * The panel body opens with the three JSON-derived ProjectStatTiles, followed
- * by the curated stacked-card carousel. The md+ tier renders the scroll-driven
- * framer-motion stage (ProjectsStackStage) inside the pinned viewport; the <md
- * tier renders the simplified state-driven ProjectsMobileStack. The
- * TerminalPointer remains LAST in both tiers. ProjectsSection stays a server
- * component: it imports the client stacks as leaf islands and passes the plain
- * top-6 slice as serializable props.
+ * by the swipe-driven stacked-card carousel. Both tiers now use the same
+ * Tinder-style ring-buffer drag/keyboard choreography via ProjectsSwipeStack;
+ * the md+ stage renders the full-depth composition, while the <md surface
+ * renders the simplified compact composition. The TerminalPointer remains LAST.
  *
- * The phase-9 editorial rows and the below-md compact card grid are retired in
- * this phase (stale-test discipline).
+ * ProjectsSection stays a server component: it imports the client stacks as
+ * leaf islands and passes the plain top-6 slice as serializable props. The
+ * scroll-driven wrapper and 300vh sticky range are retired.
  */
 import type { PortfolioData } from '@/data/portfolio-main-data';
 import { projectStats } from '../viz-data';
@@ -34,11 +33,11 @@ export function ProjectsSection({
       <div className="mb-3">
         <ProjectStatTiles stats={stats} />
       </div>
-      {/* md+ stack viewport: the pinned stage with the scroll-driven carousel. */}
-      <div className="hidden md:block md:h-[calc(100dvh-14.5rem)] md:overflow-hidden">
+      {/* md+ full-depth swipe stack. */}
+      <div className="hidden md:block">
         <ProjectsStackStage projects={cards} />
       </div>
-      {/* <md simplified state-driven stack — replaces the phase-9 compact grid. */}
+      {/* <md compact swipe stack. */}
       <div className="md:hidden">
         <ProjectsMobileStack projects={cards} />
       </div>

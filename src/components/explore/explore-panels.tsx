@@ -91,31 +91,21 @@ const SECTION_BODIES: Record<
 };
 
 /**
- * Placement map factory (UI-SPEC §1.1/§4.1 — the phase-9 seam): a Record
- * keyed by ExploreSectionId whose values carry the ONLY placement classes
- * of the phase — the Experience AND Projects wrappers (each spans both
- * columns and extends ITS OWN sticky scroll range) and shells (each pins
- * inside its range, above the later siblings via the explicit z-index the
- * research stacking pitfall requires; E-15: two SEQUENTIAL sticky ranges on
- * one page — wrappers never overlap, both shells md:z-10). About and Skills
- * occupy one cell each in row 1. Every value is md:-scoped (R-9). The W-3
- * pair rides IN the map as data-derived gate booleans — experience on the
- * merged timeline entries > 1 (plan-01's ONE derivation preserved),
- * projects on the top-6 slice > 1 (the W-3 mirror; ≤1 project → natural
- * height, no pin, E-1/E-2 honoured) — so the render loop reads
- * placement.gate with NO section-id conditionals (the shell test pin
- * holds). R-3: any wrapper stays a plain div with NO id — the tour hole,
- * the IO threshold and the drawer anchors measure the sticky section by
- * its stable id; the wrapper carries the stage's scroll-target data
- * attribute instead, the
- * projects stage's useScroll target.
+ * Placement map factory (UI-SPEC §1.1/§4.1 — the phase-9 seam, amended by
+ * phase-10 REV-21): a Record keyed by ExploreSectionId whose values carry
+ * the ONLY placement classes of the phase. Only Experience retains the sticky
+ * scroll-range wrapper + shell; Projects returns to natural height with its
+ * swipe-driven stage as a centered block. About and Skills occupy one cell
+ * each in row 1. Every value is md:-scoped (R-9). R-3: any wrapper stays a
+ * plain div with NO id — the tour hole, the IO threshold and the drawer
+ * anchors measure the sticky section by its stable id; the Experience wrapper
+ * carries the stage's scroll-target data attribute.
  */
 function buildPlacement(
   data: PortfolioData,
 ): Record<ExploreSectionId, { wrapper: string; shell: string; gate: boolean }> {
   const experienceGate =
     selectTimelineEntries(data.experience, data.education).length > 1;
-  const projectsGate = data.projects.slice(0, 6).length > 1;
   return {
     about: { wrapper: '', shell: '', gate: false },
     experience: {
@@ -124,11 +114,7 @@ function buildPlacement(
       gate: experienceGate,
     },
     skills: { wrapper: '', shell: '', gate: false },
-    projects: {
-      wrapper: 'md:col-span-2 md:h-[300vh]',
-      shell: 'md:sticky md:top-0 md:z-10 md:h-[calc(100dvh-10rem)]',
-      gate: projectsGate,
-    },
+    projects: { wrapper: '', shell: '', gate: false },
   };
 }
 
@@ -158,10 +144,9 @@ export function ExplorePanels({ data }: { data: PortfolioData }) {
           return shell;
         }
         // R-3: plain wrapper — no id, no chrome; the scroll-target data
-        // attribute below is the projects stage's useScroll target. The
-        // entrance stagger animates
-        // it as the grid child; the sticky section inside keeps the stable
-        // section id the tour/IO/drawer flows measure.
+        // attribute below is the Experience stage's useScroll target. The
+        // entrance stagger animates it as the grid child; the sticky section
+        // inside keeps the stable section id the tour/IO/drawer flows measure.
         return (
           <div
             key={section.id}

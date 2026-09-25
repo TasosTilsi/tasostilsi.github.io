@@ -353,8 +353,8 @@ test('panels: responsive grid rebalance — placement whitelist, per-section cha
   // children re-derive the no-empty-cells acceptance over the 3-row md+ grid.
   assert.equal(
     (src.match(/md:col-span-2/g) || []).length,
-    2,
-    'exactly two span-2 grid children — the experience wrapper + the projects wrapper (D-01)',
+    1,
+    'exactly one span-2 grid child — the experience wrapper only; projects returned to natural height (REV-21)',
   );
   assert.equal(
     (src.match(/md:order-first/g) || []).length,

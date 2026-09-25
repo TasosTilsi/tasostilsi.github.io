@@ -1,19 +1,17 @@
 /**
- * Pure card-state module for the projects stacked-card carousel — plan
- * EXPLORE-10-projects-stack-revision-01 (phase 10, REV-18/19/20).
+ * Pure card-state module for the projects stacked-card carousel — swipe-driven
+ * Tinder-style ring buffer (phase-10 REV-21, user directive 2026-09-25).
  *
  * This is the stack composition's ONE derivation site: firstSentence,
- * projectYear, projectTechnologies, projectVisualVariant and cardState live here
- * as pure, typed functions with zero runtime imports. The module uses only
- * erasable TypeScript syntax (type annotations and interfaces; no enums,
- * namespaces or parameter properties) so Node 24 type stripping can load it
- * directly under `node --test`.
+ * projectYear, projectTechnologies, projectVisualVariant, cardState and the
+ * swipe-decision helpers live here as pure, typed functions with zero runtime
+ * imports. The module uses only erasable TypeScript syntax so Node 24 type
+ * stripping can load it directly under `node --test`.
  *
  * Contract:
- *   - UI-SPEC §3 continuous card geometry
- *   - UI-SPEC §4.2 first-sentence tagline rule
- *   - UI-SPEC §4.5 deterministic technology lexicon
- *   - UI-SPEC §9 projectYear mirror of the retired rowYear
+ *   - cardState now takes a ring-buffer frontIndex instead of carouselProgress
+ *   - UI-SPEC §3 card geometry table survives, driven by depth from the front
+ *   - Swipe acceptance is pinned to offset/velocity thresholds
  */
 
 /** The §4.2 description budget — the first sentence renders within this
@@ -53,8 +51,8 @@ const TECH_LEXICON = [
 const IMPERFECTION_X = [-4, -2, 2, 4, 3, -3];
 const IMPERFECTION_ROTATION = [-1, -0.5, 0.5, 1, 0.75, -0.75];
 
-/** Pinned depth-level table (UI-SPEC §3.3). Values are at integer levels only;
- * fractional levels are interpolated with smoothstep. */
+/** Pinned depth-level table (UI-SPEC §3.3). The yUp column is the canonical
+ * offset for cards behind the foreground card in the ring buffer. */
 const LEVELS = [
   { yUp: 0, yLeave: 0, scale: 1.0, opacity: 1.0 },
   { yUp: -38, yLeave: -94, scale: 0.96, opacity: 0.95 },
@@ -63,6 +61,10 @@ const LEVELS = [
   { yUp: -152, yLeave: -208, scale: 0.84, opacity: 0.5 },
   { yUp: -190, yLeave: -246, scale: 0.8, opacity: 0.3 },
 ];
+
+/** Swipe-decision pins. */
+export const SWIPE_THRESHOLD = 100;
+export const SWIPE_VELOCITY_THRESHOLD = 500;
 
 const clamp = (value: number, lo: number, hi: number): number =>
   Math.min(Math.max(value, lo), hi);
@@ -175,9 +177,7 @@ const HASH_VARIANTS = ['glyph', 'report', 'dashboard', 'network'];
  * `fixed = true` bypasses the hash and returns the named flagship variant for
  * known names regardless of position — used by tests to pin the flagship
  * contracts deterministically. `fixed = false` (default) is the production
- * path: DeepIndex → 'terminal-mock', Clarif-AI → 'contract-analysis', and
- * every other name maps via `djb2(name) % 4` to one of
- * ['glyph', 'report', 'dashboard', 'network'].
+ * path.
  */
 export function projectVisualVariant(projectName: string, fixed: boolean = false): string {
   if (fixed && FIXED_VARIANTS[projectName]) return FIXED_VARIANTS[projectName];
@@ -186,7 +186,7 @@ export function projectVisualVariant(projectName: string, fixed: boolean = false
   return HASH_VARIANTS[djb2(projectName) % 4];
 }
 
-/** One stacked-card state at a continuous carousel progress (UI-SPEC §3). */
+/** One stacked-card state at a position in the ring buffer. */
 export interface CardState {
   translateY: number;
   translateX: number;
@@ -199,22 +199,33 @@ export interface CardState {
 }
 
 /**
- * cardState — the §3 motion contract for card `cardIndex` at continuous
- * progress `carouselProgress` across `count` cards.
+ * swipeAccepts — the pinned swipe-decision function.
+ * A drag release accepts if its horizontal offset passes SWIPE_THRESHOLD
+ * or its velocity passes SWIPE_VELOCITY_THRESHOLD. Returns the sign of the
+ * accepted swipe (+1 for right, -1 for left) or 0 when rejected.
+ */
+export function swipeAccepts(offsetX: number, velocityX: number): -1 | 0 | 1 {
+  if (!Number.isFinite(offsetX) || !Number.isFinite(velocityX)) return 0;
+  const direction = (offsetX !== 0 ? Math.sign(offsetX) : Math.sign(velocityX)) as -1 | 0 | 1;
+  if (direction === 0) return 0;
+  if (Math.abs(offsetX) >= SWIPE_THRESHOLD || Math.abs(velocityX) >= SWIPE_VELOCITY_THRESHOLD) {
+    return direction;
+  }
+  return 0;
+}
+
+/**
+ * cardState — the §3 motion contract for card `cardIndex` when the ring-buffer
+ * foreground is `frontIndex` across `count` cards.
  *
- * Geometry is derived from a single signed offset `s`:
- *   activeCenter = (count - 1) * clamp(progress, 0, 1)
- *   s = activeCenter - cardIndex
- *   l = |s|
- *
- * translateY/scale/opacity are read from the pinned level table and
- * interpolated with smoothstep. Cards with s > 0 (leaving) use `yLeave`;
- * cards with s < 0 (upcoming) use `yUp`. zIndex is derived directly from s,
- * not from a discrete state swap. Curated imperfection (translateX/rotation)
- * is seeded by `cardIndex % 6` and is forced to 0 under reduced motion.
+ * Geometry is derived from the cyclic distance (depth) of the card from the
+ * foreground. The front card has depth 0; the card immediately behind it has
+ * depth 1, and so on around the ring. The pinned LEVELS table provides yUp,
+ * scale and opacity by depth. Curated imperfection (translateX/rotation) is
+ * seeded by `cardIndex % 6` and forced to 0 under reduced motion.
  *
  * Reduced motion: translateY/translateX/scale/rotation are pinned to 0/1/0;
- * only opacity (via `1 - |s| * 0.6`) and zIndex animate, giving a fast
+ * only opacity (via `1 - depth * 0.6`) and zIndex animate, giving a fast
  * state-swap fallback.
  *
  * Totality: non-finite inputs return a finite, hidden default. The function
@@ -222,14 +233,15 @@ export interface CardState {
  */
 export function cardState(
   cardIndex: number,
-  carouselProgress: number,
+  frontIndex: number,
   count: number,
   reducedMotion: boolean,
 ): CardState {
   const safeCount = Number.isFinite(count) && count > 0 ? count : 1;
   const safeIndex = Number.isFinite(cardIndex) ? cardIndex : 0;
+  const safeFront = Number.isFinite(frontIndex) ? frontIndex : 0;
 
-  if (!Number.isFinite(carouselProgress)) {
+  if (!Number.isFinite(cardIndex) || !Number.isFinite(frontIndex)) {
     return {
       translateY: 0,
       translateX: 0,
@@ -242,11 +254,8 @@ export function cardState(
     };
   }
 
-  const safeProgress = clamp(carouselProgress, 0, 1);
-  const activeCenter = (safeCount - 1) * safeProgress;
-  const s = activeCenter - safeIndex;
-  const l = Math.abs(s);
-  const activeAmount = 1 - clamp(Math.abs(s), 0, 1);
+  const depth = ((safeIndex - safeFront) % safeCount + safeCount) % safeCount;
+  const activeAmount = depth === 0 ? 1 : 0;
 
   let translateY: number;
   let scale: number;
@@ -255,23 +264,19 @@ export function cardState(
   if (reducedMotion) {
     translateY = 0;
     scale = 1;
-    opacity = clamp(1 - l * 0.6, 0, 1);
+    opacity = depth === 0 ? 1 : clamp(1 - depth * 0.6, 0, 1);
   } else {
-    if (l <= 5) {
-      const lower = Math.floor(l);
-      const upper = Math.ceil(l);
-      const t = smoothstep(l - lower);
-      translateY =
-        s >= 0
-          ? lerp(LEVELS[lower].yLeave, LEVELS[upper].yLeave, t)
-          : lerp(LEVELS[lower].yUp, LEVELS[upper].yUp, t);
+    if (depth <= 5) {
+      const lower = Math.floor(depth);
+      const upper = Math.ceil(depth);
+      const t = smoothstep(depth - lower);
+      translateY = lerp(LEVELS[lower].yUp, LEVELS[upper].yUp, t);
       scale = lerp(LEVELS[lower].scale, LEVELS[upper].scale, t);
       opacity = lerp(LEVELS[lower].opacity, LEVELS[upper].opacity, t);
     } else {
-      const excess = l - 5;
-      const yUp = LEVELS[5].yUp + excess * -38;
-      translateY = s >= 0 ? yUp - 56 : yUp;
-      scale = clamp(1 - 0.04 * l, 0.8, 1);
+      const excess = depth - 5;
+      translateY = LEVELS[5].yUp + excess * -38;
+      scale = clamp(1 - 0.04 * depth, 0.8, 1);
       opacity = clamp(LEVELS[5].opacity - excess * 0.15, 0, 1);
     }
   }
@@ -282,7 +287,7 @@ export function cardState(
   const rotation = reducedMotion
     ? 0
     : finiteOr(IMPERFECTION_ROTATION[(safeIndex % 6 + 6) % 6], 0);
-  const zIndex = 100 - Math.ceil(l) * 10 - (s > 0 ? 5 : 0);
+  const zIndex = 100 - depth * 10;
   const visible = opacity > 0.05 && Number.isFinite(opacity);
 
   return {

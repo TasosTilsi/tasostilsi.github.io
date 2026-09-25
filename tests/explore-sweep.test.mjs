@@ -52,8 +52,8 @@ test('sweep rows EXPLORE@375/768/1440/1920 (P): panels grid 1→2 cols with the 
   // Skills] / [Experience full-width] / [Projects full-width] — zero empty cells.
   assert.equal(
     (src.match(/md:col-span-2/g) || []).length,
-    2,
-    'exactly two span-2 grid children — experience wrapper + projects wrapper (D-01)',
+    1,
+    'exactly one span-2 grid child — the experience wrapper only; projects returned to natural height (REV-21)',
   );
   assert.equal(
     (src.match(/md:order-first/g) || []).length,
@@ -82,8 +82,8 @@ test('sweep rows EXPLORE@* (P): 3-row rebalance structure — order locked, span
   );
   assert.equal(
     (src.match(/md:col-span-2/g) || []).length,
-    2,
-    'exactly two span-2 grid children — zero empty cells re-derived over the 3-row md+ grid',
+    1,
+    'exactly one span-2 grid child — the experience wrapper only; projects is a natural-height panel (REV-21)',
   );
   assert.equal(
     (src.match(/md:order-first/g) || []).length,

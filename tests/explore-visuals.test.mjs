@@ -923,7 +923,7 @@ test('EXPLORE-08 invariant (§2.4/§4/§10): marker non-interactivity + the two-
   );
 });
 
-test('EXPLORE-10 invariant (REV-18/19/20): projects stack replaces editorial rows, new stage + mobile stack wired', () => {
+test('EXPLORE-10 invariant (REV-21): projects stack is swipe-driven, centered, loopable and shadowed', () => {
   // Stale-test retirement: the phase-9 editorial artefacts are deleted.
   for (const deleted of [
     'src/components/explore/projects-row-state.ts',
@@ -934,34 +934,45 @@ test('EXPLORE-10 invariant (REV-18/19/20): projects stack replaces editorial row
   }
 
   const panels = read('src/components/explore/explore-panels.tsx');
-  assert.ok(panels.includes('data-editorial-wrapper="true"'), 'explore-panels keeps the 300vh wrapper attribute that the stack useScroll target resolves');
+  assert.ok(panels.includes('data-editorial-wrapper="true"'), 'explore-panels keeps the data-editorial-wrapper attribute for the Experience sticky range');
+  assert.ok(
+    panels.includes("projects: { wrapper: '', shell: '', gate: false }"),
+    'projects placement returned to natural height — no wrapper/shell/sticky classes (REV-21)',
+  );
 
   const section = read('src/components/explore/sections/projects-section.tsx');
-  assert.ok(section.includes('ProjectsStackStage'), 'ProjectsSection imports the new scroll-driven stack stage');
-  assert.ok(section.includes('ProjectsMobileStack'), 'ProjectsSection imports the new mobile stack');
+  assert.ok(section.includes('ProjectsStackStage'), 'ProjectsSection imports the swipe-driven stack stage');
+  assert.ok(section.includes('ProjectsMobileStack'), 'ProjectsSection imports the compact mobile stack');
   assert.ok(section.includes('hidden md:block'), 'md+ viewport hosts the stack stage');
   assert.ok(section.includes('md:hidden'), 'mobile stack owns the <md surface');
 
   const stack = read('src/components/explore/sections/projects-stack-stage.tsx');
   assert.ok(stack.includes("from 'framer-motion'"), 'the stack stage is the sanctioned framer-motion import site');
+  assert.ok(!stack.includes('useScroll'), 'scroll-derived useScroll is retired');
+  assert.ok(!stack.includes('main.scrollTo'), 'keyboard no longer scrolls the main container');
   assert.ok(stack.includes('role="group"'), 'stack root is a group role');
   assert.ok(stack.includes('aria-label="Projects carousel"'), 'stack group has the carousel label');
   assert.ok(stack.includes('aria-live="polite"'), 'stack announces active card changes politely');
   assert.ok(stack.includes('ChevronUp'), 'Previous control icon present');
   assert.ok(stack.includes('ChevronDown'), 'Next control icon present');
-  assert.ok(stack.includes('Previous project'), 'Prev button aria-label present');
-  assert.ok(stack.includes('Next project'), 'Next button aria-label present');
-  assert.ok(stack.includes('main.scrollTo'), 'keyboard stepping scrolls the main container');
+  assert.ok(stack.includes('aria-label="Previous project"'), 'Prev button aria-label present');
+  assert.ok(stack.includes('aria-label="Next project"'), 'Next button aria-label present');
+  assert.ok(stack.includes('drag=') && stack.includes("'x'"), 'foreground card is draggable along x');
+  assert.ok(stack.includes('swipeAccepts'), 'stack uses the pinned swipe-decision helper');
   assert.ok(stack.includes('projectVisualVariant'), 'generative visuals selected by the name-hash helper');
-  assert.ok(stack.includes('ResizeObserver'), 'stage geometry remeasured via ResizeObserver');
-  assert.ok(stack.includes("window.addEventListener('resize'"), 'window resize fallback present');
-  assert.ok(stack.includes('cards.length <= 1'), 'single-project short-circuit branch present');
+  assert.ok(stack.includes('overflow-visible'), 'stack container/card allows shadow overflow (not clipped)');
+  assert.ok(
+    stack.includes('--panel-shadow-hover') || stack.includes('boxShadow'),
+    'foreground card casts the bloom shadow from behind onto the cards beneath',
+  );
   assert.ok(stack.includes('aria-hidden'), 'non-active cards are aria-hidden');
+  assert.ok(stack.includes('pointer-events-none'), 'non-active cards are removed from pointer events');
 
   const mobilePath = 'src/components/explore/sections/projects-mobile-stack.tsx';
   assert.ok(existsSync(join(root, mobilePath)), 'mobile stack file exists');
   const mobile = codeOf(mobilePath);
-  assert.ok(!mobile.includes('framer-motion'), 'mobile stack does not import framer-motion');
+  assert.ok(!mobile.includes('framer-motion'), 'mobile stack does not import framer-motion (reuses the sanctioned stage)');
+  assert.ok(mobile.includes('ProjectsSwipeStack'), 'mobile wrapper delegates to the shared swipe stack');
 });
 
 test('EXPLORE-08 invariant (REV-07): arc geometry derives from cos/sin over measured size — no hardcoded per-marker positions', () => {
