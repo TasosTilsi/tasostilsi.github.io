@@ -14,8 +14,8 @@ progress:
   percent: 0
 current_phase: 10
 current_phase_name: projects-stack-revision
-current_plan: 4
-last_updated: "2026-09-25T16:01:11.364Z"
+current_plan: 2
+last_updated: "2026-09-25T17:15:00.000Z"
 state_head: null
 last_activity: 2026-09-25
 stopped_at: null
@@ -76,6 +76,7 @@ _No active phase._
 - Phase 10: SPEC.md sealed (ambiguity UNAVAILABLE)
 - Phase 10: CONTEXT.md sealed — 6 decisions
 - Phase 10: planned — 3 plan(s) across 3 wave(s); checker issues remain after 3 iterations (manual review).
+- Phase 10: plan 01 executed — RED test contract (380a200) → visibility-test correction for clamped carouselProgress (cdcf988) → GREEN pure projects-card-state.ts module (e936b20); node --test 19/19 pass, typecheck clean; the pure module becomes the single derivation site for plans 02/03.
 
 ### Blockers / Concerns
 - Shipping decision (user, 2026-09-21): ship the milestone AS A WHOLE at milestone close — no per-phase PRs. phase-1 and phase-2 branches pushed to origin (backup only); gsd_ship deferred for both phases. phase-2 branch contains phase-1 commits (stacked).
