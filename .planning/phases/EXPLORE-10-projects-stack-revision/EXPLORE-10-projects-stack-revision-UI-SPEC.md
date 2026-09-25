@@ -58,7 +58,7 @@ The stage viewport is the **one sanctioned overflow clip** for the stack — car
 - The 300vh wrapper and sticky shell are `md:`-scoped and do not apply below `md`.
 - Render a state-driven simplified stack inside a fixed-height container (`h-[420px]`, tunable U-item).
 - Active card is centered, scale `1`, opacity `1`; adjacent cards peek above/below with `±28px` offset, scale `0.94`, opacity `0.7`.
-- Controls sit below the mobile container with the same Prev/Next 44px buttons and counter.
+- **Mobile contract details (W-11 pin): exactly 2 cards visible (active + ONE adjacent peek) — deeper cards are `visibility:hidden`; under reduced motion the peek/offset translations are REMOVED (opacity-only, cards static at their slots); the non-visible adjacent card is `aria-hidden` with `tabIndex={-1}` links — the same non-active a11y rule as desktop;** controls sit below the mobile container with the same Prev/Next 44px buttons and counter.
 - No horizontal scroll; 375px invariant holds; all content remains readable.
 
 ## 3. Stack geometry — the pure `cardState` function
@@ -104,6 +104,7 @@ const progress = useScroll({
 ```ts
 const activeCenter = (count - 1) * carouselProgress;
 const s = activeCenter - cardIndex; // signed offset from the active card
+const activeIndex = Math.round(activeCenter); // B-fix: THE active-card rule — counter, aria-live, Prev/Next disabled states, expanded panel all derive from this (floor/ceil rejected)
 ```
 
 - `s === 0` → the card is exactly active/foreground.
@@ -120,12 +121,14 @@ Defaults are inside the brief's ranges. Interpolation between levels uses smooth
 | 1 | -38 px | -94 px | 0.96 | 0.95 | 10 |
 | 2 | -76 px | -132 px | 0.92 | 0.85 | 20 |
 | 3 | -114 px | -170 px | 0.88 | 0.70 | 30 |
-| 4 | -150 px | -206 px | 0.84 | 0.50 | 40 |
-| 5 | -186 px | -242 px | 0.80 | 0.30 | 50 |
+| 4 | -152 px | -208 px | 0.84 | 0.50 | 40 |
+| 5 | -190 px | -246 px | 0.80 | 0.30 | 50 |
+
+(The table is derived from the formulas — B-fix #2: `Y_upcoming = −l·38`, `Y_leave = −l·38 − 56`, scale −0.04/level, opacity −0.15/level; the original table's −36 deltas at l=4/5 were rounding artifacts and are corrected to be formula-consistent.)
 
 `leavingY` adds a `LEAVE_EXTRA = 56 px` one-time bonus so the foreground visibly moves away (`Y_leave = -l * 38 - 56` for `l ≥ 1`).
 
-For `l > 5` extrapolate with the same per-level deltas until opacity falls below `0.05`, then clamp to `0`.
+For `l > 5` extrapolate **linearly with the per-level deltas** (translateY −38px/level, scale −0.04/level, opacity −0.15/level) until opacity falls below `0.05`, then clamp to `0` — at or beyond that point the card stops rendering (visibility hidden).
 
 ### 3.4 Continuous interpolation
 
@@ -209,6 +212,13 @@ The expanded panel renders inside the active card only when `activeAmount > 0`:
 - Primary project link (external, with `ArrowUpRight`).
 - Optional `sourceUrl` secondary link if present and different from `link`.
 
+**Foreground-only rule (W-6 resolution): the expanded panel renders ONLY on the card at `activeIndex` (the foreground/highest-z card) — never on every card with `activeAmount > 0` (during a transition the leaving and entering cards both have `activeAmount > 0`; only the entering one, once it is the rounded-active, expands). Stacking (W-15 pin): the panel is `absolute left-0 right-0 bottom-[strip-height] z-10` over the visual layer, `transform-origin: bottom` matching the scaleY growth.**
+
+- One-line description (full `firstSentence` ≤ 120 chars).
+- Technology chips (up to 4; see §4.5).
+- Primary project link (external, with `ArrowUpRight`).
+- Optional `sourceUrl` secondary link if present and different from `link`.
+
 The panel animates with the same continuous `activeAmount`:
 
 ```ts
@@ -224,7 +234,7 @@ All three properties are transform-safe; no `height` animation.
 
 ### 4.4 Generative visual variants (6 distinct, monochrome, token-only)
 
-All visuals use only `hsl(var(--border))`, `hsl(var(--muted-foreground))`, `hsl(var(--accent))`, `hsl(var(--foreground))`, and card background. No gradients, no images.
+All visuals use only `hsl(var(--border))`, `hsl(var(--muted-foreground))`, `hsl(var(--accent))`, `hsl(var(--foreground))`, and card background — **plus `hsl(var(--destructive))` is EXPLICITLY PERMITTED for the Clarif-AI variant's warning glyphs (B-fix: the token exists, is already used elsewhere in the shell, and the triangles are semantic; no executor strips them to stay "monochrome")**. No gradients, no images.
 
 | # | project | variant | composition |
 |---|---------|---------|-------------|
@@ -251,7 +261,7 @@ const TECH_LEXICON = [
 export function projectTechnologies(description: string, max = 4): string[];
 ```
 
-- Scan `description` lower-cased for each lexicon term.
+- Scan `description.lowerCase()` for each lexicon term **also lower-cased (W-9 pin — multi-word/capitalized terms like `Technical Debt` must match; lower-case BOTH the description and the term before substring matching)**.
 - Return matches in order of first appearance, deduplicated, capped at `max`.
 - If no term matches, return an empty array and render nothing (graceful-hide).
 
@@ -274,11 +284,11 @@ All card colors are token-driven. In light mode the `--card` background is white
 
 - The whole card is **not** an interactive target unless the project has a `link`.
 - Linked active card: hover/focus changes only the link text color to `accent` and the arrow icon to `accent` — **no `exp-lift`** on the card because the transform channel is owned by the scroll-driven motion system.
-- Inactive cards: no hover state; pointer events should be suppressed so they do not steal focus.
+- Inactive cards: no hover state; **`pointer-events-none` pinned on every non-active card (W-16 pin — they overlap the active card in depth and must never steal clicks or focus)**.
 
 ### 5.2 Prev / Next controls
 
-Use the same 44px ghost recipe as the Experience stage (`GHOST_INTERACTION` in `experience-section.tsx:88-89`):
+- **Prev/Next buttons (W-14 pin): carry aria-labels `Previous project` / `Next project` (the Experience precedent's pattern, "Previous role"/"Next role").** Use the same 44px ghost recipe as the Experience stage (`GHOST_INTERACTION` in `experience-section.tsx:88-89`):
 
 ```ts
 const GHOST_INTERACTION =
@@ -328,7 +338,10 @@ Stepping sets `main.scrollTo({ top: targetScrollTop, behavior })` where:
 
 ```ts
 const targetProgress = targetIndex / (count - 1);
-const targetScrollTop = ...; // compute from wrapper/stage geometry
+// B-fix (pinned formula): the wrapper's scroll range maps [0,1] → [wrapperTop, wrapperEnd − viewport]
+const wrapperTop = wrapperEl.offsetTop;                    // relative to the scroll parent (main)
+const scrollable = wrapperEl.offsetHeight - mainEl.clientHeight;
+const targetScrollTop = wrapperTop + targetProgress * scrollable;
 const behavior = prefersReducedMotion() ? 'auto' : 'smooth';
 ```
 
@@ -337,7 +350,7 @@ The scroll is the single source of truth; no direct state mutation.
 ### 6.4 Empty / error / loading states
 
 - **Empty list:** `ProjectsSection` returns `null` when `cards.length === 0` (existing behaviour).
-- **Single project:** the stack stage is not pinned; render one static card.
+- **Single project (W-17 pin):** the stack stage is not pinned; render **one static card in the active-card design** — same dimensions, header with name/tagline, generative visual, expanded info panel fully visible — **without carousel chrome**: no controls, no behind-cards, no `activeAmount` animation (the panel renders at full expansion).
 - **Missing description/link/date:** graceful-hide per field — never invent fallback copy.
 - **Loading:** not applicable; data is static SSG.
 - **No-JS / SSR:** render the stack at `carouselProgress = 0`. The DeepIndex foreground card is real text/markup. Links are real anchors.
@@ -345,9 +358,9 @@ The scroll is the single source of truth; no direct state mutation.
 ## 7. Accessibility
 
 - **Landmark:** the stage group has `aria-label="Projects carousel"`.
-- **Live region:** `sr-only` `aria-live="polite"` announces `Project {activeIndex + 1} of {count}: {project.name}`.
-- **Hidden layers:** inactive cards are `aria-hidden="true"` and `tabIndex={-1}` on links; only the active card is in the accessibility tree.
-- **Focus:** active card link is focusable; Prev/Next buttons are focusable; focus ring recipe from `GHOST_INTERACTION`.
+- **Live region:** `sr-only` `aria-live="polite"` announces `Project {activeIndex + 1} of {count}: {project.name}` **throttled to at most one announcement per 500ms (W-8 pin — continuous scroll flips the index rapidly; the throttle window counts from the last announcement)**.
+- **Hidden layers:** ALL non-active cards are `aria-hidden="true"` and `tabIndex={-1}` on links (W-7 resolution: the phase-9 opacity-based visibility rule does NOT govern a11y — a behind-card at opacity 0.95 is still aria-hidden; only the foreground card is in the accessibility tree).
+- **Focus:** active card link is focusable; Prev/Next buttons are focusable; **focus styling = ONLY the `focus-visible:ring-*` classes (W-13 pin — the full `GHOST_INTERACTION` recipe's `hover:bg-muted` is explicitly NOT carried to the card link)**.
 - **Reduced motion:** covered by framer `useReducedMotion()` and the global CSS guard.
 - **Contrast:** all text uses token colors; active link text on card background meets WCAG AA.
 - **SSR real text:** the foreground card and its visual are rendered as real DOM at build time.
@@ -376,6 +389,8 @@ The phase-9 row contract is replaced; the following files/tests must be updated:
 - **Delete:** `src/components/explore/sections/projects-editorial-stage.tsx`.
 - **Delete:** `tests/projects-editorial.test.mjs`.
 - **Create:** `src/components/explore/projects-card-state.ts` — exports `firstSentence`, `cardState`, `projectTechnologies`, `projectYear`.
+- **`projectYear` (W-10 pin): mirrors `rowYear` (projects-row-state.ts:122-125) — returns the first `19xx|20xx` match in the project's `date` string, or `null` when absent; consumed by the card's year chip (rendered only when non-null).**
+- **Mount gate (W-12 pin): the stage is `'use client'` with the editorial-stage mount pattern — `useEffect` gate on `document.querySelector('.explore-shell > main')` + `closest('[data-editorial-wrapper]')`, SSR fallback renders `carouselProgress = 0` (the DeepIndex foreground card), so hydration never mismatches.**
 - **Create:** `src/components/explore/sections/projects-stack-stage.tsx` — scroll-driven md+ stack.
 - **Create:** `src/components/explore/sections/projects-mobile-stack.tsx` — `<md` simplified stack.
 - **Update:** `src/components/explore/sections/projects-section.tsx` — import the new stage and mobile stack; keep stat tiles and pointer.
