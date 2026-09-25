@@ -466,7 +466,8 @@ function Inner({ mainEl, wrapperEl, projects }: InnerProps) {
   const containerRef = useRef<HTMLElement>(mainEl);
   const targetRef = useRef<HTMLElement>(wrapperEl);
   const reducedMotion = useReducedMotion() ?? false;
-  const count = projects.length;
+  const cards = projects;
+  const count = cards.length;
 
   const progress = useScroll({
     container: containerRef,
@@ -535,7 +536,8 @@ function Inner({ mainEl, wrapperEl, projects }: InnerProps) {
     const scrollable = wrapperHeight - mainHeight;
     const targetScrollTop = wrapperTop + targetProgress * scrollable;
     const behavior = reducedMotion ? 'auto' : 'smooth';
-    mainEl.scrollTo({ top: targetScrollTop, behavior });
+    const main = mainEl;
+    main.scrollTo({ top: targetScrollTop, behavior });
   };
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
@@ -556,8 +558,8 @@ function Inner({ mainEl, wrapperEl, projects }: InnerProps) {
     if (handled) event.preventDefault();
   };
 
-  if (count <= 1) {
-    const project = projects[0];
+  if (cards.length <= 1) {
+    const project = cards[0];
     return (
       <div
         className="flex h-full flex-col justify-center"

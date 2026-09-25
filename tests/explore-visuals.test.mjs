@@ -525,21 +525,20 @@ test('motion: hover/focus/active vocabulary — lift+bloom, nudge, underline par
   );
 
   // §10.4 class usage:
-  // Projects — exp-lift on the LINKED anchor ONLY; the unlinked div stays
-  // static (hover must never promise interactivity, §3.2/W-2).
+  // Projects — the scroll-driven card stack owns the transform channel, so
+  // cards do NOT use exp-lift; the active-card link carries only the focus
+  // ring recipe (W-13). The hover/focus affordance lives on the Prev/Next
+  // controls via the shared GHOST_INTERACTION const.
   const projects = read('src/components/explore/sections/projects-section.tsx');
   assert.equal(
     (projects.match(/exp-lift/g) || []).length,
-    1,
-    'exp-lift appears exactly once in projects-section — the linked anchor only',
+    0,
+    'projects-section carries no exp-lift — the stack cards are not hover-lift targets',
   );
-  const liftLine = projects.split('\n').find((l) => l.includes('exp-lift'));
-  assert.ok(liftLine, 'the linked card anchor line carries exp-lift');
-  assert.ok(liftLine.includes('group block rounded-md border border-border p-3'), 'exp-lift rides the linked card anchor shell');
-  assert.ok(liftLine.includes('focus-visible:ring'), 'the linked anchor keeps its §14 focus ring');
+  const stack = read('src/components/explore/sections/projects-stack-stage.tsx');
   assert.ok(
-    projects.includes('className="block rounded-md border border-border p-3"'),
-    'the unlinked div card keeps its static shell — no exp-lift, no hover affordance (§3.2/W-2)',
+    stack.includes('focus-visible:ring'),
+    'the stack stage carries the focus ring recipe on the active-card link and controls',
   );
   // About — M3 nudge on the channel icons + the resume ArrowRight (U-5);
   // M5 underline focus parity on BOTH underlined labels.
@@ -611,23 +610,23 @@ test('motion: hover/focus/active vocabulary — lift+bloom, nudge, underline par
   for (const rel of exploreFiles) {
     const src = codeOf(join('src/components/explore', rel));
     const hasFramer = src.includes('framer-motion');
-    if (String(rel).endsWith('projects-editorial-stage.tsx')) {
-      assert.ok(hasFramer, `src/components/explore/${rel}: framer-motion present (the ONE sanctioned editorial-scroll import site, D-05)`);
+    if (String(rel).endsWith('projects-stack-stage.tsx')) {
+      assert.ok(hasFramer, `src/components/explore/${rel}: framer-motion present (the ONE sanctioned projects-stack import site, D-06)`);
     } else {
-      assert.ok(!hasFramer, `src/components/explore/${rel}: framer-motion absent outside the editorial stage (dual-engine contract, D-05)`);
+      assert.ok(!hasFramer, `src/components/explore/${rel}: framer-motion absent outside the projects stack (dual-engine contract, D-06)`);
     }
   }
-  // The pure row-state module pins the R-12 zero-runtime-import contract in
+  // The pure card-state module pins the R-12 zero-runtime-import contract in
   // the cross-cutting suite: zero import STATEMENTS of any kind and no
-  // scroll-engine substring (the timeline-geometry precedent, now asserted).
-  const rowStateCode = codeOf('src/components/explore/projects-row-state.ts');
+  // scroll-engine substring.
+  const cardStateCode = codeOf('src/components/explore/projects-card-state.ts');
   assert.ok(
-    !/^import\s/m.test(rowStateCode),
-    'projects-row-state.ts: zero import statements (R-12, erasable-TS-only, node --test loads it directly)',
+    !/^import\s/m.test(cardStateCode),
+    'projects-card-state.ts: zero import statements (R-12, erasable-TS-only, node --test loads it directly)',
   );
   assert.ok(
-    !rowStateCode.includes('framer-motion'),
-    'projects-row-state.ts: framer-motion absent (the pure row math stays framer-free)',
+    !cardStateCode.includes('framer-motion'),
+    'projects-card-state.ts: framer-motion absent (the pure card math stays framer-free)',
   );
   // EXPLORE-08 plan 02 (recorded deviation): the timeline interaction hook
   // joins the tour as the second sanctioned rAF site — UI-SPEC §6 pins the
@@ -911,6 +910,44 @@ test('EXPLORE-08 invariant (§2.4/§4/§10): marker non-interactivity + the two-
     exp.includes("padStart(2, '0')} /"),
     "the control-row counter idiom padStart(2, '0')} / is present (§4: 01 / 05, the PanelShell index precedent)",
   );
+});
+
+test('EXPLORE-10 invariant (REV-18/19/20): projects stack replaces editorial rows, new stage + mobile stack wired', () => {
+  // Stale-test retirement: the phase-9 editorial artefacts are deleted.
+  for (const deleted of [
+    'src/components/explore/projects-row-state.ts',
+    'src/components/explore/sections/projects-editorial-stage.tsx',
+    'tests/projects-editorial.test.mjs',
+  ]) {
+    assert.equal(existsSync(join(root, deleted)), false, `${deleted}: retired with the editorial rows (stale-test discipline)`);
+  }
+
+  const section = read('src/components/explore/sections/projects-section.tsx');
+  assert.ok(section.includes('ProjectsStackStage'), 'ProjectsSection imports the new scroll-driven stack stage');
+  assert.ok(section.includes('ProjectsMobileStack'), 'ProjectsSection imports the new mobile stack');
+  assert.ok(section.includes('hidden md:block'), 'md+ viewport hosts the stack stage');
+  assert.ok(section.includes('md:hidden'), 'mobile stack owns the <md surface');
+
+  const stack = read('src/components/explore/sections/projects-stack-stage.tsx');
+  assert.ok(stack.includes("from 'framer-motion'"), 'the stack stage is the sanctioned framer-motion import site');
+  assert.ok(stack.includes('role="group"'), 'stack root is a group role');
+  assert.ok(stack.includes('aria-label="Projects carousel"'), 'stack group has the carousel label');
+  assert.ok(stack.includes('aria-live="polite"'), 'stack announces active card changes politely');
+  assert.ok(stack.includes('ChevronUp'), 'Previous control icon present');
+  assert.ok(stack.includes('ChevronDown'), 'Next control icon present');
+  assert.ok(stack.includes('Previous project'), 'Prev button aria-label present');
+  assert.ok(stack.includes('Next project'), 'Next button aria-label present');
+  assert.ok(stack.includes('main.scrollTo'), 'keyboard stepping scrolls the main container');
+  assert.ok(stack.includes('projectVisualVariant'), 'generative visuals selected by the name-hash helper');
+  assert.ok(stack.includes('ResizeObserver'), 'stage geometry remeasured via ResizeObserver');
+  assert.ok(stack.includes("window.addEventListener('resize'"), 'window resize fallback present');
+  assert.ok(stack.includes('cards.length <= 1'), 'single-project short-circuit branch present');
+  assert.ok(stack.includes('aria-hidden'), 'non-active cards are aria-hidden');
+
+  const mobilePath = 'src/components/explore/sections/projects-mobile-stack.tsx';
+  assert.ok(existsSync(join(root, mobilePath)), 'mobile stack file exists');
+  const mobile = codeOf(mobilePath);
+  assert.ok(!mobile.includes('framer-motion'), 'mobile stack does not import framer-motion');
 });
 
 test('EXPLORE-08 invariant (REV-07): arc geometry derives from cos/sin over measured size — no hardcoded per-marker positions', () => {
