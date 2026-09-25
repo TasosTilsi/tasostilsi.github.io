@@ -23,9 +23,14 @@
  * A11y (UI-SPEC §7): the stack is a role="group" aria-label="Projects carousel".
  * ALL non-active cards are aria-hidden="true" regardless of opacity; only the
  * rounded activeIndex card exposes its link(s) to tab order. The expanded info
- * panel renders only on the active card.
+ * panel renders only on the active card. An aria-live="polite" region announces
+ * the active project name, throttled to one announcement per 500ms.
  *
- * Reduced motion: useReducedMotion() is passed to cardState and gating scroll
+ * Interaction (UI-SPEC §5): Prev/Next 44px ghost buttons and Arrow keys step the
+ * carousel by scrolling the main container to the target band. Home/End jump to
+ * first/last. Only handled keys call preventDefault.
+ *
+ * Reduced motion: useReducedMotion() is passed to cardState and gates scroll
  * behavior; CSS guard suppresses stray transitions.
  *
  * Resize (UI-SPEC §6.3/§8): a ResizeObserver on the wrapper remeasures
@@ -35,11 +40,14 @@
 import { useEffect, useRef, useState } from 'react';
 import {
   motion,
+  useMotionValue,
+  useMotionValueEvent,
   useReducedMotion,
   useScroll,
   useTransform,
   type MotionValue,
 } from 'framer-motion';
+import { ArrowUpRight, ChevronDown, ChevronUp } from 'lucide-react';
 import {
   cardState,
   firstSentence,
@@ -66,6 +74,9 @@ const RING_RECIPE =
 const GHOST_INTERACTION =
   'rounded-md hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background';
 
+/** Throttle window for the aria-live active-card announcement. */
+const ANNOUNCEMENT_THROTTLE_MS = 500;
+
 /** Token-driven monochrome colors for the generative visuals. */
 function visualColors() {
   return {
@@ -83,7 +94,7 @@ function CardHeader({ project }: { project: ProjectEntry }) {
   const year = projectYear(project.date);
   const tagline = firstSentence(project.description, 120);
   return (
-    <div className="relative z-10 border-t border-border bg-card p-3">
+    <div className="relative z-20 border-t border-border bg-card p-3">
       <div className="flex items-baseline gap-2">
         <span className="min-w-0 text-sm font-medium text-foreground">
           {project.name}
@@ -100,6 +111,78 @@ function CardHeader({ project }: { project: ProjectEntry }) {
         </p>
       )}
     </div>
+  );
+}
+
+/** Expanded panel on the active card only: description, chips, links. */
+function CardExpandedPanel({
+  project,
+  activeAmount,
+  visible,
+}: {
+  project: ProjectEntry;
+  activeAmount: MotionValue<number>;
+  visible: boolean;
+}) {
+  const description = firstSentence(project.description, 120);
+  const technologies = projectTechnologies(project.description, 4);
+  const opacity = useTransform(activeAmount, (v) => v);
+  const scaleY = useTransform(activeAmount, (v) => v);
+  const translateY = useTransform(activeAmount, (v) => (1 - v) * 8);
+
+  if (!visible) return null;
+
+  return (
+    <motion.div
+      className="absolute inset-x-0 bottom-16 z-10 origin-bottom border-t border-border bg-card/95 p-3 backdrop-blur-sm"
+      style={{
+        opacity,
+        scaleY,
+        translateY,
+      }}
+    >
+      {description && (
+        <p className="text-xs leading-relaxed text-foreground">
+          {description}
+        </p>
+      )}
+      {technologies.length > 0 && (
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          {technologies.map((tech) => (
+            <span
+              key={tech}
+              className="inline-flex items-center rounded-sm border border-border px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground"
+            >
+              {tech}
+            </span>
+          ))}
+        </div>
+      )}
+      <div className="mt-2 flex flex-wrap items-center gap-3">
+        {project.link && (
+          <a
+            href={project.link}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`inline-flex items-center gap-1 text-xs font-medium text-accent ${RING_RECIPE}`}
+          >
+            View project
+            <ArrowUpRight aria-hidden="true" className="h-3 w-3 shrink-0" />
+          </a>
+        )}
+        {project.sourceUrl && project.sourceUrl !== project.link && (
+          <a
+            href={project.sourceUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`inline-flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground ${RING_RECIPE}`}
+          >
+            Source
+            <ArrowUpRight aria-hidden="true" className="h-3 w-3 shrink-0" />
+          </a>
+        )}
+      </div>
+    </motion.div>
   );
 }
 
@@ -343,7 +426,7 @@ function GenerativeVisual({ projectName }: { projectName: string }) {
  *  DeepIndex card is real text/markup before hydration. */
 function SsrStack({ projects }: { projects: ProjectEntry[] }) {
   return (
-    <div className="flex h-full flex-col justify-center">
+    <div className="flex h-full flex-col justify-center" role="group" aria-label="Projects carousel">
       <div className="relative mx-auto w-full max-w-[540px]">
         {projects.map((project, index) => {
           const st = cardState(index, 0, projects.length, false);
@@ -390,6 +473,31 @@ function Inner({ mainEl, wrapperEl, projects }: InnerProps) {
     target: targetRef,
     offset: ['start start', 'end end'],
   }).scrollYProgress;
+  const fullActive = useMotionValue(1);
+
+  // Active index derived from the single continuous progress value.
+  const activeIndexValue = useTransform(progress, (p) => Math.round((count - 1) * p));
+  const [activeIndex, setActiveIndex] = useState(0);
+  useMotionValueEvent(activeIndexValue, 'change', (latest) => {
+    const next = Math.round(latest);
+    if (next !== activeIndex) setActiveIndex(next);
+  });
+
+  // Throttled aria-live announcement.
+  const [announcement, setAnnouncement] = useState('');
+  const lastAnnouncementRef = useRef(0);
+  useEffect(() => {
+    const now = Date.now();
+    if (now - lastAnnouncementRef.current >= ANNOUNCEMENT_THROTTLE_MS) {
+      lastAnnouncementRef.current = now;
+      const project = projects[activeIndex];
+      setAnnouncement(
+        project
+          ? `Project ${String(activeIndex + 1).padStart(2, '0')} of ${String(count).padStart(2, '0')}: ${project.name}`
+          : '',
+      );
+    }
+  }, [activeIndex, count, projects]);
 
   // Geometry refs for keyboard stepping; updated by ResizeObserver + fallback.
   const geometryRef = useRef({
@@ -420,14 +528,47 @@ function Inner({ mainEl, wrapperEl, projects }: InnerProps) {
     };
   }, [mainEl, wrapperEl]);
 
+  const goToCard = (targetIndex: number) => {
+    const target = Math.min(Math.max(targetIndex, 0), count - 1);
+    const { wrapperTop, wrapperHeight, mainHeight } = geometryRef.current;
+    const targetProgress = target / (count - 1);
+    const scrollable = wrapperHeight - mainHeight;
+    const targetScrollTop = wrapperTop + targetProgress * scrollable;
+    const behavior = reducedMotion ? 'auto' : 'smooth';
+    mainEl.scrollTo({ top: targetScrollTop, behavior });
+  };
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    let handled = false;
+    if (event.key === 'ArrowUp' || event.key === 'ArrowLeft') {
+      goToCard(activeIndex - 1);
+      handled = true;
+    } else if (event.key === 'ArrowDown' || event.key === 'ArrowRight') {
+      goToCard(activeIndex + 1);
+      handled = true;
+    } else if (event.key === 'Home') {
+      goToCard(0);
+      handled = true;
+    } else if (event.key === 'End') {
+      goToCard(count - 1);
+      handled = true;
+    }
+    if (handled) event.preventDefault();
+  };
+
   if (count <= 1) {
     const project = projects[0];
     return (
-      <div className="flex h-full flex-col justify-center">
+      <div
+        className="flex h-full flex-col justify-center"
+        role="group"
+        aria-label="Projects carousel"
+      >
         <div className={CARD_SHELL}>
           <div className="absolute inset-0 flex items-center justify-center p-4">
             <GenerativeVisual projectName={project.name} />
           </div>
+          <CardExpandedPanel project={project} activeAmount={fullActive} visible />
           <CardHeader project={project} />
         </div>
       </div>
@@ -435,18 +576,54 @@ function Inner({ mainEl, wrapperEl, projects }: InnerProps) {
   }
 
   return (
-    <div className="flex h-full flex-col justify-center">
-      <div className="relative mx-auto w-full max-w-[540px]">
-        {projects.map((project, index) => (
-          <MotionCard
-            key={project.name}
-            project={project}
-            index={index}
-            count={count}
-            progress={progress}
-            reducedMotion={reducedMotion}
-          />
-        ))}
+    <div
+      className="flex h-full flex-col"
+      role="group"
+      aria-label="Projects carousel"
+      onKeyDown={handleKeyDown}
+    >
+      <div className="sr-only" aria-live="polite" aria-atomic="true">
+        {announcement}
+      </div>
+      <div className="relative flex-1">
+        <div className="relative mx-auto h-full w-full max-w-[540px]">
+          {projects.map((project, index) => (
+            <MotionCard
+              key={project.name}
+              project={project}
+              index={index}
+              count={count}
+              progress={progress}
+              reducedMotion={reducedMotion}
+              isActive={activeIndex === index}
+            />
+          ))}
+        </div>
+      </div>
+      <div className="shrink-0">
+        <div className="flex items-center justify-center gap-2 py-2">
+          <button
+            type="button"
+            aria-label="Previous project"
+            disabled={activeIndex <= 0}
+            onClick={() => goToCard(activeIndex - 1)}
+            className={`inline-flex h-[44px] min-w-[44px] items-center justify-center text-muted-foreground transition-colors disabled:opacity-50 ${GHOST_INTERACTION}`}
+          >
+            <ChevronUp aria-hidden="true" className="h-4 w-4" />
+          </button>
+          <span className="min-w-[3.5rem] text-center font-mono text-[10px] tabular-nums text-muted-foreground">
+            {String(activeIndex + 1).padStart(2, '0')} / {String(count).padStart(2, '0')}
+          </span>
+          <button
+            type="button"
+            aria-label="Next project"
+            disabled={activeIndex >= count - 1}
+            onClick={() => goToCard(activeIndex + 1)}
+            className={`inline-flex h-[44px] min-w-[44px] items-center justify-center text-accent transition-colors disabled:opacity-50 ${GHOST_INTERACTION}`}
+          >
+            <ChevronDown aria-hidden="true" className="h-4 w-4" />
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -458,26 +635,22 @@ interface MotionCardProps {
   count: number;
   progress: MotionValue<number>;
   reducedMotion: boolean;
+  isActive: boolean;
 }
 
-function MotionCard({ project, index, count, progress, reducedMotion }: MotionCardProps) {
+function MotionCard({ project, index, count, progress, reducedMotion, isActive }: MotionCardProps) {
   const transform = useTransform(progress, (p) => {
     const st = cardState(index, p, count, reducedMotion);
     return `translateY(${st.translateY}px) translateX(${st.translateX}px) scale(${st.scale}) rotate(${st.rotation}deg)`;
   });
-  const opacity = useTransform(progress, (p) =>
-    cardState(index, p, count, reducedMotion).opacity,
-  );
-  const zIndex = useTransform(progress, (p) =>
-    cardState(index, p, count, reducedMotion).zIndex,
-  );
-  const visibility = useTransform(progress, (p) =>
-    cardState(index, p, count, reducedMotion).visible ? 'visible' : 'hidden',
-  );
+  const opacity = useTransform(progress, (p) => cardState(index, p, count, reducedMotion).opacity);
+  const zIndex = useTransform(progress, (p) => cardState(index, p, count, reducedMotion).zIndex);
+  const visibility = useTransform(progress, (p) => (cardState(index, p, count, reducedMotion).visible ? 'visible' : 'hidden'));
+  const activeAmount = useTransform(progress, (p) => cardState(index, p, count, reducedMotion).activeAmount);
 
   return (
     <motion.div
-      className={CARD_SHELL}
+      className={`${CARD_SHELL} ${isActive ? '' : 'pointer-events-none'}`}
       style={{
         position: 'absolute',
         inset: 0,
@@ -486,12 +659,12 @@ function MotionCard({ project, index, count, progress, reducedMotion }: MotionCa
         zIndex,
         visibility,
       }}
-      aria-hidden="true"
-      tabIndex={-1}
+      aria-hidden={isActive ? undefined : 'true'}
     >
       <div className="absolute inset-0 flex items-center justify-center p-4">
         <GenerativeVisual projectName={project.name} />
       </div>
+      <CardExpandedPanel project={project} activeAmount={activeAmount} visible={isActive} />
       <CardHeader project={project} />
     </motion.div>
   );
