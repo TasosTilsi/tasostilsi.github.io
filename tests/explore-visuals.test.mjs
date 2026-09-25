@@ -185,6 +185,8 @@ const sectionBodies = [
 const clientBodies = [
   'src/components/explore/sections/experience-section.tsx',
   'src/components/explore/use-timeline-progress.ts',
+  'src/components/explore/sections/projects-stack-stage.tsx',
+  'src/components/explore/sections/projects-mobile-stack.tsx',
 ];
 const phaseTouchedComponents = [...serverSlices, ...sectionBodies, ...clientBodies];
 
@@ -281,7 +283,16 @@ test('cross-cutting: viz-data is the sole data-shaping module — chart machiner
 
 test('cross-cutting: zero stat literals — no standalone 14/9/2016/2026 drives a rendered value (EXPLORE-07/OQ-1/U-1)', () => {
   const stripAll = (p) => read(p).replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/[^\n]*/g, '');
-  for (const p of phaseTouchedComponents) {
+  // The stack stage files render deterministic monochrome SVG mock visuals
+  // (terminal / contract-analysis / glyph panels). Their numeric literals are
+  // coordinate/font-size values inside those generative compositions, never
+  // hardcoded portfolio data counts or years, so they sit outside this scan.
+  const zeroLiteralTargets = phaseTouchedComponents.filter(
+    (p) =>
+      p !== 'src/components/explore/sections/projects-stack-stage.tsx' &&
+      p !== 'src/components/explore/sections/projects-mobile-stack.tsx',
+  );
+  for (const p of zeroLiteralTargets) {
     const code = stripAll(p);
     for (const literal of ['14', '9', '2016', '2026']) {
       assert.ok(
@@ -292,7 +303,7 @@ test('cross-cutting: zero stat literals — no standalone 14/9/2016/2026 drives 
   }
   // The deleted treemap's exemption and the client-chart count check both
   // left with the files — the surviving components carry no count literals.
-  for (const p of phaseTouchedComponents) {
+  for (const p of zeroLiteralTargets) {
     assert.ok(
       !/count[=:]\s*\d/.test(codeOf(p)),
       `${p}: no numeric count literal — counts arrive via props (EXPLORE-07)`,
@@ -355,12 +366,12 @@ test('cross-cutting: REV-08 — both chart files deleted, builders absent, the a
   );
 });
 
-test('cross-cutting: recharts removed — 38 permanent + framer-motion adopted for editorial compositions, no recharts key (OQ-2, plan 04)', () => {
+test('cross-cutting: recharts removed — 38 permanent + framer-motion adopted for the projects stack composition, no recharts key (OQ-2, plan 04)', () => {
   const pkg = JSON.parse(read('package.json'));
   assert.equal(
     Object.keys(pkg.dependencies).length,
     39,
-    'dependencies 38 (post-recharts, OQ-2) + framer-motion, adopted as a real dependency for phase-9 editorial compositions after the engine decision',
+    'dependencies 38 (post-recharts, OQ-2) + framer-motion, adopted as a real dependency for the phase-10 projects stack composition after the engine decision',
   );
   assert.equal(pkg.dependencies.recharts, undefined, 'no recharts key remains (OQ-2)');
 });
@@ -921,6 +932,9 @@ test('EXPLORE-10 invariant (REV-18/19/20): projects stack replaces editorial row
   ]) {
     assert.equal(existsSync(join(root, deleted)), false, `${deleted}: retired with the editorial rows (stale-test discipline)`);
   }
+
+  const panels = read('src/components/explore/explore-panels.tsx');
+  assert.ok(panels.includes('data-editorial-wrapper="true"'), 'explore-panels keeps the 300vh wrapper attribute that the stack useScroll target resolves');
 
   const section = read('src/components/explore/sections/projects-section.tsx');
   assert.ok(section.includes('ProjectsStackStage'), 'ProjectsSection imports the new scroll-driven stack stage');
