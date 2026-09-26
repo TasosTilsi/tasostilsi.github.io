@@ -19,7 +19,7 @@ The `ExplorePanels` grid keeps its existing 1-col base / 2-col `md` layout (`gri
 | Breakpoint | Row 3 layout |
 |---|---|
 | Base (< `md` / 768px) | Projects stack full-width, then Credentials panel full-width below it (vertical stack). |
-| `md` and up | Left cell: Projects stack (~60% of the row width). Right cell: Credentials panel (~40% of the row width), side-by-side. |
+| `md` and up | Left cell: Projects stack. Right cell: Credentials panel — side-by-side at **50/50 via `md:grid-cols-2`** (LAYOUT-01 resolution: the ≈60/40 ratio claim is DROPPED — the plain 2-col split is the pinned implementation; the stack compresses per the cardState container-relative geometry). |
 
 Implementation note: because the parent is a 2-column grid, the exact ratio is achieved by ** Projects**: let it span the left column naturally (the 2-col grid gives it roughly half the row, then the Credentials panel fills the remainder), while the Projects stack stage internally centers and clamps its own width. The Projects stack is **not** widened; it keeps its existing centered composition and simply lives inside the narrower left column. The stack’s `cardState` geometry is container-relative, so it adapts to the reduced column width without new logic. The Credentials panel occupies the right column.
 
@@ -55,7 +55,7 @@ Inside the shell body, the tab list sits immediately under the chrome with `mt-3
 - Tabs primitive: existing `src/components/ui/tabs.tsx` (`Tabs`, `TabsList`, `TabsTrigger`, `TabsContent`).
 - Tab labels (locked): **Articles | Certifications | Presentations**.
 - Default tab: **Articles** (the most current/primary credibility signal; SSR renders this tab’s rows).
-- Tabs list style: reuse the shadcn default `TabsList` (`inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground`).
+- Tabs list style: reuse the shadcn default `TabsList` (`inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground`) — **with tab triggers raised to `min-h-[44px]` (A11Y-01 resolution: tab triggers ARE interactive targets and must meet the 44px minimum; the `bg-muted` pill stays — OPEN-01 resolution: shadcn default accepted)**.
 - Tab triggers are full text (no truncation) and use the shadcn `TabsTrigger` recipe.
 
 ### 2.4 Row list anatomy
@@ -64,10 +64,10 @@ Each tab renders a vertical stack of anchor rows. Rows are **not** cards; they a
 
 - Container: `flex flex-col` with no gap (dividers separate rows).
 - Each row: `flex items-center gap-3` with a **minimum height of 44px** (`min-h-[44px]` or `py-3` to guarantee 44px-equivalent touch targets).
-- Left icon: a small `Link` or `FileText` / `Award` / `MonitorPlay` lucide icon, 16px, `text-muted-foreground`, `shrink-0`, `aria-hidden="true"`.
+- Left icon mapping (ICON-01 locked): Articles → `FileText` · Certifications → `Award` · Presentations → `MonitorPlay` — lucide, 16px, `text-muted-foreground`, `shrink-0`, `aria-hidden="true"`.
 - Title: `text-sm font-medium text-foreground`, `min-w-0 truncate`.
 - Date: `text-xs tabular-nums text-muted-foreground`, `shrink-0`, placed at the right end.
-- External link arrow (`ArrowUpRight`, 14px) appears on hover/focus inside the active row, nudged via the existing `.exp-nudge` vocabulary.
+- External link arrow (`ArrowUpRight`, 14px) appears on hover/focus inside the active row, **placed immediately AFTER the date with `ml-1` (ARROW-01 resolution)**, nudged via the existing `.exp-nudge` vocabulary.
 
 A subtle 1px divider (`border-b border-border`) separates rows; the last row has no bottom border.
 
@@ -135,7 +135,7 @@ Clicking the anchor closes the drawer and scrolls to `#credentials`.
 ### 4.1 Motion policy — calm
 
 - **No new animation vocabulary** for the Credentials panel.
-- The only motion is the existing phase-7 entrance stagger: because the Credentials panel is a new child of `.panel-grid`, it inherits the `explore-panel-in` CSS keyframe and the `nth-child(5)` delay (140ms, same cascade). If the stagger delay rules are extended to a fifth child, the panel fades/slides in; if not, it still renders at natural opacity (the animation uses `backwards`, but content is never hidden).
+- The only motion is the existing phase-7 entrance stagger: because the Credentials panel is a new child of `.panel-grid`, it inherits the `explore-panel-in` CSS keyframe; **MOTION-01 resolution: the stagger cascade is EXTENDED with a `nth-child(5)` rule at 160ms** (the existing cadence is +40ms per child — 0/40/80/120/160; the checker's 140ms figure was the cascade misread) **— the panel fades/slides in on first paint; under reduced motion the phase-1 guard suppresses it.**
 - **No framer-motion import** in the Credentials panel files. Framer-motion remains allowed only in `projects-stack-stage.tsx` (phase-9/10 pin).
 - Tab switching is instant; Radix supplies only the unmount/mount semantics, no transition.
 - Hover/focus row states use the existing `.exp-nudge` + underline vocabulary (CSS transitions). These are suppressed by the existing reduced-motion guard (`@media (prefers-reduced-motion: reduce)`).
@@ -144,11 +144,11 @@ Clicking the anchor closes the drawer and scrolls to `#credentials`.
 
 | Scenario | Behaviour |
 |---|---|
-| Featured articles array empty | Render a single calm row: “No featured articles.” in `text-muted-foreground`, no link. |
-| Featured certifications array empty | Render “No featured certifications.” |
-| Featured presentations array empty | Render “No featured presentations.” |
+| Featured articles array empty | Render a single calm row: “No featured articles.” in `text-muted-foreground`, no link. **Empty-row anatomy (EMPTY-01 pin): `min-h-[44px]` non-link row with the tab's left icon slot present (muted, aria-hidden) + the dash-free plain text — consistent rhythm, zero invention.** |
+| Featured certifications array empty | Render “No featured certifications.” (same anatomy) |
+| Featured presentations array empty | Render “No featured presentations.” (same anatomy) |
 | Single presentation (current reality) | One row: “Boosting Your Team's Clarity with Allure Reporting” + date + link. |
-| A row has no `link` | Do not render it as a row; omit it from the list. If that empties the tab, fall back to the empty-state message. |
+| A row has no `link` | Do not render it as a row; omit it from the list. If that empties the tab, fall back to the empty-state message. **(TYPE-01 resolution: the row-omission edge for PRESENTATIONS is unreachable — `Presentation.link` is typed REQUIRED in the .d.ts and the type is not loosened this phase; the edge remains valid for articles only.)** |
 
 ### 4.3 Error states
 
@@ -245,7 +245,7 @@ Adding the `credentials` section triggers the following downstream updates, all 
 | Hydration mismatch | Default tab is Articles server-side; client switches to default on hydrate to avoid mismatch (Radix defaultValue handles this). |
 | Theme toggle | Panel recolors instantly via CSS variables; no JS re-render required. |
 | Static export (`out/explore.html`) | Articles rows and panel chrome are present as real text; tab list is present. |
-| Stale tests (4→5 sections) | The following tests/assertions must be renewed: `explore-shell.test.mjs` (4-section constant check, N/4 counter check), `explore-tour.test.mjs` (accent map 4 sections, N/4 counter check, 0/4 SSR check, welcome “four sections” copy). Update to expect 5 sections, N/5, 0/5, and “five sections” copy if the welcome body is updated. |
+| Stale tests (4→5 sections) | The following tests/assertions must be renewed: `explore-shell.test.mjs` (4-section constant check, N/4 counter check, **the drawer anchor-count test at :246 — still asserts 4 anchors**, **the chart-5/digit-accent absence checks at :345-346 — TEST-01 additions**), `explore-tour.test.mjs` (accent map 4 sections, N/4 counter check, 0/4 SSR check). Update to expect 5 sections, N/5, 0/5. **Tour copy (TOUR-01 resolution): the welcome body's “four sections” (constants.ts:130) updates to “five sections” — the copy must not lie; the corresponding test row renews with it.** |
 
 ## 10. Implementation Notes (for the planner)
 
@@ -268,7 +268,7 @@ Adding the `credentials` section triggers the following downstream updates, all 
 
 - **(UNRESOLVED)** Whether the Credentials panel’s tab list should use a subtle top border or a `bg-muted` pill background. The shadcn default `TabsList` uses `bg-muted p-1`; recommend keeping it unless taste review objects.
 - **(UNRESOLVED)** Exact row divider spacing (recommend 1px `border-b` between rows, no extra vertical gap, for the calm list aesthetic).
-- **(UNRESOLVED)** Whether to render certification ID-only entries as a single combined “date · ID” secondary line or split them. Recommend combined line to keep row height uniform.
+- **(RESOLVED — CERT-ID-01)** Certification ID-only entries render as a single combined secondary line: `date · ID` with a `·` separator (uniform row height preserved; the ID renders in `tabular-nums text-muted-foreground`).
 
 All other decisions are locked by this spec.
 ```
