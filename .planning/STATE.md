@@ -82,6 +82,7 @@ _No active phase._
 - Phase 11: SPEC.md sealed (ambiguity UNAVAILABLE)
 - Phase 11: CONTEXT.md sealed — 5 decisions
 - Phase 11: planned — 2 plan(s) across 2 wave(s).
+- Phase 11: plan 01 executed — RED acceptance suite `tests/credentials-panel.test.mjs` on record first (9745193, 15 assertion failures for absent behaviour), then GREEN typed featured flag + 5-section re-map + 3-tab CredentialsSection beside Projects (08333e3); typecheck + build + `node --test tests/credentials-panel.test.mjs` 19/19 on record. Six pre-existing suites are knowingly RED (explore-shell, explore-tour, explore-sweep, explore-visuals, explore-visuals-skills, portfolio-data-integrity) — plan 02 renews them; MERGE HOLD until plan 02's full-suite run is on record.
 
 ### Blockers / Concerns
 - Shipping decision (user, 2026-09-21): ship the milestone AS A WHOLE at milestone close — no per-phase PRs. phase-1 and phase-2 branches pushed to origin (backup only); gsd_ship deferred for both phases. phase-2 branch contains phase-1 commits (stacked).
