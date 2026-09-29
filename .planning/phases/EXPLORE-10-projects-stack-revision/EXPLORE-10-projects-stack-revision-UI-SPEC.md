@@ -1,5 +1,7 @@
 # Phase 10: projects-stack-revision — UI-SPEC
 
+> **SUPERSEDED:** the scroll-derived contract in this section — `cardState(cardIndex, carouselProgress)`, the sticky 300vh Projects wrapper, `main.scrollTo` keyboard stepping and resize remeasurement — was replaced by the user's live-review directive of 2026-09-25 (commit `b39b12c`). The delivered contract is the swipe-driven ring buffer: `cardState(cardIndex, frontIndex, count, reducedMotion)` at natural height. Read this section as history, not as implementation guidance.
+
 **Date:** 2026-09-25  
 **Design Read:** A developer-portfolio projects showcase for design-conscious recruiters, with an IDE/editorial language, leaning toward a curated stacked-card gallery inside the existing dark/light IDE shell.  
 **Dials:** `DESIGN_VARIANCE = 7`, `MOTION_INTENSITY = 7`, `VISUAL_DENSITY = 4`.  
@@ -9,20 +11,22 @@
 
 This phase replaces the phase-9 editorial rows inside `src/components/explore/sections/projects-section.tsx` with a scroll-driven stacked-card carousel.
 
-- **In scope:** the curated 6-card stack, the pure `cardState(cardIndex, carouselProgress)` geometry, generative IDE-language visuals, curated imperfection, in-card active info, keyboard + reduced-motion contracts, mobile simplified stack, stale-test renewal.
+- SUPERSEDED: **In scope:** the curated 6-card stack, the pure `cardState(cardIndex, carouselProgress)` geometry, generative IDE-language visuals, curated imperfection, in-card active info, keyboard + reduced-motion contracts, mobile simplified stack, stale-test renewal.
 - **Out of scope (locked):** image assets, new dependencies, Experience stage changes, data-file changes, CLI/resume/PDF changes, wheel/touch hijacking, token/chrome replacement.
 
 **Canonical downstream reads (must be read before implementation):**
 - `src/components/explore/sections/projects-section.tsx` — DOM order and tier split.
 - `src/components/explore/projects-row-state.ts` — the module this phase replaces.
 - `src/components/explore/viz-data.ts` — `firstSentence`, `projectStats`.
-- `src/components/explore/explore-panels.tsx:120-130` — the 300vh sticky wrapper and pinned shell.
+- SUPERSEDED: `src/components/explore/explore-panels.tsx:120-130` — the 300vh sticky wrapper and pinned shell.
 - `src/components/explore/panel-shell.tsx:46-65` — panel chrome and `mt-3` body gap.
 - `src/app/globals.css:499-586` — IDE shell tokens (dark/light).
 - `src/components/explore/sections/experience-section.tsx:131-229` — Prev/Next 44px control precedent.
 - `src/data/portfolio-main-data.json` — top-6 projects in data order.
 
 ## 2. Layout
+
+> **SUPERSEDED:** the scroll-derived contract in this section — `cardState(cardIndex, carouselProgress)`, the sticky 300vh Projects wrapper, `main.scrollTo` keyboard stepping and resize remeasurement — was replaced by the user's live-review directive of 2026-09-25 (commit `b39b12c`). The delivered contract is the swipe-driven ring buffer: `cardState(cardIndex, frontIndex, count, reducedMotion)` at natural height. Read this section as history, not as implementation guidance.
 
 ### 2.1 Regions & hierarchy
 
@@ -31,7 +35,7 @@ The Projects panel body keeps the **ProjectStatTiles** first and the **TerminalP
 DOM order (same as render order = tab order):
 
 1. `ProjectStatTiles` (`src/components/explore/sections/project-stat-tiles.tsx`) — unchanged, 3-up grid above the stage.
-2. **Stack stage** (`md+`) — sticky scroll-driven composition.
+2. SUPERSEDED: **Stack stage** (`md+`) — sticky scroll-driven composition.
 3. **Mobile stack** (`<md`) — simplified state-driven composition.
 4. `TerminalPointer command="projects --all"` — unchanged, last.
 
@@ -46,8 +50,8 @@ Reuse the existing pinned chain from `explore-panels.tsx`:
 
 | element | pinned recipe | notes |
 |---|---|---|
-| wrapper | `md:col-span-2 md:h-[300vh]` | the `data-editorial-wrapper` scroll target, unchanged |
-| shell | `md:sticky md:top-0 md:z-10 md:h-[calc(100dvh-10rem)]` | unchanged |
+| wrapper | `md:col-span-2 md:h-[300vh]` | SUPERSEDED: the `data-editorial-wrapper` scroll target, unchanged |
+| shell | `md:sticky md:top-0 md:z-10 md:h-[calc(100dvh-10rem)]` | SUPERSEDED: unchanged |
 | stage viewport | `hidden md:block h-[calc(100dvh-14.5rem)] overflow-hidden` | tunable U-item: adjust `-14.5rem` if the new control row needs more room; must leave space for stat tiles + controls |
 | card | `w-full max-w-[540px] max-h-full aspect-[4/3] rounded-lg border border-border bg-card mx-auto` | landscape card; visual area is the background; info panel overlays the bottom |
 
@@ -55,13 +59,15 @@ The stage viewport is the **one sanctioned overflow clip** for the stack — car
 
 ### 2.3 Mobile simplified stack (`<md`)
 
-- The 300vh wrapper and sticky shell are `md:`-scoped and do not apply below `md`.
+- SUPERSEDED: The 300vh wrapper and sticky shell are `md:`-scoped and do not apply below `md`.
 - Render a state-driven simplified stack inside a fixed-height container (`h-[420px]`, tunable U-item).
 - Active card is centered, scale `1`, opacity `1`; adjacent cards peek above/below with `±28px` offset, scale `0.94`, opacity `0.7`.
 - **Mobile contract details (W-11 pin): exactly 2 cards visible (active + ONE adjacent peek) — deeper cards are `visibility:hidden`; under reduced motion the peek/offset translations are REMOVED (opacity-only, cards static at their slots); the non-visible adjacent card is `aria-hidden` with `tabIndex={-1}` links — the same non-active a11y rule as desktop;** controls sit below the mobile container with the same Prev/Next 44px buttons and counter.
 - No horizontal scroll; 375px invariant holds; all content remains readable.
 
 ## 3. Stack geometry — the pure `cardState` function
+
+> **SUPERSEDED:** the scroll-derived contract in this section — `cardState(cardIndex, carouselProgress)`, the sticky 300vh Projects wrapper, `main.scrollTo` keyboard stepping and resize remeasurement — was replaced by the user's live-review directive of 2026-09-25 (commit `b39b12c`). The delivered contract is the swipe-driven ring buffer: `cardState(cardIndex, frontIndex, count, reducedMotion)` at natural height. Read this section as history, not as implementation guidance.
 
 ### 3.1 Signature
 
@@ -79,7 +85,7 @@ export interface CardState {
 
 export function cardState(
   cardIndex: number,
-  carouselProgress: number,
+  carouselProgress: number, // SUPERSEDED: retired scroll-derived progress — the delivered ring buffer advances frontIndex
   count: number,
   reducedMotion: boolean,
 ): CardState;
@@ -87,22 +93,22 @@ export function cardState(
 
 The function must have **zero runtime imports** so `node --test` can import it directly, following the `projects-row-state.ts` precedent.
 
-### 3.2 `carouselProgress` derivation
+### 3.2 SUPERSEDED: `carouselProgress` derivation
 
 A single framer-motion `scrollYProgress` MotionValue drives the whole stack:
 
 ```ts
-const progress = useScroll({
+const progress = useScroll({ // SUPERSEDED: retired scroll-derived progress — the delivered ring buffer advances frontIndex
   container: containerRef, // .explore-shell > main
   target: targetRef,         // [data-editorial-wrapper]
   offset: ['start start', 'end end'],
 }).scrollYProgress;
 ```
 
-`carouselProgress` is `clamp(progress.get(), 0, 1)`. The active center is:
+SUPERSEDED: `carouselProgress` is `clamp(progress.get(), 0, 1)`. The active center is:
 
 ```ts
-const activeCenter = (count - 1) * carouselProgress;
+const activeCenter = (count - 1) * carouselProgress; // SUPERSEDED: retired scroll-derived progress — the delivered ring buffer advances frontIndex
 const s = activeCenter - cardIndex; // signed offset from the active card
 const activeIndex = Math.round(activeCenter); // B-fix: THE active-card rule — counter, aria-live, Prev/Next disabled states, expanded panel all derive from this (floor/ceil rejected)
 ```
@@ -240,12 +246,14 @@ All visuals use only `hsl(var(--border))`, `hsl(var(--muted-foreground))`, `hsl(
 |---|---------|---------|-------------|
 | 0 | DeepIndex | `terminal-mock` | Rounded terminal frame. Top-left three 4px status dots; a `>` prompt line with a blinking cursor block; 5–6 pseudo-code/JSON snippet lines of varying `opacity` (1.0, 0.6, 0.4); a bottom status bar with segmented blocks and the word `READY`. |
 | 1 | Clarif-AI | `contract-analysis` | A document sheet with top header line and 6 horizontal text lines. Two clauses highlighted with a 2px-left accent bar. Two small warning triangles (`destructive` token) beside flagged lines. A right-side checklist column with empty and checked boxes. |
-| 2 | SDK4ED-TD | `architecture-diagram` | Four rounded rectangular nodes labeled `Collector`, `Analyzer`, `Report`, `DB` connected by straight arrows. Node sizes vary slightly. A small pie/gauge glyph in the bottom-right corner. |
-| 3 | ServicedMetricsCalculator | `metrics-dashboard` | Three number tiles at top; a bar chart with five bars of different heights; a simple line graph (polyline) below; grid tick marks. |
-| 4 | Avoid Traffic Extended | `route-map` | Stylized road grid: two vertical + two horizontal lines, four intersection dots, a highlighted route path in accent, a location pin glyph, a small compass rose. |
-| 5 | Uom Track | `report-table` | A table header row plus four data rows; two status pills; a small list/scroll indicator on the right; a map pin glyph above the table. |
+| 2 | SDK4ED-TD | `glyph` | Four rounded rectangular nodes labeled `Collector`, `Analyzer`, `Report`, `DB` connected by straight arrows. Node sizes vary slightly. A small pie/gauge glyph in the bottom-right corner. |
+| 3 | ServicedMetricsCalculator | `report` | Three number tiles at top; a bar chart with five bars of different heights; a simple line graph (polyline) below; grid tick marks. |
+| 4 | Avoid Traffic Extended | `network` | Stylized road grid: two vertical + two horizontal lines, four intersection dots, a highlighted route path in accent, a location pin glyph, a small compass rose. |
+| 5 | Uom Track | `dashboard` | A table header row plus four data rows; two status pills; a small list/scroll indicator on the right; a map pin glyph above the table. |
 
 Each visual is a deterministic function of the project name and is `aria-hidden`. The executor may tune exact pixel coordinates, but the anatomy above must remain recognizable and distinct.
+
+**Reconciliation (gap closure, 2026-09-29):** the variant column now carries the SHIPPED identifiers returned by `projectVisualVariant` (`glyph`, `report`, `dashboard`, `network`) — the drafted labels were not implemented. The composition column remains the anatomy record and the shipped components are the authority: `glyph` is the architecture-node diagram (SDK4ED-TD), `report` realizes row 3's metrics composition verbatim (three number tiles, five bars, polyline — ServicedMetricsCalculator), `network` is the road-grid/route composition (Avoid Traffic Extended). Row 5 diverges in anatomy as well as label: Uom Track ships the `dashboard` composition (a 2×2 KPI tile grid plus three progress bars); row 5's drafted report-table was not implemented and survives as drafting intent only.
 
 ### 4.5 Technologies chips
 
@@ -319,6 +327,8 @@ Under reduced motion, Prev/Next still scroll the main container to the target ba
 
 ## 6. Visual behaviour & motion
 
+> **SUPERSEDED:** the scroll-derived contract in this section — `cardState(cardIndex, carouselProgress)`, the sticky 300vh Projects wrapper, `main.scrollTo` keyboard stepping and resize remeasurement — was replaced by the user's live-review directive of 2026-09-25 (commit `b39b12c`). The delivered contract is the swipe-driven ring buffer: `cardState(cardIndex, frontIndex, count, reducedMotion)` at natural height. Read this section as history, not as implementation guidance.
+
 ### 6.1 Motion layers
 
 - **Primary:** card translateY / scale / opacity / z-index / rotation.
@@ -327,14 +337,14 @@ Under reduced motion, Prev/Next still scroll the main container to the target ba
 
 ### 6.2 Scroll-driven motion
 
-- All spatial motion derives continuously from `carouselProgress` through `cardState`.
+- SUPERSEDED: All spatial motion derives continuously from `carouselProgress` through `cardState`.
 - No springs, no bounce, no snap points, no wheel/touch listeners.
 - The single scroll source remains `.explore-shell > main`.
 - Scrolling forward peels the foreground upward and brings the next card forward; scrolling backward reverses the exact same motion.
 
 ### 6.3 Keyboard stepping motion
 
-Stepping sets `main.scrollTo({ top: targetScrollTop, behavior })` where:
+SUPERSEDED: Stepping sets `main.scrollTo({ top: targetScrollTop, behavior })` where:
 
 ```ts
 const targetProgress = targetIndex / (count - 1);
@@ -353,7 +363,7 @@ The scroll is the single source of truth; no direct state mutation.
 - **Single project (W-17 pin):** the stack stage is not pinned; render **one static card in the active-card design** — same dimensions, header with name/tagline, generative visual, expanded info panel fully visible — **without carousel chrome**: no controls, no behind-cards, no `activeAmount` animation (the panel renders at full expansion).
 - **Missing description/link/date:** graceful-hide per field — never invent fallback copy.
 - **Loading:** not applicable; data is static SSG.
-- **No-JS / SSR:** render the stack at `carouselProgress = 0`. The DeepIndex foreground card is real text/markup. Links are real anchors.
+- SUPERSEDED: **No-JS / SSR:** render the stack at `carouselProgress = 0`. The DeepIndex foreground card is real text/markup. Links are real anchors.
 
 ## 7. Accessibility
 
@@ -369,8 +379,8 @@ The scroll is the single source of truth; no direct state mutation.
 
 | case | expected behaviour |
 |---|---|
-| `projects.length === 0` | Section returns `null`; no sticky wrapper. |
-| `projects.slice(0,6).length <= 1` | `explore-panels.tsx` gate disables sticky wrapper; render a single static card. |
+| `projects.length === 0` | SUPERSEDED: Section returns `null`; no sticky wrapper. |
+| `projects.slice(0,6).length <= 1` | SUPERSEDED: `explore-panels.tsx` gate disables sticky wrapper; render a single static card. |
 | Missing `description` | Tagline empty; no description line. |
 | Missing `link` | Card is a static `div`; no link, no hover. |
 | Missing `date` | No date chip. |
@@ -378,7 +388,7 @@ The scroll is the single source of truth; no direct state mutation.
 | Mobile (`< 768px`) | Simplified state-driven stack; no horizontal scroll; 375px invariant. |
 | No JavaScript / static export | Stack renders at progress 0; foreground DeepIndex is real text. |
 | Theme switch | Token-driven colors adapt automatically. |
-| Resize | `ResizeObserver` on the stage remeasures geometry; motion values re-derive on next frame. |
+| Resize | SUPERSEDED: `ResizeObserver` on the stage remeasures geometry; motion values re-derive on next frame. |
 | Cleanup | Scroll listener, resize observer, keydown listener, and any pending rAF are removed on unmount. |
 
 ## 9. Stale-test renewal list
@@ -390,7 +400,7 @@ The phase-9 row contract is replaced; the following files/tests must be updated:
 - **Delete:** `tests/projects-editorial.test.mjs`.
 - **Create:** `src/components/explore/projects-card-state.ts` — exports `firstSentence`, `cardState`, `projectTechnologies`, `projectYear`.
 - **`projectYear` (W-10 pin): mirrors `rowYear` (projects-row-state.ts:122-125) — returns the first `19xx|20xx` match in the project's `date` string, or `null` when absent; consumed by the card's year chip (rendered only when non-null).**
-- **Mount gate (W-12 pin): the stage is `'use client'` with the editorial-stage mount pattern — `useEffect` gate on `document.querySelector('.explore-shell > main')` + `closest('[data-editorial-wrapper]')`, SSR fallback renders `carouselProgress = 0` (the DeepIndex foreground card), so hydration never mismatches.**
+- SUPERSEDED: **Mount gate (W-12 pin): the stage is `'use client'` with the editorial-stage mount pattern — `useEffect` gate on `document.querySelector('.explore-shell > main')` + `closest('[data-editorial-wrapper]')`, SSR fallback renders `carouselProgress = 0` (the DeepIndex foreground card), so hydration never mismatches.**
 - **Create:** `src/components/explore/sections/projects-stack-stage.tsx` — scroll-driven md+ stack.
 - **Create:** `src/components/explore/sections/projects-mobile-stack.tsx` — `<md` simplified stack.
 - **Update:** `src/components/explore/sections/projects-section.tsx` — import the new stage and mobile stack; keep stat tiles and pointer.
