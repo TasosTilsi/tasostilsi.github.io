@@ -158,7 +158,19 @@ test('explore-panels: skills closure carries competencies={data.core_competencie
     'the education-passing experience adapter (phase 9 REV-16 — the merged derivation feeds the stage)',
   );
   assert.ok(src.includes('projects: ({ data }) => <ProjectsSection projects={data.projects} />,'));
-  assert.equal((src.match(/\w+: \(\{ data \}\) => </g) || []).length, 4, 'exactly four adapter closures (D-04/D-07)');
+  assert.ok(
+    src.includes('credentials: ({ data }) => <CredentialsSection articles={data.articles} certifications={data.certifications} presentations={data.presentations} />,'),
+    'the credentials adapter threads the three featured collections into CredentialsSection (phase-11 REV-21/D-02)',
+  );
+  assert.ok(
+    src.includes("import { CredentialsSection } from './sections/credentials-section';"),
+    'CredentialsSection is imported by the registry module (phase-11 REV-21)',
+  );
+  assert.equal(
+    (src.match(/\w+: \(\{ data \}\) => </g) || []).length,
+    5,
+    'exactly five adapter closures — the registry is total over the 5-section grid (D-04/D-07; phase-11 REV-21)',
+  );
 });
 
 test('constants: skills tour step names the cards, no treemap copy anywhere (checker fix)', () => {
