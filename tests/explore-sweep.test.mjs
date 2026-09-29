@@ -48,8 +48,9 @@ test('sweep rows EXPLORE@375/768/1440/1920 (P): panels grid 1→2 cols with the 
     !src.includes('lg:grid-cols-3'),
     'lg tier drops from 3 to 2 columns (D-04) — no lg:grid-cols-3 anywhere',
   );
-  // placement whitelist (UI-SPEC §1.1/§13, phase-9 D-01 reflow): [About+Contact |
-  // Skills] / [Experience full-width] / [Projects full-width] — zero empty cells.
+  // placement whitelist (UI-SPEC §1.1/§13, phase-9 D-01 reflow + phase-11
+  // REV-21 fifth panel): [About+Contact | Skills] / [Experience full-width] /
+  // [Projects stack | Credentials] — zero empty cells.
   assert.equal(
     (src.match(/md:col-span-2/g) || []).length,
     1,
@@ -72,13 +73,13 @@ test('sweep rows EXPLORE@* (P): 3-row rebalance structure — order locked, span
   const sections = [...sectionsBlock.matchAll(/id: "([a-z]+)"/g)].map((m) => m[1]);
   assert.deepEqual(
     sections,
-    ['about', 'skills', 'experience', 'projects'],
-    'exactly 4 section ids in EXPLORE_SECTIONS — phase-9 reflow order LOCKED (D-01: About leads row 1; drawer/chips/stagger derive from it)',
+    ['about', 'skills', 'experience', 'projects', 'credentials'],
+    'exactly 5 section ids in EXPLORE_SECTIONS — phase-9 reflow order LOCKED (D-01: About leads row 1) + the phase-11 credentials append (REV-21: the row-3 sibling of the Projects stack)',
   );
   const src = read('src/components/explore/explore-panels.tsx');
   assert.ok(
     src.includes('md:grid-cols-2'),
-    '2 columns from md up (768/1440/1920) — rows: [About|Skills] / [EXP full-width] / [Projects full-width]',
+    '2 columns from md up (768/1440/1920) — rows: [About|Skills] / [EXP full-width] / [Projects stack | Credentials]',
   );
   assert.equal(
     (src.match(/md:col-span-2/g) || []).length,
@@ -131,7 +132,7 @@ test('sweep row EXPLORE@375 (P): grid-cols-1 base class present — single-colum
   const src = read('src/components/explore/explore-panels.tsx');
   assert.ok(
     src.includes('grid grid-cols-1 gap-4 md:grid-cols-2'),
-    'base grid-cols-1 before the md: modifier — 4 panels stack at 375px, zero empty cells',
+    'base grid-cols-1 before the md: modifier — 5 panels stack at 375px, zero empty cells',
   );
 });
 

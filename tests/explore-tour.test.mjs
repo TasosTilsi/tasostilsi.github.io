@@ -59,8 +59,9 @@ test('tour accents: one chip class per section, explore-panels ACCENTS values (U
       experience: 'bg-chart-2',
       skills: 'bg-chart-3',
       projects: 'bg-chart-4',
+      credentials: 'bg-chart-5',
     },
-    'chip accent map duplicated from explore-panels.tsx — 4 sections after the merge (REV-04/D-05)',
+    'chip accent map duplicated from explore-panels.tsx — 5 sections after the phase-11 append (REV-21)',
   );
 });
 
@@ -175,15 +176,19 @@ test('tour step bodies: no chart machinery mention in any body (REV-08/U-10, UI-
   );
 });
 
-test('welcome copy: the lap covers FOUR sections after the merge (D-05/OQ-9)', () => {
+test('welcome copy: the lap covers FIVE sections after the phase-11 append (UI-SPEC §9 TOUR-01)', () => {
   const welcome = EXPLORE_TOUR_STEPS[0].body;
+  // Deliberate copy INVERSION (phase-11 REV-21 / UI-SPEC §9 TOUR-01): the body
+  // claimed the retired panel count while the grid held four panels; the
+  // credentials append makes five, so the guard now requires the truthful count
+  // and bans the retired string. The copy must not lie about the panel count.
   assert.ok(
-    welcome.includes('four sections'),
-    'welcome body says "four sections" (REV-04)',
+    welcome.includes('five sections'),
+    'welcome body states the truthful panel count (REV-21)',
   );
   assert.ok(
-    !welcome.includes('five sections'),
-    'the stale "five sections" copy is gone',
+    !welcome.includes('four sections'),
+    'the retired panel-count copy is gone',
   );
 });
 
@@ -226,8 +231,9 @@ import {
 } from '../src/components/explore/tour-placement.ts';
 
 // Valid-id SET for parseVisitedIds — membership only, order-irrelevant to the
-// function; listed in the phase-9 DOM order for consistency (REV-14).
-const VALID_IDS = ['about', 'skills', 'experience', 'projects'];
+// function; listed in the phase-9 DOM order + the phase-11 credentials append
+// (REV-14; REV-21).
+const VALID_IDS = ['about', 'skills', 'experience', 'projects', 'credentials'];
 
 test('placeCard: below fits under the panel (§3 first branch)', () => {
   const out = placeCard({
@@ -598,14 +604,14 @@ test('tour auto-open: 800ms delayed, cancelled by pointerdown/keydown, suppresse
   );
 });
 
-test('status bar: LIVE N/4 counter fed by visitedCount, accent at 4/4 (§5, §12.7)', () => {
+test('status bar: LIVE N/5 counter fed by visitedCount, accent at 5/5 (§5, §12.7)', () => {
   const src = read('src/components/explore/explore-status-bar.tsx');
   assert.ok(src.includes('visitedCount'), 'visitedCount prop flows in (§5)');
   assert.ok(
     src.includes('${visitedCount}/${EXPLORE_SECTIONS.length} sections visited'),
     'live template string derives from EXPLORE_SECTIONS.length (§5)',
   );
-  assert.ok(src.includes('text-accent'), '4/4 celebration accent (E-13)');
+  assert.ok(src.includes('text-accent'), '5/5 celebration accent (E-13)');
   assert.ok(src.includes('aria-live="polite"'), 'existing live region untouched (§5)');
 });
 
@@ -627,8 +633,8 @@ test('export: literal-0 SSR counter + Tour button survive, overlay still absent 
   assert.ok(existsSync(exportHtmlPath), 'out/explore.html missing — run `npm run build` first');
   const html = readFileSync(exportHtmlPath, 'utf8');
   assert.ok(
-    html.includes('0/4 sections visited'),
-    'SSR renders the literal-0 initial state over 4 sections — hydration syncs after mount (§12.6, R-5; REV-04)',
+    html.includes('0/5 sections visited'),
+    'SSR renders the literal-0 initial state over 5 sections — hydration syncs after mount (§12.6, R-5; phase-11 REV-21)',
   );
   assert.ok(html.includes('aria-label="Start the guided tour"'), 'Tour button SSRs (§12.6)');
   assert.ok(!html.includes('data-tour-overlay'), 'overlay still client-mount-only (§12.6)');
