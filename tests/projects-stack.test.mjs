@@ -44,6 +44,37 @@ const data = JSON.parse(readFileSync(join(root, 'src/data/portfolio-main-data.js
 const top6 = data.projects.slice(0, 6);
 const COUNT = 6;
 
+/** The stage that owns the GenerativeVisual dispatch switch (read at test time). */
+const STACK_STAGE_PATH = join(root, 'src/components/explore/sections/projects-stack-stage.tsx');
+
+/**
+ * FROZEN curated per-project variant map (gap-closure plan 10-04, REV-19
+ * "6 distinct variants"). Declared ONCE here and keyed by project name so the
+ * expectation is always looked up from the real data set, never by position:
+ * a data reorder cannot silently pass. The module's CURATED_VARIANTS must
+ * agree with this map entry for entry, and plan 06 reconciles UI-SPEC §4.4's
+ * drafted variant labels to these shipped identifiers.
+ */
+const CURATED_VARIANTS = {
+  DeepIndex: 'terminal-mock',
+  'Clarif-AI': 'contract-analysis',
+  'SDK4ED-TD': 'glyph',
+  'ServicedMetricsCalculator': 'report',
+  'Avoid Traffic Extended': 'network',
+  'Uom Track': 'dashboard',
+};
+
+/** Every variant name the module can return: the curated six, which already
+ * cover the four-name hash fallback set (glyph / report / dashboard / network). */
+const ALL_VARIANTS = [
+  'terminal-mock',
+  'contract-analysis',
+  'glyph',
+  'report',
+  'dashboard',
+  'network',
+];
+
 const approx = (a, b, eps = 1e-9) => Math.abs(a - b) <= eps;
 
 /** Expected first sentence per UI-SPEC §4.2: up to the first period, period KEPT. */
@@ -171,7 +202,84 @@ test('djb2 and projectVisualVariant: stable, deterministic, flagship names pinne
   for (const p of top6) {
     assert.equal(projectVisualVariant(p.name), projectVisualVariant(p.name));
   }
+
+  // REV-19 acceptance: the six rendered cards carry six DISTINCT visuals. The
+  // failure message names the colliding group so a regression is self-explanatory.
+  const byVariant = new Map();
+  for (const p of top6) {
+    const v = projectVisualVariant(p.name);
+    byVariant.set(v, [...(byVariant.get(v) ?? []), p.name]);
+  }
+  const collisions = [...byVariant.entries()]
+    .filter(([, names]) => names.length > 1)
+    .map(([v, names]) => `${names.join(' + ')} -> '${v}'`)
+    .join('; ');
+  const distinct = new Set(top6.map((p) => projectVisualVariant(p.name)));
+  assert.equal(top6.length, 6, 'fixture expectation: the stack renders six cards');
+  assert.ok(
+    distinct.size === top6.length,
+    `REV-19 requires 6 distinct generative visuals, got ${distinct.size} of ${top6.length}${
+      collisions ? ` - COLLISION: ${collisions}` : ''
+    }`,
+  );
+
+  // Curated precedence: the frozen per-project table is the PRIMARY assignment,
+  // and the six entries are the contract - the executor never re-derives them.
+  for (const p of top6) {
+    assert.ok(
+      Object.prototype.hasOwnProperty.call(CURATED_VARIANTS, p.name),
+      `${p.name}: the frozen curated map must cover every top-6 project`,
+    );
+    assert.equal(
+      projectVisualVariant(p.name),
+      CURATED_VARIANTS[p.name],
+      `${p.name}: the curated entry takes precedence over the name hash`,
+    );
+  }
+  assert.equal(
+    Object.keys(CURATED_VARIANTS).length,
+    6,
+    'the frozen curated map carries exactly one entry per top-6 project',
+  );
+
+  // Determinism and membership: every returnable name is drawn from the set the
+  // stage can dispatch, and repeated calls are identical within the process.
+  for (const p of top6) {
+    const variant = projectVisualVariant(p.name);
+    assert.equal(variant, projectVisualVariant(p.name), `${p.name}: repeat call is identical`);
+    assert.ok(ALL_VARIANTS.includes(variant), `${p.name}: '${variant}' is a dispatchable variant name`);
+  }
+
+  // Hash fallback preserved: a name outside the curated six still resolves
+  // deterministically through djb2 % 4 - the fix narrows the hash, it does not
+  // delete it.
+  const uncurated = 'NotACuratedProject';
+  assert.ok(
+    !Object.prototype.hasOwnProperty.call(CURATED_VARIANTS, uncurated),
+    'fixture expectation: the probe name is not in the curated map',
+  );
+  const fallback = projectVisualVariant(uncurated);
+  assert.ok(variantSet.has(fallback), `uncurated name resolves to a hash variant, got '${fallback}'`);
+  assert.equal(fallback, ['glyph', 'report', 'dashboard', 'network'][djb2(uncurated) % 4]);
+  assert.equal(projectVisualVariant(uncurated), fallback, 'the hash fallback is stable across calls');
 });
+
+test('projectVisualVariant: every returnable variant has a renderer in the stage dispatch', () => {
+  const stageSource = readFileSync(STACK_STAGE_PATH, 'utf8');
+  const reachable = new Set([
+    ...top6.map((p) => projectVisualVariant(p.name)),
+    ...['glyph', 'report', 'dashboard', 'network'],
+  ]);
+  assert.ok(reachable.size >= 6, `expected at least the six variants, got ${reachable.size}`);
+  for (const variant of reachable) {
+    const probe = ['case', "'" + variant + "'" + ':'].join(' ');
+    assert.ok(
+      stageSource.includes(probe),
+      `GenerativeVisual must dispatch '${variant}' - a variant the module can return but the stage cannot render falls through to the default glyph visual`,
+    );
+  }
+});
+
 
 test('cardState: frontIndex 0 geometry — foreground card 0, behind cards 1..5', () => {
   const fg = cardState(0, 0, COUNT, false);
