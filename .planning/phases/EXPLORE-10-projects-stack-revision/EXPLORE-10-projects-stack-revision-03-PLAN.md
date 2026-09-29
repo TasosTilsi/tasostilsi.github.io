@@ -42,6 +42,8 @@ must_haves:
 ---
 
 <objective>
+> **SUPERSEDED:** do not re-derive this plan's wiring. This plan keeps the `data-editorial-wrapper` assertion because the retired scroll-driven stage used it as its `useScroll` target; that wiring was verified against the delivered tree as NOT_WIRED (phase-10 VERIFICATION gaps 2–5). The delivered contract is the swipe-driven ring buffer — `cardState(cardIndex, frontIndex, count, reducedMotion)`. This plan already executed and has a SUMMARY, so the executor skips it; if it is ever re-run, follow `EXPLORE-10-projects-stack-revision-06-PLAN.md`'s reconciliation, not this plan's `data-editorial-wrapper` assertion.
+
 Wire the new stack components into the Projects panel, retire the editorial-row machinery, retire the phase-9 <md compact card grid, and renew the cross-cutting integration tests so the framer-motion allowlist, gone-checks, and data-driven assertions match the delivered stack contract.
 </objective>
 

@@ -47,6 +47,8 @@ must_haves:
 ---
 
 <objective>
+> **SUPERSEDED:** do not re-derive this plan's wiring. This plan describes the retired scroll-driven stage (`useScroll` over the 300vh `[data-editorial-wrapper]` wrapper, `ResizeObserver` band re-measurement, `main.scrollTo` keyboard stepping). The DELIVERED contract is the swipe-driven ring buffer — `cardState(cardIndex, frontIndex, count, reducedMotion)` — implemented in `src/components/explore/sections/projects-stack-stage.tsx`. This plan already executed and has a SUMMARY, so the executor skips it; if it is ever re-run, read `EXPLORE-10-projects-stack-revision-06-PLAN.md` (which reconciles the contract documents) BEFORE implementing anything here, and never re-introduce `useScroll` / `[data-editorial-wrapper]` / `main.scrollTo`.
+
 Build the two stack presentations: the scroll-driven md+ framer-motion stage and the simplified <md state-driven stack. Both consume the same pure cardState module, the same 6-project data slice, and the same name-hash deterministic generative visual variant map. This plan is the visual/implementation core of the phase.
 </objective>
 
