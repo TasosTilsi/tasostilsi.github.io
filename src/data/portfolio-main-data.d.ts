@@ -46,6 +46,8 @@ export interface Presentation {
   name: string;
   description: string;
   framework: string;
+  /** Curated-surface flag, same typed mechanism as Certification/Article (phase-11 D-03). */
+  featured?: boolean;
   link: string;
   sourceUrl?: string;
   date: string;

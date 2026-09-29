@@ -20,6 +20,7 @@ export const EXPLORE_SECTIONS = [
   { id: "skills", label: "Skills" },
   { id: "experience", label: "Experience" },
   { id: "projects", label: "Projects" },
+  { id: "credentials", label: "Credentials" },
 ] as const;
 
 export type ExploreSectionId = (typeof EXPLORE_SECTIONS)[number]["id"];
@@ -64,13 +65,15 @@ export const EXPLORE_VISITED_STORAGE_KEY = "portfolio-explore-visited";
 /**
  * UI-SPEC §4 chip accent per section, for the tour's heading-row chip.
  * Duplicated from the module-private ACCENTS in explore-panels.tsx; both
- * maps narrowed to the 4 sections by the REV-04 merge (D-05).
+ * maps are TOTAL over ExploreSectionId — the phase-11 append widened them
+ * to 5 sections (credentials takes the chart-5 slot freed by REV-21).
  */
 export const EXPLORE_TOUR_ACCENTS: Record<ExploreSectionId, string> = {
   about: "bg-chart-1",
   experience: "bg-chart-2",
   skills: "bg-chart-3",
   projects: "bg-chart-4",
+  credentials: "bg-chart-5",
 };
 
 /**
@@ -127,7 +130,7 @@ export const EXPLORE_TOUR_STEPS: readonly TourStep[] = [
     sectionId: null,
     heading: "explore --tour",
     announce: "welcome",
-    body: "A 60-second lap of the four sections — Next and Back at your own pace, ESC whenever you're done. No timers.",
+    body: "A 60-second lap of the five sections — Next and Back at your own pace, ESC whenever you're done. No timers.",
   },
   {
     id: "about",

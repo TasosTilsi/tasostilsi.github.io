@@ -262,7 +262,8 @@
       "framework": "Slidev",
       "link": "https://tasostilsi.github.io/presentations/allure-reporting/",
       "sourceUrl": "https://github.com/TasosTilsi/presentations",
-      "date": "November 2025"
+      "date": "November 2025",
+      "featured": true
     }
   ],
   "articles": [

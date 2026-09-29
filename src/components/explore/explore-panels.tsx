@@ -2,7 +2,7 @@
  * ExplorePanels — the main-area panel grid (phase EXPLORE-02; phase-8 D-01
  * rebalance).
  *
- * Four panels from EXPLORE_SECTIONS in locked DOM order — About and Contact
+ * Five panels from EXPLORE_SECTIONS in locked DOM order — About and Contact
  * are merged into one panel (D-05: the contact panel's anatomy lives inside
  * AboutSection; the standalone Contact panel is gone) — each rendered through
  * the shared PanelShell chrome (stable section id + accent chip + label
@@ -21,14 +21,17 @@
  * the W-3 pair below; two sequential ranges, E-15). The order-first utility
  * RETIRED with the reflow — DOM order = tab order = visual order, the
  * speech-order caveat is gone. The index chips
- * (01 About · 02 Skills · 03 Experience · 04 Projects) and the entrance-
- * stagger nth-child delays re-derive from the array/DOM position — zero
- * literal renumbering. The placement map stays the data-driven Record keyed
- * by ExploreSectionId — no id-comparison conditional. EACH system's sticky
- * placements are conditional on its own data gate (W-3, the phase-9 pair):
- * experience on the selected-entry count (tech roles ∪ featured education,
- * the pure module's ONE derivation) > 1, projects on the top-6 slice > 1 —
- * ≤1 renders natural height with no sticky (E-1/E-2).
+ * (01 About · 02 Skills · 03 Experience · 04 Projects · 05 Credentials) and the
+ * entrance-stagger nth-child delays re-derive from the array/DOM position —
+ * zero literal renumbering. The placement map stays the data-driven Record
+ * keyed by ExploreSectionId — no id-comparison conditional. EACH system's
+ * sticky placements are conditional on its own data gate (W-3, the phase-9
+ * pair): experience on the selected-entry count (tech roles ∪ featured
+ * education, the pure module's ONE derivation) > 1, projects on the top-6
+ * slice > 1 — ≤1 renders natural height with no sticky (E-1/E-2).
+ * Phase 11 appends the Credentials panel as the 5th child: the existing plain
+ * 2-column split already places it beside the Projects stack at md+ (row 3)
+ * and below it at <md — no ratio, no order-* utility (LAYOUT-01).
  *
  * Responsive grid: 1 column base, 2 columns from md up, gutters widen
  * gap-4 → gap-5 at the lg tier ONLY (D-02, UI-SPEC §1.2 — no max-width
@@ -40,7 +43,7 @@
  * the <main> scrollport.
  *
  * The panel-grid class is the DOM hook the phase-3 entrance stagger targets
- * (UI-SPEC §6.2): four grid children in DOM order (the wrapper counts as
+ * (UI-SPEC §6.2): five grid children in DOM order (the wrapper counts as
  * one), animated purely by CSS keyframes in globals.css under the
  * .explore-shell scope — zero JSX animation wiring, SSG-safe.
  *
@@ -57,17 +60,19 @@ import { EXPLORE_SECTIONS, type ExploreSectionId } from './constants';
 import { selectTimelineEntries } from './timeline-geometry';
 import { PanelShell } from './panel-shell';
 import { AboutSection } from './sections/about-section';
+import { CredentialsSection } from './sections/credentials-section';
 import { ExperienceSection } from './sections/experience-section';
 import { ProjectsSection } from './sections/projects-section';
 import { SkillsSection } from './sections/skills-section';
 import type { PortfolioData } from '@/data/portfolio-main-data';
 
-/** Chip accent per section order: About=chart-1 … Projects=chart-4 (UI-SPEC §6). */
+/** Chip accent per section order: About=chart-1 … Projects=chart-4, Credentials=chart-5 (UI-SPEC §6/§2.2). */
 const ACCENTS: Record<ExploreSectionId, string> = {
   about: 'bg-chart-1',
   experience: 'bg-chart-2',
   skills: 'bg-chart-3',
   projects: 'bg-chart-4',
+  credentials: 'bg-chart-5',
 };
 
 type SectionBodyProps = { data: PortfolioData };
@@ -77,14 +82,15 @@ type SectionBodyProps = { data: PortfolioData };
  * whole PortfolioData. Adapters map the whole data object to each
  * section's slice prop, so a bare component literal would not typecheck —
  * the closure form is the pinned registry shape (plan 01 task 1). Total
- * since the REV-04 merge: four closures over four sections, no fallback
- * body path (D-04/D-05).
+ * since the REV-04 merge — five closures over five sections (phase-11 D-04
+ * appended Credentials), no fallback body path (D-04/D-05).
  */
 const SECTION_BODIES: Record<
   ExploreSectionId,
   ComponentType<SectionBodyProps>
 > = {
   about: ({ data }) => <AboutSection about={data.about} />,
+  credentials: ({ data }) => <CredentialsSection articles={data.articles} certifications={data.certifications} presentations={data.presentations} />,
   experience: ({ data }) => <ExperienceSection experience={data.experience} education={data.education} />,
   projects: ({ data }) => <ProjectsSection projects={data.projects} />,
   skills: ({ data }) => <SkillsSection skills={data.skills} competencies={data.core_competencies} />,
@@ -115,6 +121,7 @@ function buildPlacement(
     },
     skills: { wrapper: '', shell: '', gate: false },
     projects: { wrapper: '', shell: '', gate: false },
+    credentials: { wrapper: '', shell: '', gate: false },
   };
 }
 

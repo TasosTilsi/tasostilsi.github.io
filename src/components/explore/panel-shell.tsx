@@ -9,7 +9,7 @@
  * body gap, UI-SPEC §3).
  *
  * D-02 hierarchy device (EXPLORE-07 plan 02, UI-SPEC §5): the header row
- * gains a quiet oversized mono index (01–04) at its right end — aria-hidden,
+ * gains a quiet oversized mono index (01–05) at its right end — aria-hidden,
  * zero-padded by the sole caller (explore-panels.tsx) from the
  * EXPLORE_SECTIONS map index, no literals in JSX. Drawer items, tour card
  * headings and the status bar are explicitly out of scope (UI-SPEC §5).

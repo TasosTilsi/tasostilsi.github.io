@@ -40,6 +40,7 @@ const DIGIT_ACCENTS: Record<ExploreSectionId, string> = {
   experience: 'text-chart-2',
   skills: 'text-chart-3',
   projects: 'text-chart-4',
+  credentials: 'text-chart-5',
 };
 
 export function ExploreDrawer({ trigger }: { trigger: ReactNode }) {
