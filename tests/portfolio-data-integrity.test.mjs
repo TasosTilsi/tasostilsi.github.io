@@ -110,6 +110,12 @@ const PRE_FAVORITE_GAMES = {
   racing_games: ['Grand Turismo', 'Need for Speed', 'F1'],
 };
 
+// Ledger fixture RENEWED (phase-11 REV-21 / D-03 / R-7): the presentations
+// collection gained a typed featured flag on its single entry in the same
+// commit as the .d.ts. The nothing-deleted ledger below still strict-deep-equals
+// the whole presentations collection against this fixture — a deliberate typed
+// ADDITION, not a deletion — so the fixture mirrors the new contract while the
+// assertion itself stays untouched and unweakened.
 const PRE_PRESENTATIONS = [
   {
     name: "Boosting Your Team's Clarity with Allure Reporting",
@@ -118,6 +124,7 @@ const PRE_PRESENTATIONS = [
     link: 'https://tasostilsi.github.io/presentations/allure-reporting/',
     sourceUrl: 'https://github.com/TasosTilsi/presentations',
     date: 'November 2025',
+    featured: true,
   },
 ];
 

@@ -24,11 +24,12 @@ const exportHtml = join(root, 'out/explore.html');
 // Task 1: tracer — route, IDE frame skeleton, dark token block, status bar
 // ---------------------------------------------------------------------------
 
-test('constants: 4 locked sections after the About+Contact merge, disjoint theme key, breadcrumb strings', () => {
+test('constants: 5 locked sections after the About+Contact merge, disjoint theme key, breadcrumb strings', () => {
   const src = read('src/components/explore/constants.ts');
-  // Membership over the 4 locked ids (order-irrelevant to this check);
-  // listed in the phase-9 reflow order for consistency (REV-14/D-01).
-  for (const id of ['about', 'skills', 'experience', 'projects']) {
+  // Membership over the 5 locked ids (order-irrelevant to this check);
+  // listed in the phase-9 reflow order + the phase-11 Credentials append
+  // (REV-14/D-01; phase-11 REV-21).
+  for (const id of ['about', 'skills', 'experience', 'projects', 'credentials']) {
     assert.ok(src.includes(`id: "${id}"`), `section ${id} locked (D-01)`);
   }
   assert.ok(
@@ -76,7 +77,7 @@ test('header: 52px bar, window glyphs, truncating data-driven title', () => {
   assert.ok(src.includes('{name}') || src.includes('name'), 'renders name prop');
 });
 
-test('status bar: breadcrumb + live theme label + LIVE N/4 counter', () => {
+test('status bar: breadcrumb + live theme label + LIVE N/5 counter', () => {
   const src = read('src/components/explore/explore-status-bar.tsx');
   assert.ok(src.includes('EXPLORE_STATUS_USER'), 'breadcrumb user from constants');
   assert.ok(src.includes('EXPLORE_STATUS_PATH'), 'breadcrumb path from constants');
@@ -89,7 +90,7 @@ test('status bar: breadcrumb + live theme label + LIVE N/4 counter', () => {
     'no literal-0 counter remains — the stale assertion is superseded (R-4 renewal)',
   );
   assert.ok(src.includes('visitedCount'), 'visitedCount prop flows in (UI-SPEC §5)');
-  assert.ok(src.includes('text-accent'), '4/4 celebration accent branch (E-13)');
+  assert.ok(src.includes('text-accent'), '5/5 celebration accent branch (E-13)');
   assert.ok(src.includes('aria-live="polite"'), 'right group announces (UI-SPEC §7)');
 });
 
@@ -243,12 +244,12 @@ test('drawer: composes Sheet side="left" with portal-safe explore-shell class', 
   assert.ok(!code.includes('max-w-'), 'no width overrides — default left variant pinned');
 });
 
-test('drawer: 4 anchor items from EXPLORE_SECTIONS, 44px targets, per-id chart digits (REV-14 D-01)', () => {
+test('drawer: 5 anchor items from EXPLORE_SECTIONS, 44px targets, per-id chart digits (REV-14 D-01; phase-11 REV-21)', () => {
   const src = read('src/components/explore/explore-drawer.tsx');
   assert.ok(src.includes('EXPLORE_SECTIONS'), 'items derive from the locked constant');
   assert.ok(src.includes('`#${section.id}`'), 'anchor hrefs derived from section ids');
   assert.ok(src.includes('min-h-[44px]'), 'real px touch targets (EXPLORE-06)');
-  assert.ok(src.includes('padStart(2'), 'leading index digits 01…04');
+  assert.ok(src.includes('padStart(2'), 'leading index digits 01…05');
   assert.ok(src.includes('aria-hidden'), 'digits decorative (W-3 fix)');
   // Per-id accent Record (REV-14/OQ-7): digits follow the SECTION, not the
   // position — a positional array would hand Skills (item 02) Experience's
@@ -266,7 +267,13 @@ test('drawer: 4 anchor items from EXPLORE_SECTIONS, 44px targets, per-id chart d
   assert.ok(src.includes("experience: 'text-chart-2'"), 'experience digit accent chart-2 (per-id)');
   assert.ok(src.includes("skills: 'text-chart-3'"), 'skills digit accent chart-3 (per-id)');
   assert.ok(src.includes("projects: 'text-chart-4'"), 'projects digit accent chart-4 (per-id)');
-  assert.ok(!src.includes('text-chart-5'), 'no chart-5 digit — 4 sections after the merge (REV-04/E-14)');
+  // Contract INVERSION (phase-11 REV-21): the chart-5 slot was forbidden while
+  // the grid held 4 sections; the Credentials panel now OWNS it, so the digit
+  // accent is required, not banned.
+  assert.ok(
+    src.includes("credentials: 'text-chart-5'"),
+    'credentials digit accent chart-5 — the 5th section (phase-11 REV-21/D-04)',
+  );
   assert.ok(src.includes('hover:bg-sidebar-accent'), 'item hover state (UI-SPEC §5)');
   assert.ok(src.includes('tabular-nums'), 'digit numerals');
 });
@@ -342,8 +349,13 @@ test('panels: responsive grid rebalance — placement whitelist, per-section cha
   const src = read('src/components/explore/explore-panels.tsx');
   assert.match(src, /grid-cols-1 gap-4 md:grid-cols-2/, '1/2-col grid (REV-04/D-04)');
   assert.ok(!src.includes('lg:grid-cols-3'), 'lg tier drops to 2 columns (D-04)');
-  for (let i = 1; i <= 4; i++) assert.ok(src.includes(`chart-${i}`), `accent mapping chart-${i}`);
-  assert.ok(!src.includes('chart-5'), 'no chart-5 accent — 4 sections only (D-05)');
+  for (let i = 1; i <= 5; i++) assert.ok(src.includes(`chart-${i}`), `accent mapping chart-${i}`);
+  // Contract INVERSION (phase-11 REV-21): chart-5 was forbidden at 4 sections;
+  // ACCENTS now maps the append-only 5th section onto it.
+  assert.ok(
+    src.includes("credentials: 'bg-chart-5'"),
+    'credentials chip accent bg-chart-5 — the 5th section (phase-11 REV-21/D-04)',
+  );
   assert.ok(!src.includes('EXPLORE_PANEL_HUMOR'), 'humor constant gone (plan 02, D-06)');
   assert.ok(src.includes('<PanelShell'), 'shared §3 chrome composed');
   assert.ok(src.includes('SECTION_BODIES'), 'bodies from total registry (plan 02)');
@@ -444,7 +456,7 @@ test('static export: /explore IDE frame emitted into out/explore.html', () => {
   assert.ok(html.includes('Anastasios Tilsizoglou'), 'data-driven name (EXPLORE-07)');
   assert.ok(html.includes('guest@tasostilsi'), 'breadcrumb user');
   assert.ok(html.includes(':~/explore'), 'breadcrumb path');
-  assert.ok(html.includes('0/4 sections visited'), 'static counter over 4 sections (D-03; REV-04)');
+  assert.ok(html.includes('0/5 sections visited'), 'static counter over 5 sections (D-03; phase-11 REV-21)');
   assert.match(
     html,
     /classList\.remove\(["']dark["'],\s*["']light["']\)/,

@@ -311,7 +311,7 @@ test('cross-cutting: zero stat literals — no standalone 14/9/2016/2026 drives 
   }
 });
 
-test('cross-cutting: registry spine — four total closures after the merge, skills carries competencies (D-04/D-05/D-07, plan 04)', () => {
+test('cross-cutting: registry spine — five total closures after the merge, skills carries competencies (D-04/D-05/D-07, phase-11 REV-21)', () => {
   const src = read('src/components/explore/explore-panels.tsx');
   assert.ok(
     src.includes('skills: ({ data }) => <SkillsSection skills={data.skills} competencies={data.core_competencies} />,'),
@@ -327,10 +327,18 @@ test('cross-cutting: registry spine — four total closures after the merge, ski
     'the education-passing experience adapter (phase 9 REV-16 — the merged derivation feeds the stage)',
   );
   assert.ok(src.includes('projects: ({ data }) => <ProjectsSection projects={data.projects} />,'));
+  assert.ok(
+    src.includes('credentials: ({ data }) => <CredentialsSection articles={data.articles} certifications={data.certifications} presentations={data.presentations} />,'),
+    'the credentials adapter threads the three featured collections into CredentialsSection (phase-11 REV-21/D-02)',
+  );
+  assert.ok(
+    src.includes("credentials: 'bg-chart-5'"),
+    'credentials chip accent bg-chart-5 — the append-only 5th section takes the freed slot (UI-SPEC §2.2/§7)',
+  );
   assert.equal(
     (src.match(/\w+: \(\{ data \}\) => </g) || []).length,
-    4,
-    'exactly four adapter closures — the registry is total over the 4-section grid (D-04/D-07)',
+    5,
+    'exactly five adapter closures — the registry is total over the 5-section grid (D-04/D-07; phase-11 REV-21)',
   );
 });
 
@@ -762,7 +770,7 @@ test('export: stat tiles server-rendered with JSON-derived values (OQ-1/U-1 — 
   }
 });
 
-test('export: the four panel headers render the aria-hidden mono index spans 01-04 (UI-SPEC §5/§10.6, D-02)', () => {
+test('export: the five panel headers render the aria-hidden mono index spans 01-05 (UI-SPEC §5/§10.6, D-02; phase-11 REV-21)', () => {
   assert.ok(existsSync(exportHtmlPath), 'out/explore.html missing — run `npm run build` first');
   const html = readExport();
   // The class signature keeps the assertion off the drawer's decorative
@@ -771,8 +779,8 @@ test('export: the four panel headers render the aria-hidden mono index spans 01-
     html.match(
       /aria-hidden="true" class="ml-auto select-none font-mono text-2xl font-medium leading-none tabular-nums text-muted-foreground\/50">[0-9]{2}<\/span>/g,
     ) || [];
-  assert.equal(spans.length, 4, `exactly four panel index spans render — found ${spans.length}`);
-  ['01', '02', '03', '04'].forEach((digits, i) => {
+  assert.equal(spans.length, 5, `exactly five panel index spans render — found ${spans.length}`);
+  ['01', '02', '03', '04', '05'].forEach((digits, i) => {
     assert.ok(
       spans.some((s) => s.endsWith(`>${digits}</span>`)),
       `panel #${i + 1} carries the zero-padded index ${digits}`,
