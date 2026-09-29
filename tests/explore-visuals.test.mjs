@@ -613,13 +613,15 @@ test('motion: hover/focus/active vocabulary — lift+bloom, nudge, underline par
   );
   const exploreFiles = readdirSync(join(root, 'src/components/explore'), { recursive: true })
     .filter((f) => /\.(tsx|ts)$/.test(f));
-  // Phase-9 dual-engine renewal (plan 04, D-05 — renewed, never deleted): the
-  // vocabulary stays CSS-only for DISCRETE color motion, with two sanctioned
-  // JS engines now — the hand-rolled rAF channels (pinned below) and the
-  // projects editorial scroll's framer-motion stage. The '.animate('/'gsap'/
-  // 'lottie' universal bans continue over EVERY explore .ts/.tsx unchanged;
-  // the framer-motion ban becomes the ALLOWLIST — the editorial stage is the
-  // ONE import site (it must contain it), every other file bans it.
+  // Phase-9 dual-engine renewal (plan 04, D-05 — renewed, never deleted;
+  // re-worded by phase-10 REV-21 when the projects stage became the
+  // swipe-driven stack): the vocabulary stays CSS-only for DISCRETE color
+  // motion, with two sanctioned JS engines now — the hand-rolled rAF channels
+  // (pinned below) and the projects swipe-driven stack stage. The '.animate('/
+  // 'gsap'/'lottie' universal bans continue over EVERY explore .ts/.tsx
+  // unchanged; the framer-motion ban becomes the ALLOWLIST — the
+  // swipe-driven stack stage is the ONE framer-motion import site (it must
+  // contain it), every other file bans it.
   for (const banned of ['.animate(', 'gsap', 'lottie']) {
     for (const rel of exploreFiles) {
       const src = codeOf(join('src/components/explore', rel));
@@ -967,7 +969,7 @@ test('EXPLORE-10 invariant (REV-21): projects stack is swipe-driven, centered, l
   assert.ok(stack.includes('aria-label="Next project"'), 'Next button aria-label present');
   assert.ok(stack.includes('drag=') && stack.includes("'x'"), 'foreground card is draggable along x');
   assert.ok(stack.includes('swipeAccepts'), 'stack uses the pinned swipe-decision helper');
-  assert.ok(stack.includes('projectVisualVariant'), 'generative visuals selected by the name-hash helper');
+  assert.ok(stack.includes('projectVisualVariant'), 'generative visuals selected by the curated per-project table (name-hash fallback for uncurated names)');
   assert.ok(stack.includes('overflow-visible'), 'stack container/card allows shadow overflow (not clipped)');
   assert.ok(
     stack.includes('--panel-shadow-hover') || stack.includes('boxShadow'),

@@ -16,19 +16,30 @@
  * Phase-9 grid reflow (REV-14, D-01, UI-SPEC §1.1): the DOM order IS the
  * visual order — EXPLORE_SECTIONS is reordered to [about, skills, experience,
  * projects], so About+Contact and Skills lead row 1, Experience lands
- * full-width row 2 and Projects spans row 3, EACH now carrying its own
- * sticky range (wrapper span-2 + extended height, shell pinned inside it —
- * the W-3 pair below; two sequential ranges, E-15). The order-first utility
+ * full-width row 2 and Projects spans row 3. The phase-9 per-panel sticky
+ * pairs were later NARROWED: only the Experience panel keeps the extended
+ * sticky range (its wrapper spans both grid columns at the 300vh extended
+ * height, its shell pinning with the sticky pair below), so exactly ONE
+ * extended range remains in the grid. The order-first utility
  * RETIRED with the reflow — DOM order = tab order = visual order, the
  * speech-order caveat is gone. The index chips
  * (01 About · 02 Skills · 03 Experience · 04 Projects · 05 Credentials) and the
  * entrance-stagger nth-child delays re-derive from the array/DOM position —
  * zero literal renumbering. The placement map stays the data-driven Record
- * keyed by ExploreSectionId — no id-comparison conditional. EACH system's
- * sticky placements are conditional on its own data gate (W-3, the phase-9
- * pair): experience on the selected-entry count (tech roles ∪ featured
- * education, the pure module's ONE derivation) > 1, projects on the top-6
- * slice > 1 — ≤1 renders natural height with no sticky (E-1/E-2).
+ * keyed by ExploreSectionId — no id-comparison conditional. The ONLY
+ * data gate left is the Experience one (W-3, amended by phase-10 REV-21):
+ * experienceGate keys on the selected-entry count (tech roles ∪ featured
+ * education, the pure module's ONE derivation) > 1, while about, skills,
+ * projects and credentials each carry `{ wrapper: '', shell: '', gate:
+ * false }`, i.e. no sticky range; Projects renders at natural height. That
+ * is the phase-10 REV-21 fact: Projects returned to natural height when the
+ * panel became the swipe-driven ring-buffer stack (user directive
+ * 2026-09-25, quick task `2026-09-25-projects-swipe-loop-stack`, commit
+ * b39b12c). The `data-editorial-wrapper="true"` attribute still rides every
+ * grid child (test-pinned at tests/explore-visuals.test.mjs:945) but is read
+ * by NO file under src/ — the Experience stage's hand-rolled hook measures
+ * `.explore-shell > main` instead (MAIN_SELECTOR, use-timeline-progress.ts:104).
+ * ≤1 selected entry still renders natural height with no sticky (E-1/E-2).
  * Phase 11 appends the Credentials panel as the 5th child: the existing plain
  * 2-column split already places it beside the Projects stack at md+ (row 3)
  * and below it at <md — no ratio, no order-* utility (LAYOUT-01).
@@ -104,8 +115,8 @@ const SECTION_BODIES: Record<
  * swipe-driven stage as a centered block. About and Skills occupy one cell
  * each in row 1. Every value is md:-scoped (R-9). R-3: any wrapper stays a
  * plain div with NO id — the tour hole, the IO threshold and the drawer
- * anchors measure the sticky section by its stable id; the Experience wrapper
- * carries the stage's scroll-target data attribute.
+ * anchors measure the sticky section by its stable id; the wrapper's
+ * data-editorial-wrapper attribute is a stable hook nothing under src/ reads.
  */
 function buildPlacement(
   data: PortfolioData,
@@ -150,10 +161,13 @@ export function ExplorePanels({ data }: { data: PortfolioData }) {
         if (!placement.wrapper) {
           return shell;
         }
-        // R-3: plain wrapper — no id, no chrome; the scroll-target data
-        // attribute below is the Experience stage's useScroll target. The
-        // entrance stagger animates it as the grid child; the sticky section
-        // inside keeps the stable section id the tour/IO/drawer flows measure.
+        // R-3: plain wrapper — no id, no chrome. The data-editorial-wrapper
+        // attribute below is a stable grid-child hook that NO file under src/
+        // reads; the Experience stage's hand-rolled hook measures
+        // `.explore-shell > main` instead (MAIN_SELECTOR,
+        // use-timeline-progress.ts:104). The entrance stagger animates it as
+        // the grid child; the sticky section inside keeps the stable section
+        // id the tour/IO/drawer flows measure.
         return (
           <div
             key={section.id}
