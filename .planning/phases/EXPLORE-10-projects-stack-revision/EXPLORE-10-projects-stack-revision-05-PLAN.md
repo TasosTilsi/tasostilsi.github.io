@@ -2,7 +2,7 @@
 phase: 10-projects-stack-revision
 plan: 05
 type: tdd
-wave: 2
+wave: 4
 depends_on:
   - "EXPLORE-10-projects-stack-revision-04"
   - "EXPLORE-10-projects-stack-revision-02"
@@ -17,7 +17,8 @@ user_setup: []
 must_haves:
   truths:
     - "Reduced motion on the Projects stack is mount-gated: the RM preference read from matchMedia is applied only after a mount-only effect flips a mounted flag, so the first client render reproduces the server's non-RM geometry and a user with OS reduced motion ON gets no hydration style mismatch or first-paint flash (after mount the RM contract takes over unchanged: opacity/zIndex swaps, zero translate/scale/rotation)."
-    - "Non-active cards are expressed by a real attribute only: the card className no longer carries the no-op 'aria-hidden' class token, while the aria-hidden prop stays on every non-front card."
+    - "Consequence (W-6 demoted from truth): no stray 'aria-hidden' class token is emitted in the RENDERED card markup — the class name disappears from the delivered DOM while the real aria-hidden attribute stays on every non-front card."
+    - "Consequence (W-6 demoted from truth): no hydration mismatch and no first-paint RM flash for a reduced-motion user (the observable outcome of the mount gate)."
     - "explore-panels.tsx documents the delivered placement map — only Experience carries the extended sticky range and its data gate; Projects renders at natural height with the swipe-driven stack; data-editorial-wrapper stays on every grid child as a test-pinned hook that NO file in src/ reads (the Experience stage measures .explore-shell > main through its hand-rolled hook, use-timeline-progress.ts:104)."
     - "The dual-engine comment in tests/explore-visuals.test.mjs names the swipe-driven stack stage (not the retired editorial stage) as the single framer-motion import site, so the allowlist's stated rationale matches the allowlist."
     - "The variant-selection assertion message in tests/explore-visuals.test.mjs names the curated per-project table as the primary selector with the name-hash as fallback, so the suite's stated contract matches the module plan 04 delivers (the assertion predicate stays untouched)."
@@ -140,7 +141,7 @@ This plan declares `depends_on` plan 02 as well as plan 04 (both are wave-2 edit
     <action>
       Edit `src/components/explore/sections/projects-stack-stage.tsx` only. No new imports are needed — line 24 already imports `useEffect, useMemo, useRef, useState` from 'react'.
 
-      1. Hydration parity (AP-3, per D-05 — the reduced-motion clause of the interaction-quality contract). Inside `ProjectsSwipeStack` (the function starting at line 535), replace the single line 537 `const reducedMotion = useReducedMotion() ?? false;` with three statements:
+      1. Hydration parity (AP-3, per D-05 — the reduced-motion clause of the interaction-quality contract). Inside `ProjectsSwipeStack` (the function starting at line 535), replace the single line 537 `const reducedMotion = useReducedMotion() ?? false;` with three statements (W-1 wording note: the prescribed explanatory comment must say "framer's useReducedMotion hook" WITHOUT the call parenthesisation, so the acceptance's single-direct-code-read count stays 1):
          - a mount flag: `const [mounted, setMounted] = useState(false);`
          - the raw detection kept under its own name: `const prefersReduced = useReducedMotion() ?? false;`
          - the gated value consumed by the rest of the component: `const reducedMotion = mounted ? prefersReduced : false;`
@@ -188,7 +189,7 @@ This plan declares `depends_on` plan 02 as well as plan 04 (both are wave-2 edit
     <acceptance_criteria>
       - All twelve grep counts above return exactly the expected values.
       - `npm run typecheck` exits 0 and `node --test tests/*.test.mjs` exits 0 with zero failures and zero skips (this run is the last action before the commit).
-      - `git diff --stat` for this commit touches only `src/components/explore/explore-panels.tsx` and `tests/explore-visuals.test.mjs`.
+      - `git diff --stat` for this commit touches only `src/components/explore/explore-panels.tsx` and `tests/explore-visuals.test.mjs` **(W-4 precondition: at task start the tree is clean except this task's edits; no interleaved commits between waves — the check scopes to this task's own commit via `git show --stat HEAD`)**.
       - Non-comment changes in this commit are limited to exactly one line: the assertion message at `tests/explore-visuals.test.mjs:970`. Every other added/removed line is inside a comment (JSDoc `*` block or `//` line) — check with `git diff -U0` and confirm that the only changed line carrying code tokens is the one whose content includes `generative visuals selected by the curated per-project table`.
     </acceptance_criteria>
     <done>Hygiene commit landed: chore(10-05): align panel-grid, dual-engine and variant-selector records with the delivered stack.</done>

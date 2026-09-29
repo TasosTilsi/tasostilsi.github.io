@@ -2,7 +2,7 @@
 phase: 10-projects-stack-revision
 plan: 04
 type: tdd
-wave: 1
+wave: 2
 depends_on:
   - "EXPLORE-10-projects-stack-revision-01"
 files_modified:
@@ -169,7 +169,7 @@ Dependency note: this plan declares `depends_on` plan 01, so the executor is han
       - `grep -c "HASH_VARIANTS\[djb2(projectName) % 4\]" src/components/explore/projects-card-state.ts` returns 1 (the fallback survives).
       - `grep -c "UI-SPEC §4.4" src/components/explore/projects-card-state.ts` returns at least 1 and `grep -c "anatomy" src/components/explore/projects-card-state.ts` returns at least 1 (the identifier/anatomy reconciliation and the divergence are recorded in the module docstring).
       - `grep -c "^import\|require(" src/components/explore/projects-card-state.ts` returns 0 (zero runtime imports preserved).
-      - The retired-contract guard holds in the module: `grep -c "carouselProgress\|LEAVE_EXTRA\|activeCenter" src/components/explore/projects-card-state.ts` returns 0 (UI-SPEC §3's retired formulas were not re-applied) AND `grep -c "frontIndex" src/components/explore/projects-card-state.ts` returns at least 2 (the delivered `cardState(cardIndex, frontIndex, count, reducedMotion)` signature is untouched).
+      - The retired-contract guard holds in the module (B-3 corrected form): `grep -nE "carouselProgress|LEAVE_EXTRA|activeCenter" src/components/explore/projects-card-state.ts | grep -vE ":[[:space:]]*(\*|//)"` returns **0** (only comment lines carry the retired names — the line-12 changelog entry is HISTORY and **must survive**) AND `grep -c "frontIndex" src/components/explore/projects-card-state.ts` returns at least 2 (the delivered `cardState(cardIndex, frontIndex, count, reducedMotion)` signature is untouched).
       - Post-build spot check: `grep -o "query_context" out/explore.html` still matches (the DeepIndex terminal mock still renders in the static export) and all six project names still appear in `out/explore.html`.
     </acceptance_criteria>
     <done>GREEN commit landed: fix(10-04): curated variant table primary, name-hash fallback — six distinct visuals, full gate green and chronologically last.</done>

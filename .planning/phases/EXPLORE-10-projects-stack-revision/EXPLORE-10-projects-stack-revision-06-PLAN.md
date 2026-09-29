@@ -2,7 +2,7 @@
 phase: 10-projects-stack-revision
 plan: 06
 type: execute
-wave: 3
+wave: 5
 depends_on:
   - "EXPLORE-10-projects-stack-revision-04"
   - "EXPLORE-10-projects-stack-revision-05"
@@ -194,7 +194,7 @@ False-green hazard recorded for the executor: single-string `includes()` checks 
       - `grep -c "Reconciliation (gap closure, 2026-09-29)" .planning/phases/EXPLORE-10-projects-stack-revision/EXPLORE-10-projects-stack-revision-UI-SPEC.md` returns 1 and that note names the Uom Track anatomy divergence (`dashboard` composition, report-table not implemented).
       - `grep -c "SUPERSEDED:" .planning/phases/EXPLORE-10-projects-stack-revision/EXPLORE-10-projects-stack-revision-UI-SPEC.md` returns at least 22 (18 quarantined lines + 4 banners).
       - The roadmap still carries both phase-10 rows (the phase-table entry and the progress entry): `grep -c "projects-stack-revision" .planning/ROADMAP.md` returns 2, and all eleven phase rows survive — `grep -c "^| [0-9][0-9] |" .planning/ROADMAP.md` returns 22 (11 phase rows + 11 progress rows, the measured pre-edit value).
-      - No file outside this task's four files is modified by this task: `git status --porcelain` shows changes only under `.planning/` and only the paths listed for this task (plus the `-04`/`-05`/`-06` plan files created by this gap-closure planning run).
+      - No file outside this task's four files is modified BY THIS TASK (W-5 corrected scoping): `git diff --name-only HEAD~1 HEAD` after this task's commit lists only the four listed paths — **the broader `git status --porcelain` tree scan is NOT the check (the workspace carries pre-existing untracked artifacts — .cursor/, .serena/, .deepindex.db, PRODUCT.md, resume-*-check files, tsconfig.tsbuildinfo — and an explicit guard applies: do NOT delete or clean untracked workspace artifacts as a side effect)**.
     </acceptance_criteria>
     <done>Tracer complete: the roadmap row, the requirement entries, the spec and UI-SPEC §4.4 describe the delivered swipe-driven ring-buffer contract, with retired tokens quarantined in place.</done>
   </task>
@@ -248,7 +248,7 @@ False-green hazard recorded for the executor: single-string `includes()` checks 
       - In CONTEXT.md, RESEARCH.md and plans 01/02/03, every line matching the quarantine token set carries the literal token `SUPERSEDED:` — verified by the `grep … | grep -v "SUPERSEDED:"` commands returning nothing for each file.
       - `grep -c "AP-2" .planning/phases/EXPLORE-10-projects-stack-revision/EXPLORE-10-projects-stack-revision-CONTEXT.md` returns at least 1 (the accepted deviation is recorded, not dropped).
       - RESEARCH.md's §5 geometry row carries the delivered signature: `grep -c "cardState(cardIndex, frontIndex, count, reducedMotion)" .planning/phases/EXPLORE-10-projects-stack-revision/EXPLORE-10-projects-stack-revision-RESEARCH.md` returns at least 1, and `grep -c "Projects carousel" …RESEARCH.md` returns at least 1.
-      - No file outside the five listed in this task is modified: `git status --porcelain` shows changes only to `.planning/ROADMAP.md`, `.planning/REQUIREMENTS.md`, the eight phase-10 documents this plan lists (SPEC, UI-SPEC, CONTEXT, RESEARCH, plans 01/02/03 — plus the `-04`/`-05`/`-06` plan files created by this gap-closure planning run).
+      - No file outside the five listed in this task is modified BY THIS TASK (W-5 corrected scoping): `git diff --name-only HEAD~1 HEAD` after this task0019s commit lists only `.planning/ROADMAP.md`, `.planning/REQUIREMENTS.md`, the eight phase-10 documents this plan lists (SPEC, UI-SPEC, CONTEXT, RESEARCH, plans 01/02/03 — plus the `-04`/`-05`/`-06` plan files created by this gap-closure planning run).
     </acceptance_criteria>
     <done>Decision record, research record and executed plan records amended with provenance, retired lines quarantined in place and AP-2 recorded as an accepted deviation.</done>
   </task>
