@@ -42,7 +42,8 @@ Deliver the typed, runtime-free geometry module that every stack consumer depend
 </objective>
 
 <assumption_delta_decision>
-- primary noun: the stacked-card carousel / `cardState(cardIndex, carouselProgress)` geometry
+- primary noun: the delivered ring-buffer stack contract — `cardState(cardIndex, frontIndex, count, reducedMotion)` with `frontIndex` as the single geometry input
+- SUPERSEDED: primary noun: the stacked-card carousel / `cardState(cardIndex, carouselProgress)` geometry
 - decision: promote
 - rationale: this phase replaces the editorial-row composition; `cardState` becomes the sole md+ Projects panel derivation, and the row/rowState contract is retired. The mobile simplified stack is the promoted responsive variant, not a parallel UI.
 - invariant: every responsive path (md+ scroll-driven stack, <md state-driven stack, reduced-motion opacity-only swap, keyboard step) consumes the same `projects.slice(0, 6)` data slice and the same `cardState` active-index rule.
@@ -99,7 +100,7 @@ Read before implementing:
       - `projectYear(date)` — mirror rowYear: return the first match of `/\b(?:19|20)\d{2}\b/` or null;
       - `projectTechnologies(description, max = 4)` per D-04 and UI-SPEC §4.5: lower-case the description once; iterate the TECH_LEXICON terms in their declared order; for each term, find its lower-cased form as a substring of the lower-cased description and, on first hit, record the index of that first occurrence; after scanning the whole lexicon, sort the recorded matches by their first-occurrence index ascending, deduplicate preserving first appearance, cap at `max`, and return the original-cased lexicon terms in that order. If no term matches, return [];
       - `djb2(str)` and `projectVisualVariant(projectName, fixed = false)` per D-03/OQ-3: `djb2` is a stable 32-bit string hash; `projectVisualVariant` returns `'terminal-mock'` for the DeepIndex name, `'contract-analysis'` for the Clarif-AI name, and for any other name returns `['glyph','report','dashboard','network'][djb2(name) % 4]`. Export both so the desktop and mobile stacks share the exact same selection and the unit tests can assert stability; **the module docstring MUST document the `fixed` parameter's semantics (checker W-4): `fixed = true` bypasses the hash and returns the named flagship variant for known names regardless of position — used by tests to pin the flagship contracts deterministically; `fixed = false` (default) is the production path;**
-      - `CardState` interface and `cardState(cardIndex, carouselProgress, count, reducedMotion)` implementing UI-SPEC §3 exactly:
+      - SUPERSEDED: `CardState` interface and `cardState(cardIndex, carouselProgress, count, reducedMotion)` implementing UI-SPEC §3 exactly:
         - `activeCenter = (count - 1) * clamp(progress,0,1)`, `s = activeCenter - cardIndex`, `activeIndex = round(activeCenter)`;
         - depth level `l = abs(s)`; use the pinned level table (l=0..5) with smoothstep interpolation between adjacent levels: `Y_upcoming = -l*38`, `Y_leave = -l*38 - 56` for `l ≥ 1`;
         - scale = `1 - 0.04*l` clamped to [0.8,1], opacity from keyframes `(1, 0.95, 0.85, 0.70, 0.50, 0.30)` interpolated by `l`, clamped to [0,1] (drop below 0.05 → visible false);
@@ -117,3 +118,5 @@ Read before implementing:
     <done>The pure module exists, is fully green under its unit-test contract, and typechecks.</done>
   </task>
 </tasks>
+
+Gap-closure amendment (2026-09-29): the retired scroll-derived geometry noun in the task body above stays quarantined in place; the delivered contract is the swipe-driven ring buffer `cardState(cardIndex, frontIndex, count, reducedMotion)`, reconciled across the phase documents by `EXPLORE-10-projects-stack-revision-06-PLAN.md` and implemented at commit `b39b12c`. The plan's landed commits carry the long-form scope `test(EXPLORE-10-projects-stack-revision-01)` / `feat(EXPLORE-10-projects-stack-revision-01)`, which the tdd_audit ship gate cannot match - see the ship-gate decision recorded in `EXPLORE-10-projects-stack-revision-CONTEXT.md`.

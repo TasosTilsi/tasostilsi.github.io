@@ -48,7 +48,8 @@ Wire the new stack components into the Projects panel, retire the editorial-row 
 </objective>
 
 <assumption_delta_decision>
-- primary noun: the stacked-card carousel / `cardState(cardIndex, carouselProgress)` geometry
+- primary noun: the delivered ring-buffer stack contract — `cardState(cardIndex, frontIndex, count, reducedMotion)` with `frontIndex` as the single geometry input
+- SUPERSEDED: primary noun: the stacked-card carousel / `cardState(cardIndex, carouselProgress)` geometry
 - decision: promote
 - rationale: this phase replaces the editorial-row composition; `cardState` becomes the sole md+ Projects panel derivation, and the row/rowState contract is retired. The mobile simplified stack is the promoted responsive variant, not a parallel UI.
 - invariant: every responsive path (md+ scroll-driven stack, <md state-driven stack, reduced-motion opacity-only swap, keyboard step) consumes the same `projects.slice(0, 6)` data slice and the same `cardState` active-index rule.
@@ -109,7 +110,8 @@ Read before implementing:
         * assert `src/components/explore/projects-card-state.ts` exists;
         * assert `src/components/explore/sections/projects-mobile-stack.tsx` exists.
       - Update the mobile-tier assertion: assert the `md:hidden` block in `projects-section.tsx` renders `ProjectsMobileStack` (not the retired compact grid) and that `projects-mobile-stack.tsx` does not import `framer-motion`.
-      - Keep the `data-editorial-wrapper="true"` assertion on the wrapper (the stack still uses it as the useScroll target).
+      - SUPERSEDED: Keep the `data-editorial-wrapper="true"` assertion on the wrapper (the stack still uses it as the useScroll target).
+      - Measured fact (2026-09-29): the `data-editorial-wrapper="true"` attribute survives as a test-pinned grid-child hook that NO source file reads - the Experience stage measures `.explore-shell > main` through its hand-rolled hook (`MAIN_SELECTOR` in `use-timeline-progress.ts`). The assertion below is therefore kept as a DOM-hook pin, not as evidence of a consumer.
       - Add/update export-level assertions for the stack:
         * `out/explore.html` contains each of the top-6 project names as real text;
         * the old row-specific strings (`ProjectsEditorialStage`, `projects-row-state`) are gone from source files.
@@ -128,3 +130,5 @@ Read before implementing:
     <done>Integration tests renewed and the full suite is green on the final tree.</done>
   </task>
 </tasks>
+
+Gap-closure amendment (2026-09-29): the stale instruction at the `data-editorial-wrapper` assertion is quarantined in place above, replaced by the measured fact next to it. The delivered contract is the swipe-driven ring buffer `cardState(cardIndex, frontIndex, count, reducedMotion)`, reconciled across the phase documents by `EXPLORE-10-projects-stack-revision-06-PLAN.md` and implemented at commit `b39b12c`; no retired scroll wiring is live in this plan.

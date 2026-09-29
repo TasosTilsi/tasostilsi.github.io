@@ -14,21 +14,21 @@ gap_closure: false
 user_setup: []
 must_haves:
   truths:
-    - "The desktop stack renders all 6 project cards inside the sticky md+ stage with continuous scroll-driven depth geometry."
+    - "The desktop stack renders all 6 project cards as a swipe-driven ring buffer at natural height with geometry from cardState(cardIndex, frontIndex, count, reducedMotion)."
     - "The foreground DeepIndex card renders name, tagline, and the terminal generative visual as real SSR markup."
-    - "The 4 non-fixed generative visuals are selected by a stable djb2(project.name) % 4 function, not hard-coded per project."
-    - "Keyboard Prev/Next and arrow keys step the carousel by scrolling the main container to the target band."
+    - "The six generative visuals are assigned by the curated per-project table with the djb2 name-hash as the fallback for uncurated names, and all six top-6 cards resolve to distinct variants."
+    - "Keyboard Prev/Next, Arrow keys and Home/End step the ring buffer by setting the front index, with 44px focusable controls and the throttled aria-live announcement."
     - "Reduced motion removes translate/scale/rotation motion and uses opacity/zIndex state swaps."
     - "Mobile <md renders the new ProjectsMobileStack simplified state-driven stack (the phase-9 compact grid is retired)."
-    - "Resize remeasures the stage so the keyboard scroll-band formula stays correct after viewport changes."
+    - "The stack is layout-independent (fixed-height stage, absolutely positioned cards), so no resize remeasurement is required."
     - "A single-project data set renders one static active card without carousel chrome."
   artifacts:
     - path: "src/components/explore/sections/projects-stack-stage.tsx"
-      provides: "Scroll-driven stacked-card carousel for md+, SSR gate, controls, keyboard/RM contracts, generative visuals (hash-selected), resize handling, single-project fallback."
+      provides: "Swipe-driven stacked-card ring buffer for md+ at natural height: SSR gate, controls, keyboard/RM contracts, curated per-project generative visuals, single-project fallback. The swipe/drag gesture and the pure ring-buffer front-index geometry replace the retired scroll composition."
       min_lines: 220
       exports: ["ProjectsStackStage"]
     - path: "src/components/explore/sections/projects-mobile-stack.tsx"
-      provides: "Simplified state-driven stacked composition for <md with controls; replaces the retired phase-9 compact card grid."
+      provides: "Thin delegate to the shared swipe stack in compact mode (ProjectsSwipeStack mode=\"compact\"); replaces the retired phase-9 compact card grid. ACCEPTED DEVIATION AP-2: this file is a 20-line delegate and is deliberately NOT inflated to this plan's min_lines: 130 - the capability is delivered and test-pinned by the shared stack."
       min_lines: 130
       exports: ["ProjectsMobileStack"]
   key_links:
@@ -36,10 +36,10 @@ must_haves:
       to: "src/components/explore/projects-card-state.ts"
       via: "imports cardState, firstSentence, projectYear, projectTechnologies, projectVisualVariant"
       pattern: "from ['\"]\.\./projects-card-state['\"]"
-    - from: "src/components/explore/sections/projects-stack-stage.tsx"
-      to: "src/components/explore/explore-panels.tsx"
-      via: "useScroll target discovered by closest('[data-editorial-wrapper]') inside the 300vh wrapper"
-      pattern: "closest\(['\"]\[data-editorial-wrapper\]['\"]\)"
+    - from: "src/components/explore/sections/projects-mobile-stack.tsx"
+      to: "src/components/explore/sections/projects-stack-stage.tsx"
+      via: "delegates to the shared swipe stack in compact mode (the retired wrapper-discovery link is quarantined in the amendment block below)"
+      pattern: "ProjectsSwipeStack"
     - from: "src/components/explore/sections/projects-stack-stage.tsx"
       to: "framer-motion"
       via: "the only allowed JS motion engine in the projects composition"
@@ -53,7 +53,7 @@ Build the two stack presentations: the scroll-driven md+ framer-motion stage and
 </objective>
 
 <assumption_delta_decision>
-- primary noun: the stacked-card carousel / `cardState(cardIndex, carouselProgress)` geometry
+- SUPERSEDED: primary noun: the stacked-card carousel / `cardState(cardIndex, carouselProgress)` geometry
 - decision: promote
 - rationale: this phase replaces the editorial-row composition; `cardState` becomes the sole md+ Projects panel derivation, and the row/rowState contract is retired. The mobile simplified stack is the promoted responsive variant, not a parallel UI.
 - invariant: every responsive path (md+ scroll-driven stack, <md state-driven stack, reduced-motion opacity-only swap, keyboard step) consumes the same `projects.slice(0, 6)` data slice and the same `cardState` active-index rule.
@@ -67,9 +67,9 @@ Build the two stack presentations: the scroll-driven md+ framer-motion stage and
 <context>
 Read before implementing:
 - @/home/tasostilsi/Development/Projects/tasostilsi.github.io/.planning/phases/EXPLORE-10-projects-stack-revision/EXPLORE-10-projects-stack-revision-UI-SPEC.md §2-§8
-- @/home/tasostilsi/Development/Projects/tasostilsi.github.io/src/components/explore/sections/projects-editorial-stage.tsx (mount gate and useScroll precedent to reuse)
+- SUPERSEDED: @/home/tasostilsi/Development/Projects/tasostilsi.github.io/src/components/explore/sections/projects-editorial-stage.tsx (mount gate and useScroll precedent to reuse)
 - @/home/tasostilsi/Development/Projects/tasostilsi.github.io/src/components/explore/use-timeline-progress.ts (keyboard scroll-to-role precedent)
-- @/home/tasostilsi/Development/Projects/tasostilsi.github.io/src/components/explore/explore-panels.tsx (wrapper/shell recipe and data-editorial-wrapper)
+- SUPERSEDED: @/home/tasostilsi/Development/Projects/tasostilsi.github.io/src/components/explore/explore-panels.tsx (wrapper/shell recipe and data-editorial-wrapper)
 - @/home/tasostilsi/Development/Projects/tasostilsi.github.io/src/components/explore/projects-card-state.ts (output of plan 01)
 - @/home/tasostilsi/Development/Projects/tasostilsi.github.io/src/app/globals.css (token names for monochrome visuals)
 - @/home/tasostilsi/Development/Projects/tasostilsi.github.io/src/data/portfolio-main-data.json (top-6 project names in data order)
@@ -81,15 +81,15 @@ Read before implementing:
     <files>src/components/explore/sections/projects-stack-stage.tsx</files>
     <read_first>src/components/explore/sections/projects-editorial-stage.tsx, src/components/explore/explore-panels.tsx, .planning/phases/EXPLORE-10-projects-stack-revision/EXPLORE-10-projects-stack-revision-UI-SPEC.md</read_first>
     <action>
-      Create `src/components/explore/sections/projects-stack-stage.tsx` as a `'use client'` island. Mirror the editorial-stage mount gate exactly: outer `div` ref, `useEffect` discovers `document.querySelector('.explore-shell > main')` and the `closest('[data-editorial-wrapper]')`; only render the motion `Inner` when both elements exist; otherwise render an `SsrStack` at `carouselProgress = 0` so the DeepIndex foreground card is real text/markup at build time per D-05/D-06.
+      SUPERSEDED: Create `src/components/explore/sections/projects-stack-stage.tsx` as a `'use client'` island. Mirror the editorial-stage mount gate exactly: outer `div` ref, `useEffect` discovers `document.querySelector('.explore-shell > main')` and the `closest('[data-editorial-wrapper]')`; only render the motion `Inner` when both elements exist; otherwise render an `SsrStack` at `carouselProgress = 0` so the DeepIndex foreground card is real text/markup at build time per D-05/D-06.
       The `Inner` component:
-      - `containerRef`/`targetRef` initial values are the discovered elements (never undefined — this avoids the useScroll container-ref trap);
-      - `useScroll` over the wrapper with `offset: ['start start', 'end end']` produces the single `progress` MotionValue;
+      - SUPERSEDED: `containerRef`/`targetRef` initial values are the discovered elements (never undefined — this avoids the useScroll container-ref trap);
+      - SUPERSEDED: `useScroll` over the wrapper with `offset: ['start start', 'end end']` produces the single `progress` MotionValue;
       - per-card `useTransform` consumes `cardState(cardIndex, progress.get(), count, reducedMotion)` for `translateY`, `translateX`, `scale`, `opacity`, `rotation`, `zIndex` (transform string: `translateY(${y}px) translateX(${x}px) scale(${s}) rotate(${r}deg)`);
       - `style.visibility` derives from the `visible` geometry flag (hide cards whose opacity fell below the cutoff);
       - `aria-hidden` is set by the foreground-only rule `activeIndex !== cardIndex` (UI-SPEC §7 / REV-20) — every non-active card is hidden from the accessibility tree regardless of opacity;
       - `useReducedMotion()` is passed to `cardState` and also gates CSS transitions;
-      - Add a `ResizeObserver` on the discovered `[data-editorial-wrapper]` that remeasures `wrapperEl.offsetHeight`, `wrapperEl.offsetTop`, and `mainEl.clientHeight` on resize and stores them in state/refs; schedule a one-frame re-derivation of the keyboard scroll-band math (UI-SPEC §6.3) via a small state tick or MotionValue `set`; include a `window.addEventListener('resize', ...)` fallback for older environments; clean up both on unmount (D-05). The keyboard helper must recompute `targetScrollTop` from the fresh values every time it runs: `const targetScrollTop = offsetTop + targetProgress * (offsetHeight - mainClientHeight)`.
+      - SUPERSEDED: Add a `ResizeObserver` on the discovered `[data-editorial-wrapper]` that remeasures `wrapperEl.offsetHeight`, `wrapperEl.offsetTop`, and `mainEl.clientHeight` on resize and stores them in state/refs; schedule a one-frame re-derivation of the keyboard scroll-band math (UI-SPEC §6.3) via a small state tick or MotionValue `set`; include a `window.addEventListener('resize', ...)` fallback for older environments; clean up both on unmount (D-05). The keyboard helper must recompute `targetScrollTop` from the fresh values every time it runs: `const targetScrollTop = offsetTop + targetProgress * (offsetHeight - mainClientHeight)`.
       Render 6 cards inside a relative centered container, but first short-circuit when `cards.length <= 1` (UI-SPEC §6.4 / §8): render one static active card with the expanded panel fully visible, no controls, no behind-cards, no `activeAmount` animation.
       Non-short-circuit card shell:
       - card shell: `w-full max-w-[540px] max-h-full aspect-[4/3] rounded-lg border border-border bg-card mx-auto relative overflow-hidden`;
@@ -105,8 +105,8 @@ Read before implementing:
       - `src/components/explore/sections/projects-stack-stage.tsx` exists and typechecks.
       - The file imports from `'framer-motion'` exactly once.
       - `npm run build` exits 0.
-      - Grep confirms `data-editorial-wrapper` is consumed via `closest('[data-editorial-wrapper]')`.
-      - Grep confirms **BOTH** `ResizeObserver` **AND** `window.addEventListener('resize'` are present in the file (checker W-5 — the action mandates the observer plus the fallback; the acceptance requires the redundancy, not either-or).
+      - SUPERSEDED: Grep confirms `data-editorial-wrapper` is consumed via `closest('[data-editorial-wrapper]')`.
+      - SUPERSEDED: Grep confirms **BOTH** `ResizeObserver` **AND** `window.addEventListener('resize'` are present in the file (checker W-5 — the action mandates the observer plus the fallback; the acceptance requires the redundancy, not either-or).
       - Grep confirms a `cards.length <= 1` short-circuit branch.
       - Grep confirms `projectVisualVariant` is imported from `../projects-card-state` and used in the visual variant selection path; no hard-coded mapping of the four remaining project names to variant labels.
     </acceptance_criteria>
@@ -123,15 +123,15 @@ Read before implementing:
       - Compute `activeIndex = Math.round((count - 1) * clampedProgress)`. Only the `activeIndex` card renders the expanded panel (W-6 foreground-only rule). The expanded panel is `absolute left-0 right-0 bottom-[strip-height] z-10` over the visual layer, `transform-origin: bottom`, with opacity/scaleY/translateY driven by `activeAmount` from `cardState` (no height animation).
       - Expanded panel content per UI-SPEC §4.3: full `firstSentence` description, up to 4 `projectTechnologies` chips, primary project link (`target="_blank" rel="noopener noreferrer"` with `ArrowUpRight`), optional `sourceUrl` secondary link when present and `!== link`; inactive cards hide links (`aria-hidden` + `tabIndex={-1}`).
       - Control row below the stack: Prev (`ChevronUp`) and Next (`ChevronDown`) 44px ghost buttons using the exact `GHOST_INTERACTION` recipe from `experience-section.tsx` (`rounded-md hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background`), `aria-label="Previous project"` / `aria-label="Next project"`, `disabled` at clamped ends with `disabled:opacity-50`, counter `01 / 06` `font-mono text-[10px] tabular-nums text-muted-foreground`.
-      - Keyboard handler on the group root: `ArrowUp`/`ArrowLeft` step -1, `ArrowDown`/`ArrowRight` step +1, `Home` to 0, `End` to count-1; `preventDefault` only on handled keys; stepping calls `goToCard(index)` which sets `main.scrollTo({ top: targetScrollTop, behavior: prefersReducedMotion() ? 'auto' : 'smooth' })` using the formula in UI-SPEC §6.3 with the remeasured `wrapperEl.offsetTop`, `wrapperEl.offsetHeight`, and `mainEl.clientHeight` from the ResizeObserver state: `const targetScrollTop = offsetTop + targetProgress * (offsetHeight - mainClientHeight)`.
+      - SUPERSEDED: Keyboard handler on the group root: `ArrowUp`/`ArrowLeft` step -1, `ArrowDown`/`ArrowRight` step +1, `Home` to 0, `End` to count-1; `preventDefault` only on handled keys; stepping calls `goToCard(index)` which sets `main.scrollTo({ top: targetScrollTop, behavior: prefersReducedMotion() ? 'auto' : 'smooth' })` using the formula in UI-SPEC §6.3 with the remeasured `wrapperEl.offsetTop`, `wrapperEl.offsetHeight`, and `mainEl.clientHeight` from the ResizeObserver state: `const targetScrollTop = offsetTop + targetProgress * (offsetHeight - mainClientHeight)`.
       - Reduced-motion branch: `cardState` already returns translateY/scale/rotation 0 and opacity-only; ensure the control stepping uses `'auto'` behavior; CSS transitions are suppressed by the existing guard.
       - Reaffirm the foreground-only a11y rule: every non-active card carries `aria-hidden="true"` and `tabIndex={-1}` on links, independent of opacity.
-      - Cleanup: remove any added listeners/observers in the `useEffect` return; framer `useScroll` cleans its own listener.
+      - SUPERSEDED: Cleanup: remove any added listeners/observers in the `useEffect` return; framer `useScroll` cleans its own listener.
     </action>
     <verify>Run `npm run typecheck` and `npm run build`.</verify>
     <acceptance_criteria>
       - Grep confirms `role="group"`, `aria-label="Projects carousel"`, `aria-live="polite"`, `Previous project`, `Next project`, `ChevronUp`, `ChevronDown`.
-      - Grep confirms a `goToCard`-equivalent scroll helper using `main.scrollTo`.
+      - SUPERSEDED: Grep confirms a `goToCard`-equivalent scroll helper using `main.scrollTo`.
       - Grep confirms `aria-hidden` is applied by the active-index rule (e.g. `aria-hidden={activeIndex !== cardIndex}` or equivalent helper).
       - `npm run build` exits 0.
     </acceptance_criteria>
@@ -155,3 +155,28 @@ Read before implementing:
     <done>Mobile stack is a readable, reduced-motion-safe, SSR-safe simplified composition that replaces the retired compact grid.</done>
   </task>
 </tasks>
+
+## Gap-closure amendment (2026-09-29)
+
+Provenance: the user's live-review directive of 2026-09-25 (`.planning/quick/2026-09-25-projects-swipe-loop-stack/TASK.md`), implemented at commit `b39b12c`, replaced this plan's scroll-driven stage with the swipe-driven ring buffer. The retired originals are quoted verbatim below, each behind the literal `SUPERSEDED:` prefix; the delivered behaviour is the swipe/ring contract recorded in `EXPLORE-10-projects-stack-revision-CONTEXT.md` and reconciled across the phase documents by `EXPLORE-10-projects-stack-revision-06-PLAN.md`.
+
+Superseded truths (replaced in place in the frontmatter above, quoted here in their original wording):
+
+- SUPERSEDED: "The desktop stack renders all 6 project cards inside the sticky md+ stage with continuous scroll-driven depth geometry."
+- SUPERSEDED: "The 4 non-fixed generative visuals are selected by a stable djb2(project.name) % 4 function, not hard-coded per project."
+- SUPERSEDED: "Keyboard Prev/Next and arrow keys step the carousel by scrolling the main container to the target band."
+- SUPERSEDED: "Resize remeasures the stage so the keyboard scroll-band formula stays correct after viewport changes."
+
+Superseded key_link (replaced in place in the frontmatter above, quoted here in its original wording):
+
+- SUPERSEDED: `from: "src/components/explore/sections/projects-stack-stage.tsx"`
+- SUPERSEDED: `to: "src/components/explore/explore-panels.tsx"`
+- SUPERSEDED: `via: "useScroll target discovered by closest('[data-editorial-wrapper]') inside the 300vh wrapper"`
+- SUPERSEDED: `pattern: "closest\(['\"]\[data-editorial-wrapper\]['\"]\)"`
+
+Superseded artifact strings (corrected in place in the frontmatter above, quoted here in their original wording):
+
+- SUPERSEDED: `provides: "Scroll-driven stacked-card carousel for md+, SSR gate, controls, keyboard/RM contracts, generative visuals (hash-selected), resize handling, single-project fallback."`
+- SUPERSEDED: `provides: "Simplified state-driven stacked composition for <md with controls; replaces the retired phase-9 compact card grid."`
+
+Delivered behaviour: `ProjectsSwipeStack` renders the 6 cards as a swipe-driven, loopable ring buffer at natural height with geometry from `cardState(cardIndex, frontIndex, count, reducedMotion)`; the six visuals come from the curated per-project table with the `djb2` name-hash fallback; keyboard Prev/Next, Arrow keys and Home/End set the front index directly; the stack is layout-independent, so no resize remeasurement is required. `projects-mobile-stack.tsx` is a thin delegate (accepted deviation AP-2).

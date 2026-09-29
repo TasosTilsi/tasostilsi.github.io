@@ -1,12 +1,16 @@
 # EXPLORE-10-projects-stack-revision — Research
 
+> **SUPERSEDED:** the scroll-derived contract below was replaced by the user's live-review directive of 2026-09-25 (commit `b39b12c`; reconciled by `EXPLORE-10-projects-stack-revision-06-PLAN.md`). The delivered contract is the swipe-driven ring buffer `cardState(cardIndex, frontIndex, count, reducedMotion)` at natural height. Read this section as history, not as implementation guidance.
+
 ## 1. Domain analysis
 
 ### 1.1 What this phase has to build
 
+> **SUPERSEDED:** the scroll-derived contract below was replaced by the user's live-review directive of 2026-09-25 (commit `b39b12c`; reconciled by `EXPLORE-10-projects-stack-revision-06-PLAN.md`). The delivered contract is the swipe-driven ring buffer `cardState(cardIndex, frontIndex, count, reducedMotion)` at natural height. Read this section as history, not as implementation guidance.
+
 The Projects panel’s editorial-row scroll (phase 9, REV-17) is replaced by a curated, scroll-driven stacked-card carousel (REV-18/REV-19/REV-20). The work is a **presentation-layer swap** inside the existing `/explore` IDE shell:
 
-- The sticky ~100vh stage, the 300vh extended wrapper, the stat tiles and the `TerminalPointer` all stay in place [VERIFIED: `src/components/explore/explore-panels.tsx:121-132`, `src/components/explore/sections/projects-section.tsx:53-63`].
+- SUPERSEDED: The sticky ~100vh stage, the 300vh extended wrapper, the stat tiles and the `TerminalPointer` all stay in place [VERIFIED: `src/components/explore/explore-panels.tsx:121-132`, `src/components/explore/sections/projects-section.tsx:53-63`].
 - The rows composer (`ProjectsEditorialStage`) and its pure module (`projects-row-state.ts`) are deleted; a new client stage and a new pure `projects-card-state.ts` take their place (stale-test discipline).
 - The new stage is the **only** sanctioned `framer-motion` import site in the projects composition; the Experience panel keeps its hand-rolled rAF engine (dual-engine contract) [VERIFIED: `tests/explore-visuals.test.mjs:605-653`].
 
@@ -28,19 +32,19 @@ No new dependency is required and none should be added; the context explicitly b
 | Pattern / pitfall | How the phase should handle it | Evidence |
 |---|---|---|
 | **Single scroll source** | The carousel progress must come from `.explore-shell > main`, never `window`. `window.scrollY` is always 0 inside the shell. | [VERIFIED: `src/components/explore/explore-shell.tsx:57-73`, `src/components/explore/sections/projects-editorial-stage.tsx:59-62`] |
-| **useScroll container-ref trap** | `useScroll` throws if its `container`/`target` refs are `undefined` and permanently caches a bad fallback. The stage must SSR a static stack first, then mount the motion `Inner` only after both elements are discovered. | [VERIFIED: `src/components/explore/sections/projects-editorial-stage.tsx:44-52`, `171-186`, `296-327`] |
-| **Sticky stage layout** | The extended wrapper is `md:col-span-2 md:h-[300vh]` and the shell pins at `md:h-[calc(100dvh-10rem)]`; the rows viewport inside the shell is `md:h-[calc(100dvh-14.5rem)]`. Reuse these exact recipes. | [VERIFIED: `src/components/explore/explore-panels.tsx:121-132`, `src/components/explore/sections/projects-section.tsx:57-63`] |
-| **Continuous derivation** | Card geometry must be `cardState(cardIndex, carouselProgress)` — one 0→1 progress value, no discrete thresholds as the primary motion driver. | [VERIFIED: `CONTEXT.md` D-01] |
+| **useScroll container-ref trap** | `useScroll` throws if its `container`/`target` refs are `undefined` and permanently caches a bad fallback. The stage must SSR a static stack first, then mount the motion `Inner` only after both elements are discovered. | SUPERSEDED: [VERIFIED: `src/components/explore/sections/projects-editorial-stage.tsx:44-52`, `171-186`, `296-327`] |
+| **Sticky stage layout** | The extended wrapper is `md:col-span-2 md:h-[300vh]` and the shell pins at `md:h-[calc(100dvh-10rem)]`; the rows viewport inside the shell is `md:h-[calc(100dvh-14.5rem)]`. Reuse these exact recipes. | SUPERSEDED: [VERIFIED: `src/components/explore/explore-panels.tsx:121-132`, `src/components/explore/sections/projects-section.tsx:57-63`] |
+| **Continuous derivation** | Card geometry must be `cardState(cardIndex, carouselProgress)` — one 0→1 progress value, no discrete thresholds as the primary motion driver. | SUPERSEDED: [VERIFIED: `CONTEXT.md` D-01] |
 | **Reduced motion** | JS side uses `useReducedMotion()`; CSS side is already gated by `@media (prefers-reduced-motion: reduce)` under `.explore-shell`. Under reduced motion the stack collapses to opacity/zIndex state swaps with no translation/scale/rotation. | [VERIFIED: `src/app/globals.css:647-660`, `src/components/explore/sections/projects-editorial-stage.tsx:178`, `CONTEXT.md` D-05] |
 | **SSR / no-JS** | The foreground card (index 0 = DeepIndex) must render real text/markup before hydration. The static stack is rendered at `progress = 0`. | [VERIFIED: `src/components/explore/sections/projects-editorial-stage.tsx:107-149`, `CONTEXT.md` acceptance criteria] |
-| **Keyboard accessible alternative** | Provide Prev/Next buttons that set `main.scrollTo({ top: bandPosition })`, mirroring the timeline `goToRole`/`stepRole` path. Arrow keys can share the same step function. | [VERIFIED: `src/components/explore/use-timeline-progress.ts:323-351`, `CONTEXT.md` D-05] |
+| **Keyboard accessible alternative** | Provide Prev/Next buttons that set `main.scrollTo({ top: bandPosition })`, mirroring the timeline `goToRole`/`stepRole` path. Arrow keys can share the same step function. | SUPERSEDED: [VERIFIED: `src/components/explore/use-timeline-progress.ts:323-351`, `CONTEXT.md` D-05] |
 | **Mobile fallback** | Below `md` the stage is CSS-hidden and a compact card grid owns the surface. Reuse the existing `md:hidden` block; it already satisfies the 375px invariant and no horizontal scroll. | [VERIFIED: `src/components/explore/sections/projects-section.tsx:64-114`] |
 | **No image assets** | Generative visuals must be monochrome SVG/CSS compositions using the design tokens; `aria-hidden`; no `<img>`, no gradients, no external fetches. | [VERIFIED: `CONTEXT.md` D-03 / REV-19 acceptance] |
 | **Dual-engine ban** | `framer-motion` is allowed only in the new projects stack; `requestAnimationFrame`, `gsap`, `lottie`, `.animate(` remain banned everywhere else under `src/components/explore`. | [VERIFIED: `tests/explore-visuals.test.mjs:605-653`, `CONTEXT.md` D-06] |
 
 ### 1.4 Confidence levels
 
-- **High** — stack, sticky layout, scroll source, framer-motion APIs, data schema, SSR gate pattern, reduced-motion contracts.
+- SUPERSEDED: **High** — stack, sticky layout, scroll source, framer-motion APIs, data schema, SSR gate pattern, reduced-motion contracts.
 - **Medium** — the exact “feel” numbers for stack depth/opacity; these are inside the ranges the brief gives and are tunable U-items.
 - **High** — test replacement path (delete row module, create card module, rewrite integration greps).
 
@@ -50,8 +54,8 @@ No new dependency is required and none should be added; the context explicitly b
 
 | Package | Why it appears | Verified status |
 |---|---|---|
-| `framer-motion@^13.4.3` | Already the installed motion engine for the editorial composition; the new stack reuses `useScroll`, `useTransform`, `useReducedMotion`. | [VERIFIED: `package.json:42`] |
-| Official docs for `useScroll`, `useTransform`, `useReducedMotion` | The APIs needed are documented in the Motion for React docs. | [CITED: `https://motion.dev/docs/react-use-scroll`, `https://motion.dev/docs/react-use-transform`, `https://motion.dev/docs/react-use-reduced-motion`] |
+| `framer-motion@^13.4.3` | Already the installed motion engine for the editorial composition; the new stack reuses `useScroll`, `useTransform`, `useReducedMotion`. | SUPERSEDED: [VERIFIED: `package.json:42`] |
+| Official docs for `useScroll`, `useTransform`, `useReducedMotion` | The APIs needed are documented in the Motion for React docs. | SUPERSEDED: [CITED: `https://motion.dev/docs/react-use-scroll`, `https://motion.dev/docs/react-use-transform`, `https://motion.dev/docs/react-use-reduced-motion`] |
 | `lucide-react@^0.475.0` | Icons for links (`ArrowUpRight`) and controls; Prev/Next buttons can reuse `ChevronUp`/`ChevronDown`. | [VERIFIED: `package.json:45`, `src/components/explore/sections/projects-editorial-stage.tsx:53`] |
 
 **No new package installation is required or permitted** [VERIFIED: `CONTEXT.md` D-06].
@@ -91,7 +95,7 @@ The acceptance criterion says “the foreground card (DeepIndex) renders with it
 
 ### OQ-5 — Mobile: keep the compact list or build a new stacked swipe? *(RESOLVED)*
 The brief says “mobile collapses to a simplified stacked composition (active card dominant, behind-cards hinted, content readable)” [VERIFIED: `CONTEXT.md` D-06, REV-20 acceptance]. UI-SPEC §2.3 details that simplified stack as a fixed-height state-driven composition with an active card and one peek card.  
-**Resolution (locked):** Replace the phase-9 `<md` compact card grid with the new `ProjectsMobileStack` state-driven simplified stack per UI-SPEC §2.3. The compact card grid is retired in this phase; the 300vh wrapper and sticky stage stay `md:`-scoped and do not apply below `md`. The new mobile stack honors the 375px invariant, no horizontal scroll, 44px controls, and the reduced-motion opacity-only branch.
+SUPERSEDED: **Resolution (locked):** Replace the phase-9 `<md` compact card grid with the new `ProjectsMobileStack` state-driven simplified stack per UI-SPEC §2.3. The compact card grid is retired in this phase; the 300vh wrapper and sticky stage stay `md:`-scoped and do not apply below `md`. The new mobile stack honors the 375px invariant, no horizontal scroll, 44px controls, and the reduced-motion opacity-only branch.
 
 ### OQ-6 — Which files and tests are retired by the swap? *(RESOLVED)*
 The editorial rows and their tests are replaced.  
@@ -119,13 +123,15 @@ The acceptance says the active card’s header expands to carry description, tec
 
 ## 4. Architectural Responsibility Map
 
+> **SUPERSEDED:** the scroll-derived contract below was replaced by the user's live-review directive of 2026-09-25 (commit `b39b12c`; reconciled by `EXPLORE-10-projects-stack-revision-06-PLAN.md`). The delivered contract is the swipe-driven ring buffer `cardState(cardIndex, frontIndex, count, reducedMotion)` at natural height. Read this section as history, not as implementation guidance.
+
 | Capability | Tier | Assignment / file | Rationale |
 |---|---|---|---|
 | **Data slicing** (top-6 projects, stat tiles) | Data | `src/components/explore/viz-data.ts` | Existing pure module; stays untouched. |
 | **Card geometry derivation** | Domain | `src/components/explore/projects-card-state.ts` | Pure, typed, unit-testable; no runtime imports; produces `y`, `x`, `scale`, `opacity`, `zIndex`, `rotate`, `transform`, `visible`. |
-| **Stacked-card visual composition** | Presentation | `src/components/explore/sections/projects-stack-stage.tsx` | Client island; owns framer-motion `useScroll`/`useTransform`, ResizeObserver, keyboard controls, reduced-motion branch, and SSR gate. |
+| **Stacked-card visual composition** | Presentation | `src/components/explore/sections/projects-stack-stage.tsx` | SUPERSEDED: Client island; owns framer-motion `useScroll`/`useTransform`, ResizeObserver, keyboard controls, reduced-motion branch, and SSR gate. |
 | **Generative IDE visuals** | Presentation | Inline SVG components inside `projects-stack-stage.tsx` or co-located helpers | Monochrome, token-colored, deterministic, no image assets. |
-| **Panel layout / sticky wrapper** | Presentation | `src/components/explore/explore-panels.tsx` | Already owns the 300vh wrapper + sticky shell; no change except the stage import name. |
+| **Panel layout / sticky wrapper** | Presentation | `src/components/explore/explore-panels.tsx` | SUPERSEDED: Already owns the 300vh wrapper + sticky shell; no change except the stage import name. |
 | **Stat tiles** | Presentation | `src/components/explore/sections/project-stat-tiles.tsx` | Stays exactly as-is above the stage. |
 | **Mobile simplified stack** | Presentation | `src/components/explore/sections/projects-mobile-stack.tsx` (rendered in projects-section.tsx md:hidden block) | New state-driven stack per UI-SPEC §2.3; replaces the phase-9 compact card grid. |
 | **External link safety** | Presentation | `rel="noopener noreferrer"` on all external anchors | Security-sensitive but lightweight; belongs in presentation where links render. |
@@ -140,16 +146,18 @@ No security-sensitive capability is placed in the wrong tier; data never execute
 
 ## 5. Validation Architecture
 
+> **SUPERSEDED:** the scroll-derived contract below was replaced by the user's live-review directive of 2026-09-25 (commit `b39b12c`; reconciled by `EXPLORE-10-projects-stack-revision-06-PLAN.md`). The delivered contract is the swipe-driven ring buffer `cardState(cardIndex, frontIndex, count, reducedMotion)` at natural height. Read this section as history, not as implementation guidance.
+
 | Behaviour | How it is proven |
 |---|---|
 | **Build / typecheck pass** | `npm run build` and `npm run typecheck` run on the final tree. |
-| **Card geometry is pure and continuous** | `tests/projects-stack.test.mjs` imports `projects-card-state.ts` directly via `node --test` and asserts: <br>• `cardState(0, 0)` is foreground (y=0, scale=1, opacity=1, zIndex top). <br>• `cardState(i, 0)` for `i>0` is behind with negative y, scale < 1, opacity < 1. <br>• Monotonicity and clamping over a 0→1 sweep. <br>• Scrolling backward (`p` decreasing) reverses the same values. <br>• Reduced-motion branch has `y=0`, `scale=1`, `rotate=0` and only opacity/zIndex vary. <br>• `H ≤ 0` / non-finite totality forces `y=0` and finite opacity. |
+| **Card geometry is pure and continuous** | `tests/projects-stack.test.mjs` imports `projects-card-state.ts` directly via `node --test` and asserts against the delivered signature `cardState(cardIndex, frontIndex, count, reducedMotion)`: <br>• `cardState(0, 0, count, false)` is foreground (y=0, scale=1, opacity=1, zIndex top). <br>• `cardState(i, 0, count, false)` for `i>0` is behind with negative y, scale < 1, opacity < 1. <br>• Monotonic depth across the level table, clamped at the visible cutoff. <br>• Stepping the front index forward and backward reverses the same values (ring-buffer reversibility). <br>• Reduced-motion branch has `y=0`, `scale=1`, `rotate=0` and only opacity/zIndex vary. <br>• `H ≤ 0` / non-finite totality forces `y=0` and finite opacity. |
 | **6 cards rendered in a stack** | Grep / render test: `projects-stack-stage.tsx` maps exactly `projects.slice(0, 6)` to overlapping cards; the parent has `relative` positioning; children have absolute/relative stacking with z-index. |
 | **Generative visuals: no image assets** | Grep asserts the file contains no `<img`, `url(`, or `from '@/assets/` inside the projects composition; SVG elements use only HSL token strings. |
 | **Editorial rows are gone** | `tests/explore-visuals.test.mjs` gone-checks: `projects-editorial-stage.tsx` and `projects-row-state.ts` no longer exist; the old `data-editorial-wrapper` attribute is replaced by the stack wrapper attribute; `ProjectsEditorialStage` string absent. |
 | **framer-motion isolation** | Cross-cutting grep: only `projects-stack-stage.tsx` contains `framer-motion`; all other `src/components/explore/**/*.tsx` lack it; `requestAnimationFrame` remains absent from the projects composition. |
 | **Reduced-motion contract** | Source assertions: `useReducedMotion()` is imported and used; no `translateY`/`scale`/`rotate` motion values are written when reduced motion is true; CSS guard in `globals.css` is untouched. |
-| **Keyboard / accessible alternative** | Grep assertions: `role="group"` with `aria-label="Project stack"`; Prev/Next `<button>` elements with `aria-label` and `disabled` at ends; `aria-hidden` on inactive cards. |
+| **Keyboard / accessible alternative** | Grep assertions: `role="group"` with `aria-label="Projects carousel"`; Prev/Next `<button>` elements with `aria-label` and `disabled` at ends; `aria-hidden` on inactive cards. |
 | **Mobile stack** | Grep asserts the `md:hidden` block renders `ProjectsMobileStack`; the stack is `hidden md:block`; no horizontal-scroll utilities (`overflow-x-auto`, `overflow-x-scroll`) in the projects section; `ProjectsMobileStack` does not import `framer-motion`. |
 | **Data-driven content** | Grep / export test: no hardcoded project names or descriptions in `projects-section.tsx` or `projects-stack-stage.tsx`; strings come from `portfolio-main-data.json`. |
 | **SSR foreground card** | Export-level test: `out/explore.html` contains the DeepIndex project name, its tagline, and an inline SVG visual as real markup before hydration. |
