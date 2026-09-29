@@ -109,6 +109,78 @@ Phase-10 verification returned `gaps_found`: four must-have truths were retired 
   SUPERSEDED: the keyboard stepping that set a scroll band through `main.scrollTo` is retired - there is no scroll band to target.
 - **Obsolete and re-affirmed.** Resize remeasurement is obsolete: no scroll-band formula exists and the stack is layout-independent (fixed-height stage, absolutely positioned cards). D-02 (curated imperfection), D-04 (in-card info on the active card) and D-06 (dual-engine ban, zero new dependencies, stale-test discipline) are re-affirmed unchanged; D-06's mobile clause is confirmed as delivered - a simplified state-driven stack with the active card plus one peek, and the phase-9 compact card grid retired. Accepted deviation **AP-2**: `projects-mobile-stack.tsx` is a 20-line delegate to the shared swipe stack (the capability is delivered by `ProjectsSwipeStack mode="compact"` and is test-pinned); it is deliberately not inflated to the executed plan's `min_lines: 130`.
 
+### Contract sweep (2026-09-29)
+
+Deterministic sweep run by plan 06 task 3 on the final amended tree. Every number below is a measured result, never an estimate. Documents swept (nine): `.planning/ROADMAP.md`, `.planning/REQUIREMENTS.md`, and the phase-10 `SPEC.md`, `UI-SPEC.md`, `CONTEXT.md`, `RESEARCH.md`, `-01-PLAN.md`, `-02-PLAN.md`, `-03-PLAN.md`.
+
+Probe inputs, defined verbatim so the sweep reproduces. Each definition line is itself marked, because it spells retired tokens:
+
+```bash
+RETIRED_SET='carouselProgress|carouselPosition|main\.scrollTo|ResizeObserver|useScroll|300vh|sticky'  # SUPERSEDED: sweep-1 token set (verbatim, so the probe is reproducible)
+NARROW_SET='carouselProgress|carouselPosition|main\.scrollTo|ResizeObserver'  # SUPERSEDED: REQUIREMENTS.md probe input only - REV-17 (line 31) keeps its phase-9 pinning wording by design
+SCROLL_HOOK='useScroll'           # SUPERSEDED: the retired framer-motion scroll hook, probed in sweep 4
+PROGRESS_NOUN='carouselProgress'  # SUPERSEDED: the retired scroll-progress noun, probed in sweeps 1 and 4
+PINNING_KW='sticky'               # SUPERSEDED: the retired pinning keyword, probed in sweep 1
+# sweep 1 (per document):             grep -nE "$RETIRED_SET" DOC | grep -v "SUPERSEDED:"
+# sweep 2 (per document):             grep -cE "frontIndex|ring buffer|ring-buffer" DOC
+# sweep 3:                            grep -c "export function cardState" src/components/explore/projects-card-state.ts
+# sweep 4:                            grep -rn "$SCROLL_HOOK\|$PROGRESS_NOUN" src/components/explore/ | grep -vE ":[[:space:]]*(\*|//)"
+# sweep 4 (experience scroll source): grep -c "MAIN_SELECTOR = '.explore-shell > main'" src/components/explore/use-timeline-progress.ts
+# sweep 5:                            git diff --name-only HEAD~2 HEAD
+# sweep 7:                            tddAuditGate(plans, commitSubjects) from the installed @dsh-gsd bundle
+```
+
+**Sweep 1 - retired-token quarantine.** Command: `grep -nE "$RETIRED_SET" DOC | grep -v "SUPERSEDED:"`. Result: **no output for all nine documents**.
+
+| document | unquarantined retired-token lines | `SUPERSEDED:` lines |
+|---|---:|---:|
+| `.planning/ROADMAP.md` | 0 | 0 |
+| `.planning/REQUIREMENTS.md` (narrow set) | 0 | 0 |
+| `SPEC.md` | 0 | 1 |
+| `UI-SPEC.md` | 0 | 22 |
+| `CONTEXT.md` | 0 | 24 |
+| `RESEARCH.md` | 0 | 15 |
+| `-01-PLAN.md` | 0 | 2 |
+| `-02-PLAN.md` | 0 | 24 |
+| `-03-PLAN.md` | 0 | 3 |
+
+REQUIREMENTS.md exception, recorded: it is swept with the narrower four-token `$NARROW_SET` because line 31 is REV-17, an untouched earlier-phase requirement that legitimately keeps its phase-9 pinning wording. `grep -c "$PINNING_KW" .planning/REQUIREMENTS.md` = **1**, and `grep -n "$PINNING_KW"` lists exactly line 31 - the only surviving occurrence in that file.
+
+**Sweep 2 - primary-noun coverage.** Command: `grep -cE "frontIndex|ring buffer|ring-buffer" DOC`. Results: ROADMAP 1, REQUIREMENTS 1, SPEC 9, UI-SPEC 7, CONTEXT 8, RESEARCH 5, 01-PLAN 2, 02-PLAN 6, 03-PLAN 3 - every document at least 1, so the delivered vocabulary is live in all nine.
+
+**Sweep 3 - delivered-contract reality check against the code.** `grep -c "export function cardState" src/components/explore/projects-card-state.ts` = **1**; the source signature read at `projects-card-state.ts:275-280` is `cardState(cardIndex, frontIndex, count, reducedMotion)`. The amended documents name the same parameter order, so the record and the code agree.
+
+**Sweep 4 - retired symbols in executable code.** Command: `grep -rn "$SCROLL_HOOK\|$PROGRESS_NOUN" src/components/explore/ | grep -vE ":[[:space:]]*(\*|//)"` -> **0 matches**: no live code path references the retired tokens. Exactly ONE comment occurrence remains, named: `projects-card-state.ts:12` (the docstring recording that `cardState` takes a ring-buffer `frontIndex` instead of the retired progress input). `grep -c "$SCROLL_HOOK" src/components/explore/explore-panels.tsx` = **0** - plan 05 (wave 2) replaced that stale comment with the measured truth. The Experience scroll source is unchanged and independent of the wrapper attribute: `grep -c "MAIN_SELECTOR = '.explore-shell > main'" src/components/explore/use-timeline-progress.ts` = **1**.
+
+**Sweep 5 - cross-file scope.** `git diff --name-only HEAD~2 HEAD` lists exactly the nine planning documents (`ROADMAP.md`, `REQUIREMENTS.md`, `SPEC.md`, `UI-SPEC.md`, `CONTEXT.md`, `RESEARCH.md`, `-01-PLAN.md`, `-02-PLAN.md`, `-03-PLAN.md`) - non-`.planning/` paths = **0**. Plan 05's files (`projects-stack-stage.tsx`, `explore-panels.tsx`, `tests/explore-visuals.test.mjs`) are untouched by this plan.
+
+**Sweep 6 - acceptance-to-suite mapping.**
+
+| requirement | pinned by |
+|---|---|
+| REV-18 geometry / ring buffer / reversibility | `tests/projects-stack.test.mjs` (`cardState` plus the `swipeAccepts` / `SWIPE_THRESHOLD` / `SWIPE_VELOCITY_THRESHOLD` unit contracts) and the EXPLORE-10 invariant test in `tests/explore-visuals.test.mjs` |
+| REV-19 six distinct curated visuals + name-hash fallback + dispatch coverage | `tests/projects-stack.test.mjs` (the six-distinct, curated-precedence, hash-fallback and dispatch-coverage assertions added by plan 04) |
+| REV-20 keyboard / mount-gated reduced motion / cleanup / mobile / SSR | `tests/explore-visuals.test.mjs` (the AP-3/AP-6 structural pins added by plan 05 plus the existing swipe-driven invariant) and the static-export check of `out/explore.html` |
+
+Tooling note (verbatim): this phase has no `VALIDATION.md` by design at this point - `gsd_validate_phase` writes `<NN>-VALIDATION.md` AFTER `gsd_verify` passes, so the phase's acceptance-to-suite mapping is recorded here and the tooling artefact is produced post-verify; do not hand-author `VALIDATION.md` in this plan.
+
+**Sweep 7 - the ship-gate decision (reproduced, not restated).** Mechanics, read from the installed plugin and re-run: `planScope` builds each plan's commit scope as `{phase}-{plan}` zero-padded to two digits, so plan-04's scope is `10-04`; `tddAuditGate` keeps only subjects matching `new RegExp('\\(10-04\\)')`; `ship.js` loads EVERY plan in the phase, so all three `type: tdd` plans (-01, -04, -05) are evaluated; `config.json` has no `gates` block and an absent gate defaults to ENABLED, so `tdd_audit` is required here.
+
+Reproduced results on the real landed subjects (chronological):
+
+- post-revision: `{"status":"fail","findings":[{"planId":"EXPLORE-10-projects-stack-revision-01","reason":"missing test: commit before feat:/fix:"}]}` - **fails on 01 only**.
+- pre-revision counter-probe (the long-form scope prescribed for 04 and 05 as well): **fails on 01, 04 and 05**.
+
+Decision: this phase ships with `skip_gates: ["tdd_audit"]` (CLI form `--skip-gates tdd_audit`), leaving `security` and `broken_windows` enabled. Neither is weakened by the skip: no secret-glob path is touched, and `brokenWindowsGate` skips `.planning/**` entirely plus every non-code extension, so the `SUPERSEDED:` quarantine prose cannot false-positive on a TODO/FIXME/XXX marker.
+
+Cause: plan-01's three commits are already landed with the long-form scope `test(EXPLORE-10-projects-stack-revision-01)` / `feat(EXPLORE-10-projects-stack-revision-01)`, which match no derived scope; a landed history cannot be fixed by editing a plan document.
+
+Declined alternative: rewording those commits would require a force-push of `origin/phase-11` (`git branch -r --contains e936b20` returns `origin/phase-11`), and remote writes in this project are gated on an explicit per-action user command. Nothing else in the plan set depends on which way this goes.
+
+Honest framing: this is an accepted, recorded skip of one gate for a pre-existing history defect - **not** a claim that the phase satisfies `tdd_audit`. Plans 04 and 05 do satisfy it (their `test:` commits precede their `fix:` commits), and plan 06 is `type: execute`, so the gate never evaluates it.
+
+**Open items (not closed by this plan).** Human Verification items 1-5 from `EXPLORE-10-projects-stack-revision-VERIFICATION.md` remain open: swipe feel; shadow bloom in both themes; the 75-85% visual-area proportion with the 375px invariant; OS reduced-motion browser parity with a clean console; the keyboard/screen-reader pass. AP-2 remains an accepted deviation (the delegated mobile stack). No browser-verified or visually-measured result is claimed anywhere in this sweep.
+
 ---
 
 *Phase: 10-projects-stack-revision*
