@@ -162,27 +162,68 @@ export function djb2(str: string): number {
   return hash >>> 0;
 }
 
-/** Explicit flagship variant mapping. */
-const FIXED_VARIANTS: Record<string, string> = {
+/**
+ * CURATED_VARIANTS — the PRIMARY per-project visual assignment (phase-10
+ * gap-closure plan 04, REV-19 "6 distinct variants"). One entry per top-6
+ * project, in data order, keyed by project name. These six identifiers are the
+ * frozen contract, and each is anatomy-matched to a delivered component in
+ * sections/projects-stack-stage.tsx:
+ *
+ *   DeepIndex                 -> terminal-mock      (TerminalVisual: terminal / context-engine mock)
+ *   Clarif-AI                 -> contract-analysis  (ContractVisual: document sheet with clause flags)
+ *   SDK4ED-TD                 -> glyph              (GlyphVisual: architecture nodes joined by edges)
+ *   ServicedMetricsCalculator -> report             (ReportVisual: three tiles, five bars, polyline)
+ *   Avoid Traffic Extended    -> network            (NetworkVisual: road grid, accent route, pin)
+ *   Uom Track                 -> dashboard          (DashboardVisual: KPI tiles + progress bars)
+ *
+ * Why the table is primary and the name hash is not: the djb2 % 4 hash collides
+ * twice over the delivered top-6 (`ServicedMetricsCalculator` and `Uom Track`
+ * both landed on 'network'), so the hash alone yielded only 5 distinct visuals
+ * for 6 cards and failed REV-19 (phase-10 VERIFICATION AP-1). Promoting the
+ * curated table makes distinctness a property of the design record instead of a
+ * coincidence of a string hash; the hash is retained as the deterministic
+ * fallback so the mechanism stays total for any project outside these six.
+ *
+ * Two fidelity facts are recorded here because they are deliberate, not drift:
+ *   1. The shipped identifiers differ from UI-SPEC §4.4's drafted variant labels
+ *      (`architecture-diagram` / `metrics-dashboard` / `report-table` /
+ *      `route-map`). The six delivered components are the authority; §4.4's
+ *      composition column remains the anatomy record, and plan 06 reconciles
+ *      §4.4's variant column to these shipped identifiers.
+ *   2. Four assignments follow the delivered anatomy exactly. The one divergence
+ *      is Uom Track -> `dashboard`: its shipped composition is the KPI/progress
+ *      panel, not §4.4 row 5's drafted report table, which no shipped component
+ *      implements.
+ */
+const CURATED_VARIANTS: Record<string, string> = {
   DeepIndex: 'terminal-mock',
   'Clarif-AI': 'contract-analysis',
+  'SDK4ED-TD': 'glyph',
+  'ServicedMetricsCalculator': 'report',
+  'Avoid Traffic Extended': 'network',
+  'Uom Track': 'dashboard',
 };
 
+/** The deterministic djb2 name-hash FALLBACK set, for names outside the curated six. */
 const HASH_VARIANTS = ['glyph', 'report', 'dashboard', 'network'];
 
 /**
  * projectVisualVariant — deterministic IDE-language visual variant for a
  * project card (UI-SPEC §4.4, D-03).
  *
- * `fixed = true` bypasses the hash and returns the named flagship variant for
- * known names regardless of position — used by tests to pin the flagship
- * contracts deterministically. `fixed = false` (default) is the production
- * path.
+ * Precedence:
+ *   1. `fixed = true` returns the curated entry for a known name regardless of
+ *      position or hash — the pinned flagship contracts resolve here.
+ *   2. The curated per-project table (CURATED_VARIANTS) — the production path
+ *      for the six top-6 projects.
+ *   3. The djb2 name-hash over HASH_VARIANTS — the fallback for any project name
+ *      outside the curated six.
  */
 export function projectVisualVariant(projectName: string, fixed: boolean = false): string {
-  if (fixed && FIXED_VARIANTS[projectName]) return FIXED_VARIANTS[projectName];
-  if (projectName === 'DeepIndex') return 'terminal-mock';
-  if (projectName === 'Clarif-AI') return 'contract-analysis';
+  if (fixed && CURATED_VARIANTS[projectName]) return CURATED_VARIANTS[projectName];
+  if (Object.prototype.hasOwnProperty.call(CURATED_VARIANTS, projectName)) {
+    return CURATED_VARIANTS[projectName];
+  }
   return HASH_VARIANTS[djb2(projectName) % 4];
 }
 
