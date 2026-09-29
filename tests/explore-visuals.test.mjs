@@ -983,6 +983,30 @@ test('EXPLORE-10 invariant (REV-21): projects stack is swipe-driven, centered, l
   assert.ok(mobile.includes('ProjectsSwipeStack'), 'mobile wrapper delegates to the shared swipe stack');
 });
 
+test('EXPLORE-10 invariant (AP-3/AP-6): the stack mount-gates reduced motion and marks non-active cards by attribute only', () => {
+  const stack = read('src/components/explore/sections/projects-stack-stage.tsx');
+  assert.ok(
+    stack.includes('setMounted(true)'),
+    'the mount-only effect flips the mounted flag (AP-3 hydration parity)',
+  );
+  assert.ok(
+    /mounted \? [A-Za-z]+ : false/.test(stack),
+    'the reduced-motion value consumed by cardState is gated on the mounted flag (AP-3)',
+  );
+  assert.ok(
+    stack.includes('useReducedMotion'),
+    'framer reduced-motion detection is still used (D-05 contract survives)',
+  );
+  assert.ok(
+    !stack.includes("isFront ? '' : 'aria-hidden'"),
+    'the className carries no no-op aria-hidden class token (AP-6)',
+  );
+  assert.ok(
+    stack.includes("aria-hidden={isFront ? undefined : 'true'}"),
+    'the real aria-hidden prop remains on non-front cards (AP-6)',
+  );
+});
+
 test('EXPLORE-08 invariant (REV-07): arc geometry derives from cos/sin over measured size — no hardcoded per-marker positions', () => {
   const geo = codeOf('src/components/explore/timeline-geometry.ts');
   assert.ok(geo.includes('Math.cos'), 'timeline-geometry.ts: Math.cos present (the locked polar formula, §2.2)');
