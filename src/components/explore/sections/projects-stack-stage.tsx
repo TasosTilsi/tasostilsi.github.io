@@ -11,7 +11,12 @@
  * velocity threshold flies the card off in the swipe direction and loops it
  * to the back of the stack. Keyboard Prev/Next and Arrow keys trigger the
  * same fly-off/loop choreography. Reduced motion bypasses the fly-off and
- * swaps state instantly (opacity-only).
+ * swaps state instantly (opacity-only). The reduced-motion preference is
+ * MOUNT-GATED: framer's useReducedMotion hook is read during render but its
+ * value is consumed only after a mount-only effect flips a mounted flag, so
+ * the first client render reproduces the server's non-RM geometry exactly
+ * (no hydration mismatch and no first-paint flash for an RM user); after
+ * mount the RM contract above takes over unchanged.
  *
  * A11y: role="group" aria-label="Projects carousel"; only the foreground card
  * is not aria-hidden and not pointer-events-none. An aria-live="polite" region
@@ -500,9 +505,7 @@ function SwipeCard({
 
   return (
     <motion.div
-      className={`${CARD_SHELL} ${isFront ? 'overflow-visible' : 'pointer-events-none overflow-hidden'} ${
-        isFront ? '' : 'aria-hidden'
-      }`}
+      className={`${CARD_SHELL} ${isFront ? 'overflow-visible' : 'pointer-events-none overflow-hidden'}`}
       style={{
         position: 'absolute',
         inset: 0,
@@ -534,7 +537,17 @@ interface ProjectsSwipeStackProps {
 /** Generic swipe stack: full (md+) or compact (mobile). */
 export function ProjectsSwipeStack({ projects, mode }: ProjectsSwipeStackProps) {
   const count = projects.length;
-  const reducedMotion = useReducedMotion() ?? false;
+  const [mounted, setMounted] = useState(false);
+  const prefersReduced = useReducedMotion() ?? false;
+  // Why the gate: framer's useReducedMotion hook initialises from matchMedia
+  // on the first client render (node_modules/framer-motion/dist/es/utils/
+  // reduced-motion/use-reduced-motion.mjs uses useState(prefersReducedMotion
+  // .current)) while the server render always resolves false, so consuming
+  // the raw value would make the first client render differ from the SSR
+  // markup (hydration style mismatch + first-paint flash). The mounted flag
+  // keeps the first client render identical to the server's and applies the
+  // RM contract immediately after mount.
+  const reducedMotion = mounted ? prefersReduced : false;
   const [frontIndex, setFrontIndex] = useState(0);
   const [pendingSwipe, setPendingSwipe] = useState<SwipeDirection | null>(null);
   const [announcement, setAnnouncement] = useState('');
@@ -552,6 +565,10 @@ export function ProjectsSwipeStack({ projects, mode }: ProjectsSwipeStackProps) 
       );
     }
   }, [frontIndex, count, projects]);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleSwipe = (direction: SwipeDirection) => {
     setFrontIndex((i) => (i + direction + count) % count);
