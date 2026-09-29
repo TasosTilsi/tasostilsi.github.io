@@ -278,5 +278,15 @@
     "started": "2026-09-25T16:26:12.715Z",
     "result": "SUMMARY written",
     "completed": "2026-09-25T16:31:17.821Z"
+  },
+  {
+    "id": "JOB-29",
+    "kind": "subagent",
+    "plan": "EXPLORE-11-credentials-panel-revision-01",
+    "phase": 11,
+    "status": "done",
+    "started": "2026-09-29T19:22:18.855Z",
+    "result": "SUMMARY written",
+    "completed": "2026-09-29T19:30:27.241Z"
   }
 ]
