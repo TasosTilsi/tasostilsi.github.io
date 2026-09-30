@@ -52,7 +52,8 @@ Wire the new stack components into the Projects panel, retire the editorial-row 
 - SUPERSEDED: primary noun: the stacked-card carousel / `cardState(cardIndex, carouselProgress)` geometry
 - decision: promote
 - rationale: this phase replaces the editorial-row composition; `cardState` becomes the sole md+ Projects panel derivation, and the row/rowState contract is retired. The mobile simplified stack is the promoted responsive variant, not a parallel UI.
-- invariant: every responsive path (md+ scroll-driven stack, <md state-driven stack, reduced-motion opacity-only swap, keyboard step) consumes the same `projects.slice(0, 6)` data slice and the same `cardState` active-index rule.
+- SUPERSEDED: invariant: every responsive path (md+ scroll-driven stack, <md state-driven stack, reduced-motion opacity-only swap, keyboard step) consumes the same `projects.slice(0, 6)` data slice and the same `cardState` active-index rule.
+- invariant (delivered): every responsive path (md+ swipe-driven ring-buffer stack, <md state-driven stack, reduced-motion opacity-only swap, keyboard step) consumes the same `projects.slice(0, 6)` data slice and the same `cardState` active-index rule.
 </assumption_delta_decision>
 
 <context_reconciliation>

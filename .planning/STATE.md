@@ -2,20 +2,20 @@
 gsd_state_version: 1
 milestone: v1.0
 milestone_name: "Explore Visual Landing"
-status: ship
-active_phase: 11
-next_action: ship-phase
-next_phases: [11]
+status: execute
+active_phase: 10
+next_action: execute-phase
+next_phases: [10]
 progress:
   total_phases: 5
   completed_phases: 0
   total_plans: 6
   completed_plans: 36
   percent: 0
-current_phase: 11
-current_phase_name: credentials-panel-revision
+current_phase: 10
+current_phase_name: projects-stack-revision
 current_plan: 6
-last_updated: "2026-09-30T05:50:19.950Z"
+last_updated: "2026-09-30T06:14:35.313Z"
 state_head: null
 last_activity: 2026-09-30
 stopped_at: null
@@ -84,6 +84,7 @@ _No active phase._
 - Phase 11: planned — 2 plan(s) across 2 wave(s).
 - Phase 11: plan 01 executed — RED acceptance suite `tests/credentials-panel.test.mjs` on record first (9745193, 15 assertion failures for absent behaviour), then GREEN typed featured flag + 5-section re-map + 3-tab CredentialsSection beside Projects (08333e3); typecheck + build + `node --test tests/credentials-panel.test.mjs` 19/19 on record. Six pre-existing suites are knowingly RED (explore-shell, explore-tour, explore-sweep, explore-visuals, explore-visuals-skills, portfolio-data-integrity) — plan 02 renews them; MERGE HOLD until plan 02's full-suite run is on record.
 - Phase 10: planned — 6 plan(s) across 3 wave(s); checker issues remain after 3 iterations (manual review).
+- Phase 10: planned — 8 plan(s) across 7 wave(s).
 
 ### Blockers / Concerns
 - Shipping decision (user, 2026-09-21): ship the milestone AS A WHOLE at milestone close — no per-phase PRs. phase-1 and phase-2 branches pushed to origin (backup only); gsd_ship deferred for both phases. phase-2 branch contains phase-1 commits (stacked).

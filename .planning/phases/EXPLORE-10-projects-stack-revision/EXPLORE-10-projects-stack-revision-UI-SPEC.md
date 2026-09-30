@@ -9,7 +9,7 @@
 
 ## 1. Scope & revision targets
 
-This phase replaces the phase-9 editorial rows inside `src/components/explore/sections/projects-section.tsx` with a scroll-driven stacked-card carousel.
+SUPERSEDED: This phase replaces the phase-9 editorial rows inside `src/components/explore/sections/projects-section.tsx` with a scroll-driven stacked-card carousel.
 
 - SUPERSEDED: **In scope:** the curated 6-card stack, the pure `cardState(cardIndex, carouselProgress)` geometry, generative IDE-language visuals, curated imperfection, in-card active info, keyboard + reduced-motion contracts, mobile simplified stack, stale-test renewal.
 - **Out of scope (locked):** image assets, new dependencies, Experience stage changes, data-file changes, CLI/resume/PDF changes, wheel/touch hijacking, token/chrome replacement.
@@ -291,7 +291,7 @@ All card colors are token-driven. In light mode the `--card` background is white
 ### 5.1 Card hover / focus
 
 - The whole card is **not** an interactive target unless the project has a `link`.
-- Linked active card: hover/focus changes only the link text color to `accent` and the arrow icon to `accent` — **no `exp-lift`** on the card because the transform channel is owned by the scroll-driven motion system.
+- SUPERSEDED: Linked active card: hover/focus changes only the link text color to `accent` and the arrow icon to `accent` — **no `exp-lift`** on the card because the transform channel is owned by the scroll-driven motion system.
 - Inactive cards: no hover state; **`pointer-events-none` pinned on every non-active card (W-16 pin — they overlap the active card in depth and must never steal clicks or focus)**.
 
 ### 5.2 Prev / Next controls
@@ -401,7 +401,7 @@ The phase-9 row contract is replaced; the following files/tests must be updated:
 - **Create:** `src/components/explore/projects-card-state.ts` — exports `firstSentence`, `cardState`, `projectTechnologies`, `projectYear`.
 - **`projectYear` (W-10 pin): mirrors `rowYear` (projects-row-state.ts:122-125) — returns the first `19xx|20xx` match in the project's `date` string, or `null` when absent; consumed by the card's year chip (rendered only when non-null).**
 - SUPERSEDED: **Mount gate (W-12 pin): the stage is `'use client'` with the editorial-stage mount pattern — `useEffect` gate on `document.querySelector('.explore-shell > main')` + `closest('[data-editorial-wrapper]')`, SSR fallback renders `carouselProgress = 0` (the DeepIndex foreground card), so hydration never mismatches.**
-- **Create:** `src/components/explore/sections/projects-stack-stage.tsx` — scroll-driven md+ stack.
+- SUPERSEDED: **Create:** `src/components/explore/sections/projects-stack-stage.tsx` — scroll-driven md+ stack.
 - **Create:** `src/components/explore/sections/projects-mobile-stack.tsx` — `<md` simplified stack.
 - **Update:** `src/components/explore/sections/projects-section.tsx` — import the new stage and mobile stack; keep stat tiles and pointer.
 - **Create:** `tests/projects-stack.test.mjs` — test `cardState` geometry, imperfection, reduced-motion branch, visibility, monotonicity, SSR snapshot at progress 0, and integration greps (editorial rows gone, framer-motion only in projects files).

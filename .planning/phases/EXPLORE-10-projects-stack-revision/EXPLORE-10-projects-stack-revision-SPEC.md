@@ -5,7 +5,7 @@
 
 ## Requirements
 
-**Amendment (gap closure, 2026-09-29):** the scroll-driven formulation below was superseded by the user's live-review directive of 2026-09-25 (quick task `2026-09-25-projects-swipe-loop-stack`, commit b39b12c). The requirement IDs, the falsifiable-acceptance discipline and the IDE-aesthetic boundaries are unchanged; only the interaction mechanism is restated as the delivered swipe-driven ring buffer.
+RETAINED: **Amendment (gap closure, 2026-09-29):** the scroll-driven formulation below was superseded by the user's live-review directive of 2026-09-25 (quick task `2026-09-25-projects-swipe-loop-stack`, commit b39b12c). The requirement IDs, the falsifiable-acceptance discipline and the IDE-aesthetic boundaries are unchanged; only the interaction mechanism is restated as the delivered swipe-driven ring buffer. — retained: this line performs the supersession and therefore names the retired mechanism in order to retire it; it asserts no retired contract, so the sweep exempts it by name rather than quarantining a live amendment.
 
 _Every requirement is FALSIFIABLE — a test or check proves whether it was met or not. Each carries Current / Target / Acceptance._
 

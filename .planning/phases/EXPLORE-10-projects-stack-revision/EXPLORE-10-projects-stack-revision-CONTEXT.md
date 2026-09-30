@@ -21,7 +21,8 @@ SUPERSEDED: **In scope:** Stack carousel replacing the editorial rows: 6 visual-
 - SUPERSEDED: **D-05:** Scroll-driven: single carouselProgress from the sticky-range scroll position (no wheel/touch hijacking; the single scroll source stays <main>); keyboard Prev/Next buttons step cards (setting progress to the card's band position — the phase-8 keyboard precedent); reduced motion = state transitions (opacity/zIndex swaps, no translation/scale motion) via useReducedMotion; listeners cleaned up on unmount.
 - **D-06:** Stat tiles stay above the stage; the phase-9 editorial rows and their tests are replaced by the stack contract (stale-test discipline); the dual-engine grep ban holds (framer-motion only in the projects composition + About motion; never in the Experience stage files); zero new dependencies; mobile (<md) = simplified state-driven stack (`ProjectsMobileStack` per UI-SPEC §2.3; the phase-9 compact card grid is retired); 375px invariant + 44px controls + SSR foreground card (DeepIndex) as real text.
 ### Claude's Discretion
-- The exact SVG compositions for the 6 generative visual variants (the *selection* of which variant applies to the 4 non-fixed projects is locked to the name-hash determinism in D-03 / OQ-3)
+- SUPERSEDED: The exact SVG compositions for the 6 generative visual variants (the *selection* of which variant applies to the 4 non-fixed projects is locked to the name-hash determinism in D-03 / OQ-3)
+- Live re-statement of the bullet above: the exact SVG compositions for the 6 generative visual variants remain at Claude's discretion, but the variant SELECTION rule in its parenthetical is retired by the amended D-03 below - the curated per-project table is PRIMARY and `djb2(project.name) % 4` is the FALLBACK for names outside the curated six (quarantined line retained byte-identical; see **D-03 AMENDED** under `## Gap-closure amendment (2026-09-29)`).
 - Stack offset/scale constants within the brief's ranges (tunable U-item)
 - Card dimensions/aspect ratio within the stage
 </decisions>
@@ -116,12 +117,19 @@ Deterministic sweep run by plan 06 task 3 on the final amended tree. Every numbe
 Probe inputs, defined verbatim so the sweep reproduces. Each definition line is itself marked, because it spells retired tokens:
 
 ```bash
-RETIRED_SET='carouselProgress|carouselPosition|main\.scrollTo|ResizeObserver|useScroll|300vh|sticky'  # SUPERSEDED: sweep-1 token set (verbatim, so the probe is reproducible)
+RETIRED_SET='carouselProgress|carouselPosition|main\.scrollTo|ResizeObserver|useScroll|300vh|sticky'  # SUPERSEDED: sweep-1 token set for ROADMAP.md (verbatim, so the probe is reproducible)
+INTERACT_SET='scroll-driven|resize handling|resize-aware|name-hash determinism'  # SUPERSEDED: the four retired PROJECTS-stack INTERACTION tokens, spelled verbatim here ONCE so the prose below need not repeat them; retired for phase-10 descriptions only - phase-08's Experience row uses one of them correctly
+RETIRED_SET_EXT="$RETIRED_SET|closest\('\[data-editorial-wrapper\]'\)|$INTERACT_SET"  # SUPERSEDED: sweep-1 token set for the phase-10 documents and the three plan records - the four interaction tokens were added by the 2026-09-30 W-1/W-4 corrections
 NARROW_SET='carouselProgress|carouselPosition|main\.scrollTo|ResizeObserver'  # SUPERSEDED: REQUIREMENTS.md probe input only - REV-17 (line 31) keeps its phase-9 pinning wording by design
+QUARANTINE_MARK='SUPERSEDED:'    # SUPERSEDED: retired history - the line's text is kept byte-identical behind this prefix
+RETAIN_MARK='RETAINED:'          # SUPERSEDED: a LIVE line that names a retired token in order to retire it; exempt by name, reason on the line, bounded at exactly 1 in this phase
 SCROLL_HOOK='useScroll'           # SUPERSEDED: the retired framer-motion scroll hook, probed in sweep 4
 PROGRESS_NOUN='carouselProgress'  # SUPERSEDED: the retired scroll-progress noun, probed in sweeps 1 and 4
 PINNING_KW='sticky'               # SUPERSEDED: the retired pinning keyword, probed in sweep 1
-# sweep 1 (per document):             grep -nE "$RETIRED_SET" DOC | grep -v "SUPERSEDED:"
+# sweep 1 (per document):             grep -nE "$RETIRED_SET_EXT" DOC | grep -vE "SUPERSEDED:|RETAINED:"
+# sweep 1 (ROADMAP.md ONLY):          grep -nE "$RETIRED_SET" .planning/ROADMAP.md | grep -vE "SUPERSEDED:|RETAINED:"
+# sweep 1 (REQUIREMENTS.md ONLY):     grep -nE "$NARROW_SET" .planning/REQUIREMENTS.md | grep -vE "SUPERSEDED:|RETAINED:"
+# sweep 1b (marker budget, per file): grep -cE '^[[:space:]>*-]*RETAINED:' DOC   # expect exactly 1 summed over the nine documents; ANCHORED to the first content token, because this very section spells the marker in prose while documenting it and a bare substring count reads 10
 # sweep 2 (per document):             grep -cE "frontIndex|ring buffer|ring-buffer" DOC
 # sweep 3:                            grep -c "export function cardState" src/components/explore/projects-card-state.ts
 # sweep 4:                            grep -rn "$SCROLL_HOOK\|$PROGRESS_NOUN" src/components/explore/ | grep -vE ":[[:space:]]*(\*|//)"
@@ -130,29 +138,42 @@ PINNING_KW='sticky'               # SUPERSEDED: the retired pinning keyword, pro
 # sweep 7:                            tddAuditGate(plans, commitSubjects) from the installed @dsh-gsd bundle
 ```
 
-**Sweep 1 - retired-token quarantine.** Command: `grep -nE "$RETIRED_SET" DOC | grep -v "SUPERSEDED:"`. Result: **no output for all nine documents**.
+**Sweep 1 - retired-token quarantine.** Commands: `grep -nE "$RETIRED_SET_EXT" DOC | grep -vE "SUPERSEDED:|RETAINED:"` for the phase-10 documents and the three plan records; `grep -nE "$RETIRED_SET" .planning/ROADMAP.md | grep -vE "SUPERSEDED:|RETAINED:"` for ROADMAP.md; `grep -nE "$NARROW_SET" .planning/REQUIREMENTS.md | grep -vE "SUPERSEDED:|RETAINED:"` for REQUIREMENTS.md. Result: **no output for all nine documents** (re-measured 2026-09-30 on the tree this revision leaves behind).
 
-| document | unquarantined retired-token lines | `SUPERSEDED:` lines |
-|---|---:|---:|
-| `.planning/ROADMAP.md` | 0 | 0 |
-| `.planning/REQUIREMENTS.md` (narrow set) | 0 | 0 |
-| `SPEC.md` | 0 | 1 |
-| `UI-SPEC.md` | 0 | 22 |
-| `CONTEXT.md` | 0 | 24 |
-| `RESEARCH.md` | 0 | 15 |
-| `-01-PLAN.md` | 0 | 2 |
-| `-02-PLAN.md` | 0 | 24 |
-| `-03-PLAN.md` | 0 | 3 |
+| document | unquarantined retired-token lines | `SUPERSEDED:` lines (re-measured, bare `grep -c`) | movement vs the 2026-09-29 record, attributed from `git diff` |
+|---|---:|---:|---|
+| `.planning/ROADMAP.md` (7-token set) | 0 | 0 | - |
+| `.planning/REQUIREMENTS.md` (narrow set) | 0 | 0 | - |
+| `SPEC.md` | 0 | 1 | +/-0 (plus the phase's single `RETAINED:` line) |
+| `UI-SPEC.md` | 0 | 25 | +3 (W-1: lines 12, 294, 404) |
+| `CONTEXT.md` | 0 | 32 | +8 (net of +12 added / -4 reworded, attributed with `git diff`; of the +12 only line 24 is a NEW quarantine - the other 11 are probe-input and record lines that spell the marker while documenting it, e.g. `INTERACT_SET`, the sweep-1 command comments and this section's own prose) |
+| `RESEARCH.md` | 0 | 17 | +2 (W-1: lines 11, 84) |
+| `-01-PLAN.md` | 0 | 3 | +1 (W-4 revision) |
+| `-02-PLAN.md` | 0 | 33 | +9 (W-4 revision) |
+| `-03-PLAN.md` | 0 | 4 | +1 (W-4 revision) |
 
-REQUIREMENTS.md exception, recorded: it is swept with the narrower four-token `$NARROW_SET` because line 31 is REV-17, an untouched earlier-phase requirement that legitimately keeps its phase-9 pinning wording. `grep -c "$PINNING_KW" .planning/REQUIREMENTS.md` = **1**, and `grep -n "$PINNING_KW"` lists exactly line 31 - the only surviving occurrence in that file.
+Metric note, so the column is not over-read: the bare `grep -c "SUPERSEDED:"` count is a COVERAGE indicator, not an exact quarantine census - it also counts fenced-code trailing-comment markers, markdown-table-cell markers and lines that merely name the marker (this section alone contributes ~10 such lines in `CONTEXT.md`). The two FALSIFIABLE checks are therefore the ones below, not this count: (a) sweep 1 returns no output for all nine documents under their per-file token sets, and (b) the anchored `RETAINED:` budget (`grep -cE '^[[:space:]>*-]*RETAINED:'`) totals exactly 1 across the nine. Every figure in this table was re-measured on the tree this revision leaves behind; the attribution column comes from `git diff -U0 | grep -c '^+.*SUPERSEDED:'` / `'^-.*SUPERSEDED:'` on each file rather than from memory.
 
-**Sweep 2 - primary-noun coverage.** Command: `grep -cE "frontIndex|ring buffer|ring-buffer" DOC`. Results: ROADMAP 1, REQUIREMENTS 1, SPEC 9, UI-SPEC 7, CONTEXT 8, RESEARCH 5, 01-PLAN 2, 02-PLAN 6, 03-PLAN 3 - every document at least 1, so the delivered vocabulary is live in all nine.
+**Revision delta (2026-09-30, plan-checker W-1/W-3/W-4) - re-measured, never estimated.** The 2026-09-29 figures were true of the tree as it stood then; two later revisions moved them and this table carries the re-measured values, so the record again describes the tree it claims to describe.
+
+- **W-4** added the four retired INTERACTION tokens (defined verbatim, once, above as `INTERACT_SET`) to the plan records' token set after six live-sounding lines survived in plans 01/02/03. Movement: `-01-PLAN.md` 2 → 3, `-02-PLAN.md` 24 → 33, `-03-PLAN.md` 3 → 4.
+- **W-1** found the same four tokens STILL unquarantined in four DOCUMENT records - 7 measured lines, none of which the 2026-09-29 probe could see: `CONTEXT.md:24` (the retired variant-selection rule, contradicting the amended D-03), `RESEARCH.md:11` and `:84` (the retired stage description and OQ-3's retired selection rule), `SPEC.md:8` (the live amendment block - `RETAINED:`, not quarantined) and `UI-SPEC.md:12`, `:294`, `:404` (the retired stage description and the retired motion-system ownership claim). Movement: `CONTEXT.md` 24 → 25, `RESEARCH.md` 15 → 17, `UI-SPEC.md` 22 → 25; `SPEC.md` stays at 1 with 1 line marked `RETAINED:`.
+- The sweep now removes both markers and bounds the exemption: the `RETAINED:` marker is asserted to be **exactly 1** across the nine documents BY FIRST CONTENT TOKEN (`grep -cE '^[[:space:]>*-]*RETAINED:'`, not a bare substring count — this very section spells the marker ~9 times while documenting it, so a bare `grep -c` reads 10 and would be a false RED), so a second unmarked token line cannot hide behind the marker, and the widened set is what makes sweep 1 falsifiable against the interaction vocabulary rather than only against the geometry/plumbing vocabulary.
+- The widened set is deliberately NOT applied to `.planning/ROADMAP.md` and `.planning/REQUIREMENTS.md` - see the two scoping exceptions below. Applying it there is what produced the two false positives this delta eliminates.
+
+Two scoping exceptions and one retained line, all recorded by name with a measured reason:
+
+- **`ROADMAP.md` uses the seven-token `$RETIRED_SET`, NOT the extended set.** The four interaction tokens are retired only as descriptions of the **Projects stack** (phase 10). Phase-08's Experience row legitimately describes its own delivered timeline contract with one of them, because that phase's `timelineProgress` really is derived from scroll position: `grep -nE "$INTERACT_SET" .planning/ROADMAP.md` = **1** and it is line 14 = phase 08, so it is excluded by SCOPE, not quarantined - prefixing another phase's correct row would damage an unrelated record.
+- **`REQUIREMENTS.md` uses the four-token `$NARROW_SET`.** Line 31 is REV-17, an untouched earlier-phase requirement that legitimately keeps its phase-9 pinning wording. `grep -c "$PINNING_KW" .planning/REQUIREMENTS.md` = **1**, and `grep -n "$PINNING_KW"` lists exactly line 31 - the only surviving occurrence in that file.
+- **`SPEC.md:8` is the phase's single `RETAINED:` line.** It is the amendment block, whose whole job is to announce the supersession: it names the retired mechanism in order to retire it and asserts no retired contract, so quarantining a live amendment would be wrong. `grep -cE '^[[:space:]>*-]*RETAINED:'` across the nine documents = **1** (anchor the count to the first content token: the sweep record below spells the marker many times in prose while documenting it).
+
+**Sweep 2 - primary-noun coverage.** Command: `grep -cE "frontIndex|ring buffer|ring-buffer" DOC`. Results (re-measured 2026-09-30, post-revision): ROADMAP 1, REQUIREMENTS 1, SPEC 9, UI-SPEC 7, CONTEXT 8, RESEARCH 5, 01-PLAN **3**, 02-PLAN **9**, 03-PLAN **4** - every document at least 1, so the delivered vocabulary is live in all nine. The three plan-record figures moved with the W-4 revision (previously recorded 2 / 6 / 3); the other six are unchanged.
 
 **Sweep 3 - delivered-contract reality check against the code.** `grep -c "export function cardState" src/components/explore/projects-card-state.ts` = **1**; the source signature read at `projects-card-state.ts:275-280` is `cardState(cardIndex, frontIndex, count, reducedMotion)`. The amended documents name the same parameter order, so the record and the code agree.
 
 **Sweep 4 - retired symbols in executable code.** Command: `grep -rn "$SCROLL_HOOK\|$PROGRESS_NOUN" src/components/explore/ | grep -vE ":[[:space:]]*(\*|//)"` -> **0 matches**: no live code path references the retired tokens. Exactly ONE comment occurrence remains, named: `projects-card-state.ts:12` (the docstring recording that `cardState` takes a ring-buffer `frontIndex` instead of the retired progress input). `grep -c "$SCROLL_HOOK" src/components/explore/explore-panels.tsx` = **0** - plan 05 (wave 2) replaced that stale comment with the measured truth. The Experience scroll source is unchanged and independent of the wrapper attribute: `grep -c "MAIN_SELECTOR = '.explore-shell > main'" src/components/explore/use-timeline-progress.ts` = **1**.
 
-**Sweep 5 - cross-file scope.** `git diff --name-only HEAD~2 HEAD` lists exactly the nine planning documents (`ROADMAP.md`, `REQUIREMENTS.md`, `SPEC.md`, `UI-SPEC.md`, `CONTEXT.md`, `RESEARCH.md`, `-01-PLAN.md`, `-02-PLAN.md`, `-03-PLAN.md`) - non-`.planning/` paths = **0**. Plan 05's files (`projects-stack-stage.tsx`, `explore-panels.tsx`, `tests/explore-visuals.test.mjs`) are untouched by this plan.
+**Sweep 5 - cross-file scope.** `git diff --name-only HEAD~2 HEAD` lists exactly the nine planning documents (`ROADMAP.md`, `REQUIREMENTS.md`, `SPEC.md`, `UI-SPEC.md`, `CONTEXT.md`, `RESEARCH.md`, `-01-PLAN.md`, `-02-PLAN.md`, `-03-PLAN.md`) - non-`.planning/` paths = **0**. Plan 05's files (`projects-stack-stage.tsx`, `explore-panels.tsx`, `tests/explore-visuals.test.mjs`) are untouched by this plan. This is the **2026-09-29 run's** measurement of that commit range; the 2026-09-30 W-1 revision adds its own planning-record changes, so the figure is not re-asserted for the later range - re-run the command for whatever range is being checked.
 
 **Sweep 6 - acceptance-to-suite mapping.**
 

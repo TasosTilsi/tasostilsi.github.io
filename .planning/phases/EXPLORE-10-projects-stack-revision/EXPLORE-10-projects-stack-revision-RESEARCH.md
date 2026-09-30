@@ -8,7 +8,7 @@
 
 > **SUPERSEDED:** the scroll-derived contract below was replaced by the user's live-review directive of 2026-09-25 (commit `b39b12c`; reconciled by `EXPLORE-10-projects-stack-revision-06-PLAN.md`). The delivered contract is the swipe-driven ring buffer `cardState(cardIndex, frontIndex, count, reducedMotion)` at natural height. Read this section as history, not as implementation guidance.
 
-The Projects panel’s editorial-row scroll (phase 9, REV-17) is replaced by a curated, scroll-driven stacked-card carousel (REV-18/REV-19/REV-20). The work is a **presentation-layer swap** inside the existing `/explore` IDE shell:
+SUPERSEDED: The Projects panel’s editorial-row scroll (phase 9, REV-17) is replaced by a curated, scroll-driven stacked-card carousel (REV-18/REV-19/REV-20). The work is a **presentation-layer swap** inside the existing `/explore` IDE shell:
 
 - SUPERSEDED: The sticky ~100vh stage, the 300vh extended wrapper, the stat tiles and the `TerminalPointer` all stay in place [VERIFIED: `src/components/explore/explore-panels.tsx:121-132`, `src/components/explore/sections/projects-section.tsx:53-63`].
 - The rows composer (`ProjectsEditorialStage`) and its pure module (`projects-row-state.ts`) are deleted; a new client stage and a new pure `projects-card-state.ts` take their place (stale-test discipline).
@@ -81,7 +81,8 @@ The brief gives ranges, not exact numbers: behind-cards step `translateY -30..-4
 UI-SPEC §3 is the final locked source of truth; these constants supersede the earlier draft numbers. Extrapolation beyond l=5 uses the same per-level deltas until opacity drops below the visible cutoff.
 
 ### OQ-3 — Deterministic assignment of the four remaining generative visuals *(RESOLVED)*
-DeepIndex is fixed to “terminal/context-engine mock” and Clarif-AI to “contract-analysis panel”; the other four projects map to architecture/glyph/report variants by name-hash determinism [VERIFIED: `CONTEXT.md` D-03].  
+SUPERSEDED: DeepIndex is fixed to “terminal/context-engine mock” and Clarif-AI to “contract-analysis panel”; the other four projects map to architecture/glyph/report variants by name-hash determinism [VERIFIED: `CONTEXT.md` D-03].  
+**Amended (2026-09-29, gap closure - the retired selection rule above is kept byte-identical behind its prefix):** the name-hash map is NO LONGER the primary selection rule. The curated per-project table is PRIMARY (six entries, one per top-6 project) and the `djb2(project.name) % 4` map below is the deterministic FALLBACK for names outside the curated six. Reason on record: the hash alone collided - ServicedMetricsCalculator and Uom Track both hashed to `network`, giving 5 distinct visuals for 6 cards and failing REV-19's distinctness acceptance (phase-10 VERIFICATION AP-1), closed by plan 04. See `CONTEXT.md` **D-03 AMENDED**.
 **Resolution:** Use a stable djb2-style hash of `project.name` modulo 4 to pick from `['glyph','report','dashboard','network']`. The four variants are:
 1. `glyph` — abstract architecture glyphs / node graph,
 2. `report` — quality-report / metrics panel,

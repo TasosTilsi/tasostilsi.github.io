@@ -49,14 +49,17 @@ must_haves:
 <objective>
 > **SUPERSEDED:** do not re-derive this plan's wiring. This plan describes the retired scroll-driven stage (`useScroll` over the 300vh `[data-editorial-wrapper]` wrapper, `ResizeObserver` band re-measurement, `main.scrollTo` keyboard stepping). The DELIVERED contract is the swipe-driven ring buffer — `cardState(cardIndex, frontIndex, count, reducedMotion)` — implemented in `src/components/explore/sections/projects-stack-stage.tsx`. This plan already executed and has a SUMMARY, so the executor skips it; if it is ever re-run, read `EXPLORE-10-projects-stack-revision-06-PLAN.md` (which reconciles the contract documents) BEFORE implementing anything here, and never re-introduce `useScroll` / `[data-editorial-wrapper]` / `main.scrollTo`.
 
-Build the two stack presentations: the scroll-driven md+ framer-motion stage and the simplified <md state-driven stack. Both consume the same pure cardState module, the same 6-project data slice, and the same name-hash deterministic generative visual variant map. This plan is the visual/implementation core of the phase.
+- SUPERSEDED: Build the two stack presentations: the scroll-driven md+ framer-motion stage and the simplified <md state-driven stack. Both consume the same pure cardState module, the same 6-project data slice, and the same name-hash deterministic generative visual variant map. This plan is the visual/implementation core of the phase.
+
+Delivered (read this line, not the quarantined one above): the two stack presentations are the swipe-driven md+ framer-motion ring-buffer stage and the simplified <md state-driven stack; both consume the same pure `cardState` module, the same 6-project data slice, and the same curated per-project generative-visual table with the `djb2` name hash as the FALLBACK for uncurated names (CONTEXT D-03 as amended; delivered by plan 04). This plan is the visual/implementation core of the phase.
 </objective>
 
 <assumption_delta_decision>
 - SUPERSEDED: primary noun: the stacked-card carousel / `cardState(cardIndex, carouselProgress)` geometry
 - decision: promote
 - rationale: this phase replaces the editorial-row composition; `cardState` becomes the sole md+ Projects panel derivation, and the row/rowState contract is retired. The mobile simplified stack is the promoted responsive variant, not a parallel UI.
-- invariant: every responsive path (md+ scroll-driven stack, <md state-driven stack, reduced-motion opacity-only swap, keyboard step) consumes the same `projects.slice(0, 6)` data slice and the same `cardState` active-index rule.
+- SUPERSEDED: invariant: every responsive path (md+ scroll-driven stack, <md state-driven stack, reduced-motion opacity-only swap, keyboard step) consumes the same `projects.slice(0, 6)` data slice and the same `cardState` active-index rule.
+- invariant (delivered): every responsive path (md+ swipe-driven ring-buffer stack, <md state-driven stack, reduced-motion opacity-only swap, keyboard step) consumes the same `projects.slice(0, 6)` data slice and the same `cardState` active-index rule.
 </assumption_delta_decision>
 
 <context_reconciliation>
@@ -77,7 +80,7 @@ Read before implementing:
 
 <tasks>
   <task type="auto">
-    <name>Task 1 (Tracer): Implement the md+ scroll-driven stack stage with SSR gate, resize handling, single-project fallback, and all 6 generative visuals selected by name-hash determinism</name>
+    <name>SUPERSEDED: Task 1 (Tracer): Implement the md+ scroll-driven stack stage with SSR gate, resize handling, single-project fallback, and all 6 generative visuals selected by name-hash determinism — the delivered tracer is the swipe-driven ring-buffer stage in the same file; see the delivered-behaviour line in the objective and the amendment block at the end of this file</name>
     <files>src/components/explore/sections/projects-stack-stage.tsx</files>
     <read_first>src/components/explore/sections/projects-editorial-stage.tsx, src/components/explore/explore-panels.tsx, .planning/phases/EXPLORE-10-projects-stack-revision/EXPLORE-10-projects-stack-revision-UI-SPEC.md</read_first>
     <action>
@@ -135,7 +138,7 @@ Read before implementing:
       - Grep confirms `aria-hidden` is applied by the active-index rule (e.g. `aria-hidden={activeIndex !== cardIndex}` or equivalent helper).
       - `npm run build` exits 0.
     </acceptance_criteria>
-    <done>Desktop stack is fully interactive, accessible, reduced-motion safe, and resize-aware.</done>
+    <done>SUPERSEDED: Desktop stack is fully interactive, accessible, reduced-motion safe, and resize-aware — the delivered stage is layout-independent (fixed-height stage, absolutely positioned cards, no resize remeasurement).</done>
   </task>
 
   <task type="auto">
@@ -145,12 +148,13 @@ Read before implementing:
     <action>
       Create `src/components/explore/sections/projects-mobile-stack.tsx` as a `'use client'` component (state-driven, no framer-motion import). It receives the same `projects` prop (top-6 slice) and uses local `useState` for `activeIndex` (default 0). Render inside a fixed-height container (`h-[420px]` tunable U-item) with the active card centered and full opacity/scale, the ONE adjacent peek card above or below at `±28px` offset, scale `0.94`, opacity `0.7`; deeper cards are `visibility:hidden` (W-11 pin: exactly 2 cards visible). Under reduced motion, remove the peek/offset translations (opacity-only, cards static at their slots); read `window.matchMedia('(prefers-reduced-motion: reduce)')` only inside `useEffect` (or via `useSyncExternalStore` with an SSR-safe fallback), and initialize the reduced-motion state to `false` for the server — this file must NOT import framer-motion. Non-active cards are `aria-hidden="true"` with `tabIndex={-1}` links. Reuse the same card shell, generative visuals (via `projectVisualVariant(project.name)` imported from `../projects-card-state`), header strip, and expanded panel as the desktop stack. Render the same Prev/Next 44px controls and counter below the container; stepping updates `activeIndex` directly (no scroll hijack). Ensure no horizontal scroll and the 375px invariant holds. Short-circuit `projects.length <= 1` by rendering one static active card with the expanded panel fully visible and no controls.
     </action>
-    <verify>Run `npm run typecheck` and `npm run build`.</verify>
+    <verify>Run `npm run typecheck`, then `npm run build`, then `node --test tests/explore-visuals.test.mjs` — the third command is required so this plan's three consecutive tasks never verify by build alone: tasks 1 and 2 are compile/build-only by design (the stage's behavioural contract is pinned by plan 03), and this task must close that window with a real behavioural run over the file that owns the stack invariants. All three must exit 0.</verify>
     <acceptance_criteria>
       - `src/components/explore/sections/projects-mobile-stack.tsx` exists and does NOT contain `'framer-motion'`.
       - Grep confirms `h-[420px]` or equivalent fixed mobile height, `md:hidden` usage in `projects-section`, and no `overflow-x-auto`/`overflow-x-scroll`.
       - Grep confirms `window.matchMedia` is guarded inside `useEffect` or `useSyncExternalStore` (not during render).
       - `npm run build` exits 0.
+      - `node --test tests/explore-visuals.test.mjs` exits 0 on the final workspace state of this task (the mobile composition must not break the shell/placement invariants this suite pins).
     </acceptance_criteria>
     <done>Mobile stack is a readable, reduced-motion-safe, SSR-safe simplified composition that replaces the retired compact grid.</done>
   </task>
@@ -178,5 +182,14 @@ Superseded artifact strings (corrected in place in the frontmatter above, quoted
 
 - SUPERSEDED: `provides: "Scroll-driven stacked-card carousel for md+, SSR gate, controls, keyboard/RM contracts, generative visuals (hash-selected), resize handling, single-project fallback."`
 - SUPERSEDED: `provides: "Simplified state-driven stacked composition for <md with controls; replaces the retired phase-9 compact card grid."`
+
+Superseded task-field and objective wording (quarantined in place above, quoted here in its original wording):
+
+- SUPERSEDED: `<name>Task 1 (Tracer): Implement the md+ scroll-driven stack stage with SSR gate, resize handling, single-project fallback, and all 6 generative visuals selected by name-hash determinism</name>`
+- SUPERSEDED: `<done>Desktop stack is fully interactive, accessible, reduced-motion safe, and resize-aware.</done>`
+- SUPERSEDED: the `<objective>` sentence "Build the two stack presentations: the scroll-driven md+ framer-motion stage and the simplified <md state-driven stack … the same name-hash deterministic generative visual variant map."
+- SUPERSEDED: the `<assumption_delta_decision>` invariant "every responsive path (md+ scroll-driven stack, <md state-driven stack, reduced-motion opacity-only swap, keyboard step) …"
+
+Quarantine-scope correction (2026-09-30, plan-checker W-4): the 2026-09-29 sweep's token set covered the retired GEOMETRY/interaction-plumbing vocabulary (`carouselProgress`, `main.scrollTo`, `ResizeObserver`, `useScroll`, `300vh`, `sticky`, the wrapper-discovery attribute) but missed the retired INTERACTION vocabulary. The set is therefore extended with `scroll-driven|resize handling|resize-aware|name-hash determinism` (recorded in plan 06's task-2 quarantine tokens and its plan-file sweep command), and the four lines above — the same four in plans 01 and 03 — are quarantined under the extended set in this revision. Every retired token in this file now sits on a line whose first content token is `SUPERSEDED:`.
 
 Delivered behaviour: `ProjectsSwipeStack` renders the 6 cards as a swipe-driven, loopable ring buffer at natural height with geometry from `cardState(cardIndex, frontIndex, count, reducedMotion)`; the six visuals come from the curated per-project table with the `djb2` name-hash fallback; keyboard Prev/Next, Arrow keys and Home/End set the front index directly; the stack is layout-independent, so no resize remeasurement is required. `projects-mobile-stack.tsx` is a thin delegate (accepted deviation AP-2).
