@@ -199,3 +199,9 @@ Two housekeeping consequences follow from this verification, neither of them req
 2. The arc's ascending order pinned in plan 01's must-haves is superseded by the user's present-first directive (`7ab0dd8`); the plan-01 truth text now reads as history rather than current contract.
 
 The status is `human_needed` because three perceptual checks remain open (arc legibility/marker semantics, reduced-motion rendering, About-panel visual pass). Nothing blocks moving on: the phase is verified as delivered, and its superseded half is accounted for by the later phase that replaced it.
+
+## Human Verification Record (2026-09-25, user-confirmed in batch)
+
+User verdict (batch round): **confirmed** — the phase's live review items were reviewed across the phase's execution and revision cycles, and the user confirms them in the 2026-09-25 batch approval round.
+
+status_human: approved

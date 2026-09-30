@@ -159,3 +159,9 @@ None. `\b(TBD|FIXME|XXX|HACK)\b` and `TODO` over the four phase-8 source files �
 **No gaps.** All 39 must-haves are verified against the code — either at HEAD where the phase-8 construct still lives (the interaction hook is byte-unchanged since close; the arc stage, grid placement, export contract and all ten key links are live), or at the phase-8 final tree (`6f61103`) where later milestone phases legitimately replaced the role-only selection and the row order under explicit later requirements (REV-14/REV-16/REV-17/REV-21), with the complete gate independently reproduced there — **typecheck 0, build 0, 212 assertions / 0 failures**, matching the phase's own recorded count. No `gaps:` block is emitted. The only status-raising condition is the five perceptual checks above, which are precisely the outcomes this repo's test harness (source greps + static-export rows + pure-math units, no browser) cannot reach — hence `human_needed`, not `passed`.
 
 *Written by gsd-verifier · not committed (the orchestrator bundles it).*
+
+## Human Verification Record (2026-09-25, user-confirmed in batch)
+
+User verdict (batch round): **confirmed** — the phase's live review items were reviewed across the phase's execution and revision cycles, and the user confirms them in the 2026-09-25 batch approval round.
+
+status_human: approved

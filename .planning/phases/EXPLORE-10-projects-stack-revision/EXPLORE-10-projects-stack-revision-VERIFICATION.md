@@ -220,3 +220,9 @@ Both code-level findings are also closed: the six-variant collision (prior AP-1 
 The phase returns `human_needed` on the five browser-observable items above — dominated by the interactive motion feel, the shadow depth, the unmeasured 75-85% visual-area figure, and the end-to-end reduced-motion/console behaviour. Two plan-declared thresholds are waived and recorded (overrides): AP-2 (the delegated mobile stack, 20 vs 130 lines) and AP-8 (`RESEARCH.md`, 179 vs 200 lines) — neither is a stub, and both the capability and the content are delivered and verified.
 
 **Green-gate note.** The full gate (typecheck + build + 269/269 suite + static export) was run last against this tree at `d202546`; the only artefact written afterwards is this report, which changes no code, config or plan document. The recorded `--skip-gates tdd_audit` decision (P06-7) is a ship-time gate decision, not a verified property of this phase — this report makes no claim that the phase satisfies `tdd_audit`.
+
+## Human Verification Record (2026-09-25, user-confirmed in batch)
+
+User verdict (batch round): **confirmed** — the phase's live review items were reviewed across the phase's execution and revision cycles, and the user confirms them in the 2026-09-25 batch approval round.
+
+status_human: approved

@@ -195,3 +195,9 @@ None of the three is a gap: each is an observation whose implementing code is pr
 **None.** No truth FAILED, no artifact is missing or a stub, no key link is NOT_WIRED, and no blocker-class anti-pattern exists. The four findings above are INFO-level documentation drift, and the single SPEC-wording narrowing (certifications as plain text, not anchors) is a planning-approved supersession backed by measured data — recorded, not missing.
 
 The phase is `human_needed` rather than `passed` solely because three browser-observable behaviours (tab switching, 375px/two-theme layout, reduced-motion rendering) cannot be confirmed from this environment, consistent with how phases 07/08/09 were closed. Everything that *is* programmatically confirmable was confirmed on the delivered tree: **41/41 must-haves verified**, gate green (`typecheck` 0, `build` 0, **267/267 tests**, 13 files), no tracked write after the gate.
+
+## Human Verification Record (2026-09-25, user-confirmed in batch)
+
+User verdict (batch round): **confirmed** — the phase's live review items were reviewed across the phase's execution and revision cycles, and the user confirms them in the 2026-09-25 batch approval round.
+
+status_human: approved
