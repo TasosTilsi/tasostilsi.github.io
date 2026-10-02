@@ -279,3 +279,11 @@
 - opened: 2026-10-02T17:15:26.759Z
 - closed: 2026-10-02T17:15:26.759Z
 - summary: Executed 1/3 plans
+
+## WIN-36
+- id: WIN-36
+- phase: 10
+- step: ship
+- opened: 2026-10-02T17:45:06.160Z
+- closed: 2026-10-02T17:45:06.160Z
+- summary: Executed 1/8 plans
