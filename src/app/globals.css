@@ -640,6 +640,37 @@ body {
   transform: translateX(2px);
 }
 
+/* Credentials tab capsule (user directive, §2.3 revision) — the inactive hover
+   vocabulary of that panel: the icon lifts 2px, the label darkens toward
+   foreground, the emphasis returns to full. Same editorial-calm curve as the
+   closed phase-7 set, shell-scoped so the guard below stays the ONLY motion
+   suppressor (reduced motion renders the states without the transition). */
+.explore-shell .exp-tab,
+.explore-shell .exp-tab-icon,
+.explore-shell .exp-tab-label {
+  transition: opacity 180ms cubic-bezier(0.25, 1, 0.5, 1),
+    color 180ms cubic-bezier(0.25, 1, 0.5, 1),
+    transform 180ms cubic-bezier(0.25, 1, 0.5, 1);
+}
+/* Inactive segments sit back; the ACTIVE segment keeps its accent pill at full
+   opacity — that colour is a class on the trigger, so no active rule is needed. */
+.explore-shell .exp-tab[data-state='inactive'] {
+  opacity: 0.85;
+}
+.explore-shell .exp-tab[data-state='inactive']:hover,
+.explore-shell .exp-tab[data-state='inactive']:focus-visible {
+  opacity: 1;
+}
+/* Keyboard parity (B-1): focus-visible gets the same lift as hover. */
+.explore-shell .exp-tab[data-state='inactive']:hover .exp-tab-icon,
+.explore-shell .exp-tab[data-state='inactive']:focus-visible .exp-tab-icon {
+  transform: translateY(-2px);
+}
+.explore-shell .exp-tab[data-state='inactive']:hover .exp-tab-label,
+.explore-shell .exp-tab[data-state='inactive']:focus-visible .exp-tab-label {
+  color: hsl(var(--foreground));
+}
+
 /* Reduced-motion guard (UI-SPEC §12) — the ONLY motion-suppression mechanism of
    this phase. Covers the in-flow shell (marker-class descendants) and the
    portaled SheetOverlay/SheetContent via body:has(.explore-shell) data-state

@@ -197,9 +197,9 @@ test('panel: client leaf island over the installed shadcn Tabs, default Articles
   }
 });
 
-test('panel: calm row vocabulary — 44px rows and triggers, icons, exp-nudge arrow', () => {
+test('panel: calm row vocabulary — 44px rows, icons, exp-nudge arrow', () => {
   const src = read(PANEL);
-  assert.ok(src.includes('min-h-[44px]'), '44px-equivalent target on triggers AND rows (A11Y-01/§2.4)');
+  assert.ok(src.includes('min-h-[44px]'), '44px-equivalent target on the ROW rail only (A11Y-01/§2.4)');
   for (const icon of ['FileText', 'Award', 'MonitorPlay']) {
     assert.ok(src.includes(icon), `lucide ${icon} mapped to its tab (ICON-01)`);
   }
@@ -212,6 +212,55 @@ test('panel: calm row vocabulary — 44px rows and triggers, icons, exp-nudge ar
     src,
     /focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2/,
     'the shared focus ring recipe (UI-SPEC §3.2)',
+  );
+});
+
+/**
+ * RENEWED (user directive, revision of UI-SPEC §2.3): the trigger height
+ * contract moved from a 44px TEXT trigger to a 56px STACKED icon-over-label
+ * segment, so the old "triggers AND rows" reading of A11Y-01 is deliberately
+ * retired — the rows keep their 44px rail, the triggers do not. Both the new
+ * machinery (present) and the retired inline-pill recipe (absent) are asserted,
+ * so the old anatomy cannot creep back.
+ */
+test('panel: capsule tab bar — 56px stacked segments, accent+pill active, muted inactive', () => {
+  const src = stripComments(read(PANEL));
+  assert.ok(src.includes('min-h-[56px]'), '56px stacked trigger, real px literal (A11Y-01 revision)');
+  assert.match(src, /rounded-full/, 'the capsule and its segments are fully rounded');
+  assert.match(
+    src,
+    /flex-1 flex-col items-center justify-center gap-1/,
+    'each trigger is an equal third of the capsule, icon above label',
+  );
+  assert.match(src, /bg-muted\/70/, 'the capsule surface contrasts with the card');
+  assert.match(src, /shadow-black\/10 dark:shadow-black\/30/, 'elevation stays legible in both themes');
+  assert.match(src, /data-\[state=active\]:bg-accent\/10/, 'active = soft accent-tinted pill (user decision)');
+  assert.match(src, /data-\[state=active\]:text-accent/, 'active = accent icon AND accent label');
+  assert.match(src, /data-\[state=inactive\]:text-muted-foreground/, 'inactive = muted icon/label, no background');
+  assert.ok(src.includes('exp-tab-icon') && src.includes('exp-tab-label'), 'hover motion rides the .exp-tab* hooks');
+
+  // Each locked ICON-01 glyph renders ABOVE its label, aria-hidden, 16px.
+  for (const [value, icon] of [
+    ['articles', 'FileText'],
+    ['certifications', 'Award'],
+    ['presentations', 'MonitorPlay'],
+  ]) {
+    const trigger = src.match(new RegExp(`<TabsTrigger value="${value}"[\\s\\S]*?</TabsTrigger>`));
+    assert.ok(trigger, `a TabsTrigger for ${value} is rendered`);
+    assert.match(
+      trigger[0],
+      new RegExp(`<${icon}\\s+aria-hidden="true"[^>]*/>\\s*<span`),
+      `${icon} is aria-hidden and sits ABOVE the ${value} label`,
+    );
+  }
+
+  // Gone-checks — the retired inline muted-pill list recipe.
+  assert.ok(!src.includes('flex-wrap'), 'the wrapping inline TabsList recipe is gone');
+  const triggerClass = src.match(/const TAB_TRIGGER =[\s\S]*?;/);
+  assert.ok(triggerClass, 'the trigger recipe lives in one shared constant, not three copies');
+  assert.ok(
+    !triggerClass[0].includes('min-h-[44px]'),
+    'the 44px TRIGGER pin is gone — only the row rail keeps min-h-[44px]',
   );
 });
 
@@ -295,6 +344,31 @@ test('css: the stagger cascade gains nth-child(5) at 160ms, reduced-motion guard
   );
   assert.ok(css.includes('.explore-shell *,'), 'the existing reduced-motion guard still matches the shell subtree');
   assert.ok(css.includes('@media (prefers-reduced-motion: reduce)'), 'no new guard or exception added (D-05)');
+});
+
+test('css: the capsule tab hooks are shell-scoped, so the ONE guard suppresses them (MOTION-01/D-05)', () => {
+  const css = read(CSS);
+  for (const hook of ['.exp-tab', '.exp-tab-icon', '.exp-tab-label']) {
+    assert.ok(
+      css.includes(`.explore-shell ${hook}`),
+      `${hook} is declared under .explore-shell — the existing guard covers it, no second suppressor`,
+    );
+  }
+  assert.match(
+    css,
+    /\.explore-shell \.exp-tab\[data-state='inactive'\]:hover \.exp-tab-icon/,
+    'inactive hover lifts the icon 2px (the pinned hover behaviour)',
+  );
+  assert.match(
+    css,
+    /\.explore-shell \.exp-tab\[data-state='inactive'\] \{\s*opacity: 0\.85;/,
+    'inactive sits at 0.85 emphasis until hover/focus',
+  );
+  assert.equal(
+    (css.match(/@media \(prefers-reduced-motion: reduce\)/g) || []).length,
+    1,
+    'exactly one reduced-motion guard in the file — the new hooks reuse it',
+  );
 });
 
 // ---------------------------------------------------------------------------

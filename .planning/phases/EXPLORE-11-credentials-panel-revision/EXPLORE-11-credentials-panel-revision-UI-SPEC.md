@@ -33,7 +33,7 @@ The Credentials panel uses the same `PanelShell` chrome as every other panel:
 ┌─────────────────────────────────────┐
 │ ● Credentials                 05    │  ← 8×8px chart-5 accent dot + label + zero-padded mono index
 ├─────────────────────────────────────┤
-│ [Articles] [Certifications] [Pres…] │  ← tab list (shadcn TabsList)
+│ ( ▤ Articles │ ✓ Certif. │ ▶ Present. ) │  ← floating capsule tab bar: icon over label
 ├─────────────────────────────────────┤
 │ ○ Article title              Sep 14 │  ← active tab content: anchor rows
 │ ○ Another featured title     May 26 │
@@ -55,8 +55,13 @@ Inside the shell body, the tab list sits immediately under the chrome with `mt-3
 - Tabs primitive: existing `src/components/ui/tabs.tsx` (`Tabs`, `TabsList`, `TabsTrigger`, `TabsContent`).
 - Tab labels (locked): **Articles | Certifications | Presentations**.
 - Default tab: **Articles** (the most current/primary credibility signal; SSR renders this tab’s rows).
-- Tabs list style: reuse the shadcn default `TabsList` (`inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground`) — **with tab triggers raised to `min-h-[44px]` (A11Y-01 resolution: tab triggers ARE interactive targets and must meet the 44px minimum; the `bg-muted` pill stays — OPEN-01 resolution: shadcn default accepted)**.
-- Tab triggers are full text (no truncation) and use the shadcn `TabsTrigger` recipe.
+- **Tab bar style (REVISED by user directive — supersedes the OPEN-01 "shadcn default accepted" resolution):** a floating CAPSULE. `TabsList` is overridden to `mb-3 flex h-auto w-full items-center gap-1 rounded-full border border-border bg-muted/70 px-2 py-1.5 shadow-lg shadow-black/10 dark:shadow-black/30` — fully rounded, full-width inside the body, elevated against the card in both themes.
+- **A11Y-01 revision (the height contract moved):** the tab trigger is no longer a 44px text pill. It is a 56px STACKED segment — `flex flex-1 flex-col items-center justify-center gap-1 rounded-full min-h-[56px] px-2`, a real px literal — giving a ~68px capsule (`min-h-[56px]` + `py-1.5`). The 44px minimum still governs the ROW rail (§2.4, `min-h-[44px]`); the trigger clears it with 12px to spare, so no target shrank.
+- Each trigger renders its ICON-01 glyph (16px lucide, `aria-hidden="true"`, `stroke=currentColor`) ABOVE the label (`text-[11px] leading-none`) — Articles→`FileText`, Certifications→`Award`, Presentations→`MonitorPlay`.
+- Active trigger: accent icon AND accent label (`text-accent`) on a soft accent-tinted pill (`bg-accent/10`), slightly stronger weight (`font-medium`) — user decision: accent + soft pill.
+- Inactive trigger: `text-muted-foreground` at 0.85 emphasis, NO background. Hover/focus-visible lifts the icon 2px, darkens the label toward foreground and restores full opacity over 180ms on the editorial-calm curve — the shell-scoped `.exp-tab*` hooks in `globals.css`, suppressed by the existing reduced-motion guard.
+- Radix primitives stay untouched: arrow-key roving focus, `aria-selected` and the tab semantics are inherited unchanged — only className and children changed.
+- Trigger labels remain full text (no truncation).
 
 ### 2.4 Row list anatomy
 
@@ -77,7 +82,8 @@ A subtle 1px divider (`border-b border-border`) separates rows; the last row has
 |---|---|---|
 | Grid | 1 column; Credentials stacks below Projects. | 2 columns; Credentials sits beside Projects. |
 | Panel | Full-width inside the grid cell. | ~40% right column. |
-| TabsList | Triggers may wrap if needed; font `text-sm`. | Same, no wrap expected for 3 short labels. |
+| Tab capsule | Full body width; three equal thirds, `min-h-[56px]` stacked segments, no wrap. | Same capsule, wider segments. |
+| Tab trigger min-height | 56px (A11Y-01 revision — the 44px minimum governs the row rail below). | 56px. |
 | Row title | `truncate` ensures no overflow at 375px. | Same. |
 | Row min-height | 44px. | 44px. |
 | Row date | always visible. | always visible. |

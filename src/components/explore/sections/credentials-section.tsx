@@ -22,6 +22,16 @@
  * no motion library — the phase-7 CSS vocabulary is the whole budget
  * (MOTION-01) — and no carousel/stack machinery.
  *
+ * TAB BAR (user directive, revision of §2.3): the shadcn muted-pill `TabsList`
+ * is retired for a floating CAPSULE — equal-thirds segments, 16px icon ABOVE an
+ * 11px label, accent + soft accent pill on the active tab, muted at 0.85
+ * opacity when inactive. Radix Tabs primitives are untouched: only className
+ * and children changed, so arrow-key roving focus, `aria-selected` and the tab
+ * semantics are inherited unchanged. The height contract moves with the
+ * anatomy — 56px stacked segments inside a ~68px capsule (A11Y-01 revision;
+ * rows keep their 44px rail). Hover motion rides the phase-7 `.exp-tab*` CSS
+ * hooks, so the shell's reduced-motion guard suppresses it for free.
+ *
  * Link affordance is URL-only (§5.3/§5.4, CERT-ID-01): a row becomes an anchor
  * only when `isExternalLink` proves an http(s) URL. Certifications store four
  * null links and one `"ID: GRTB-…"` verification string in `link`, so that tab
@@ -48,6 +58,33 @@ const ROW_INTERACTIVE =
  */
 const isExternalLink = (link?: string | null): link is string =>
   typeof link === 'string' && link.startsWith('http');
+
+/**
+ * §2.3 tab bar, REVISED by user directive: the muted-pill `TabsList` becomes a
+ * floating capsule — full-width inside the body, elevated against the card in
+ * both themes, ~68px tall (py-1.5 + a 56px segment).
+ */
+const TAB_LIST =
+  'mb-3 flex h-auto w-full items-center gap-1 rounded-full border border-border bg-muted/70 ' +
+  'px-2 py-1.5 shadow-lg shadow-black/10 dark:shadow-black/30';
+
+/**
+ * One equal third of the capsule: 16px icon ABOVE an 11px label. Radix keeps
+ * roving focus / aria-selected untouched; the state colour is inherited by both
+ * children, and the `exp-tab*` CSS hooks carry the inactive hover motion (CSS,
+ * so the shell's reduced-motion guard suppresses it for free).
+ */
+const TAB_TRIGGER =
+  'exp-tab flex flex-1 flex-col items-center justify-center gap-1 rounded-full min-h-[56px] px-2 ' +
+  'font-normal data-[state=active]:bg-accent/10 data-[state=active]:font-medium ' +
+  'data-[state=active]:text-accent data-[state=active]:shadow-none ' +
+  'data-[state=inactive]:text-muted-foreground';
+
+/** 16px glyph (ICON-01) — lucide stroke is currentColor, so the trigger colours it. */
+const TAB_ICON = 'exp-tab-icon h-4 w-4';
+
+/** 11px label — inherits the state colour; darkens toward foreground on hover (CSS hook). */
+const TAB_LABEL = 'exp-tab-label text-[11px] leading-none';
 
 type CredentialRow = {
   key: string;
@@ -161,15 +198,18 @@ export function CredentialsSection({
 
   return (
     <Tabs defaultValue="articles">
-      <TabsList className="mb-3 h-auto flex-wrap">
-        <TabsTrigger value="articles" className="min-h-[44px]">
-          Articles
+      <TabsList className={TAB_LIST}>
+        <TabsTrigger value="articles" className={TAB_TRIGGER}>
+          <FileText aria-hidden="true" className={TAB_ICON} />
+          <span className={TAB_LABEL}>Articles</span>
         </TabsTrigger>
-        <TabsTrigger value="certifications" className="min-h-[44px]">
-          Certifications
+        <TabsTrigger value="certifications" className={TAB_TRIGGER}>
+          <Award aria-hidden="true" className={TAB_ICON} />
+          <span className={TAB_LABEL}>Certifications</span>
         </TabsTrigger>
-        <TabsTrigger value="presentations" className="min-h-[44px]">
-          Presentations
+        <TabsTrigger value="presentations" className={TAB_TRIGGER}>
+          <MonitorPlay aria-hidden="true" className={TAB_ICON} />
+          <span className={TAB_LABEL}>Presentations</span>
         </TabsTrigger>
       </TabsList>
       <TabsContent value="articles" className="mt-0">
