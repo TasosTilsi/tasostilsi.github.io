@@ -271,7 +271,7 @@ Read these before editing. Line numbers are from the current tree (HEAD e2e9ec2)
 - `tests/explore-tour.test.mjs` — export readers at :516, :632; finish-card href at :153
 - `tests/explore-visuals.test.mjs` — export reader at :687; the "other surface" row at :794
 - `tests/credentials-panel.test.mjs` — export reader at :39
-- plus `tests/explore-routing.test.mjs` (:74-136, :197-215) and `tests/explore-header.test.mjs` (:192-199), which pin route literals at source level.
+- plus `tests/explore-routing.test.mjs` (:74-136, :197-215) and `tests/explore-header.test.mjs` (:50, :61, :192-199 — **the checker's BLOCKER-1 additions: the test title at :50 and the LIVE regex at :61 pin the old Terminal-link target and go red on the swap**), and `tests/explore-sweep.test.mjs:174` (**the checker's BLOCKER-2 addition: the welcome-link route literal inside the CLI@375 sweep row**), which pin route literals at source level.
 
 This is the same declared merge hold phase 11 used: the branch must NOT be merged, pushed, or handed off as green until plan 02's `npm run build && node --test tests/*.test.mjs` full-suite run is on record. `npm run build` (the only CI gate) IS green here; the local suite is not, and claiming otherwise would be false.
 

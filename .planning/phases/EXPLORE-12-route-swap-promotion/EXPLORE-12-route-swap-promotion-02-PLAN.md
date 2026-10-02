@@ -89,7 +89,8 @@ Read these before editing. Line numbers are from HEAD e2e9ec2 (plan 01 has moved
 
 **The two route-literal suites** (source-level, no `out/` reads):
 - `tests/explore-routing.test.mjs` — :74 test title, :83-87 the `href="/explore"` count row, :96 and :115 `indexOf('href="/explore"')`, :136 `{ navigate: "/explore" }`, :197 test title, :210-214 `EXPLORE_TOUR_FINISH.linkHref === '/'`.
-- `tests/explore-header.test.mjs` — :18 header comment; :192-199 the finish-card regression guard asserting `linkHref === '/'`.
+- `tests/explore-header.test.mjs` — :18 header comment; :50 the test title (`Next Link to / — same tab` → `Next Link to /cli — same tab`) **and :61 the live regex `/<Link\b[^>]*?href="\/"/` → `href="\/cli"`** (checker BLOCKER 1 — the live assertion pins the old target and no enumerated item renewed it; detection criteria: `grep -c 'href="/cli"' tests/explore-header.test.mjs` ≥ 1 AND `grep -c 'href="/"' tests/explore-header.test.mjs` = 0); :192-199 the finish-card regression guard asserting `linkHref === '/'`.
+- **`tests/explore-sweep.test.mjs:174` — (checker BLOCKER 2) the sweep row's `block.includes('<Link href="/explore"')` asserts the OLD welcome-link target as a route literal; renew to `'<Link href="/"'`. File-independent detection criteria after ALL renewals: `grep -rn 'href="/explore"' tests/ --exclude=route-swap.test.mjs` returns nothing AND `grep -rn '{ navigate: "/explore" }' tests/ --exclude=route-swap.test.mjs` returns nothing.**
 
 **Non-obvious constraints on the renewals:**
 - `tests/explore-routing.test.mjs:128-135` counts `<Link` occurrences (exactly 1) and `case "` occurrences (exactly 40) — those ADDITIVE-only proofs are unaffected by an href change; do not touch the numbers.
@@ -110,7 +111,7 @@ Read these before editing. Line numbers are from HEAD e2e9ec2 (plan 01 has moved
     <files>tests/credentials-panel.test.mjs, tests/explore-shell.test.mjs, tests/explore-tour.test.mjs, tests/explore-visuals.test.mjs</files>
     <read_first>tests/explore-shell.test.mjs:15-25, :60-110, :120-130, :440-505, tests/explore-visuals.test.mjs:1-12 and :680-700 and :785-805, tests/explore-tour.test.mjs:505-525 and :625-645, tests/credentials-panel.test.mjs:1-55, src/app/(home)/layout.tsx, src/app/(home)/page.tsx (as produced by plan 01)</read_first>
     <action>
-    First OBSERVE the red, then repair it. Run `rm -rf out && npm run build && node --test tests/explore-shell.test.mjs 2>&1 | tail -40` and capture the raw output — it must fail with the export-reader cause (`out/explore.html missing — run npm run build first`), which is the plan-01 merge-hold failure made visible. Record the verbatim output in SUMMARY.md.
+    First OBSERVE the red, then repair it. Run `rm -rf out && npm run build && node --test tests/explore-shell.test.mjs 2>&1 | tail -40` and capture the raw output — it must fail with the export-reader cause (`out/explore.html missing — run npm run build first`), which is the plan-01 merge-hold failure made visible. Record the verbatim output in SUMMARY.md. **Commit message pinned (checker W-1): this task commits as `test(phase-12): renew the route-literal suites` — the only deliberately-red commit of this plan.**
 
     Then repath the readers, the assertion MESSAGES, the test TITLES and the moved source paths in these four suites only. Every `out/explore.html` occurrence in these four files must go — the acceptance grep is per-file zero, and titles/messages are independent literals that a reader-only repath leaves behind:
 
@@ -144,7 +145,7 @@ Read these before editing. Line numbers are from HEAD e2e9ec2 (plan 01 has moved
       - `grep -c 'readExportMarkup' tests/credentials-panel.test.mjs` returns at least 2 (the definition plus the callers) and `grep -c 'replace(/<script' tests/credentials-panel.test.mjs` returns at least 1 — the script-strip survived the repath.
       - No `out/explore.html` string survives in any of the four files' test TITLES either: `grep -c "test('.*out/explore" tests/credentials-panel.test.mjs tests/explore-shell.test.mjs tests/explore-tour.test.mjs tests/explore-visuals.test.mjs` returns 0 for every file.
       - No assertion unrelated to routes changed: `git diff --stat` for each of the four files shows no change to a line that does not mention `out/`, `src/app/`, `:~`, or a test title/comment about those.
-      - `git show --stat HEAD` for this task's commit lists exactly these four test files.
+      - `git show --stat HEAD` for this task's commit lists exactly these four test files. **Commit message pinned (checker W-1): `test(phase-12): renew the export-reader suites to index/cli readers`.**
     </acceptance_criteria>
     <done>The four export-reading suites are repathed to out/index.html (and to out/cli.html for the OTHER-surface rows), every title and assertion message naming the old artifact is renewed so the per-file grep reaches zero, the moved landing paths are read from src/app/(home)/, the silent-`.filter(existsSync)` trap is closed with an explicit existence assertion, and the stale-export red is captured on record and converted to green.</done>
   </task>
@@ -152,6 +153,8 @@ Read these before editing. Line numbers are from HEAD e2e9ec2 (plan 01 has moved
   <task type="auto">
     <name>Task 2: Renew the route-target rows and expand the composite to all six legs</name>
     <files>tests/explore-sweep.test.mjs, tests/explore-routing.test.mjs, tests/explore-header.test.mjs</files>
+    <action>
+    **Prose sweep additions (checker W-5): comment-only renames at FOUR test-prose sites — `tests/explore-routing.test.mjs:19` (the `{ navigate: "/explore" }` entry in the pinned-contract header) and `:26` (the `/explore → CLI finish-card return leg` phrasing), `tests/explore-visuals.test.mjs:691` (the `export: /explore is recharts-free` test title → the landing artifact), `tests/explore-shell.test.mjs:131` (`scoped to /explore (D-04, EXPLORE-01c)` → the landing shell) — so the phase's later grep bans stay simple, with ZERO assertion-predicate changes (comment/title-only edits, in these 4 files).**
     <read_first>tests/explore-sweep.test.mjs:1-40, :140-160, :195-215, :236-330, :350-380, tests/explore-routing.test.mjs:70-140, :190-215, tests/explore-header.test.mjs:10-35, :185-205, tests/route-swap.test.mjs (plan 01's suite — its composite is the reference for the six legs; keep the two composites consistent), src/components/explore/constants.ts</read_first>
     <action>
     Renew every route-TARGET assertion and expand the two-way composite. Note the ordering that makes this red→green observable: run `rm -rf out && npm run build && node --test tests/explore-sweep.test.mjs tests/explore-routing.test.mjs tests/explore-header.test.mjs` BEFORE editing and capture the failures (they assert `/explore` and `/` as destinations — a semantic red, distinct from task 1's ENOENT red); then repair and re-run to green. Record both runs in SUMMARY.md.
@@ -184,7 +187,7 @@ Read these before editing. Line numbers are from HEAD e2e9ec2 (plan 01 has moved
       - `grep -rn 'out/explore.html' tests/ --exclude=route-swap.test.mjs` returns nothing and `grep -rn 'src/app/explore\|src/app/(main)' tests/ --exclude=route-swap.test.mjs` returns nothing — again scoped to the PRE-EXISTING surface: `tests/route-swap.test.mjs` keeps `!has('out/explore.html')`, `!has('out/explore.txt')`, `!has('src/app/explore')` and `!has('src/app/(main)')` as the phase's deliberate absence falsifiers, and deleting them to make an unscoped grep quiet would remove REV-22's strongest negative evidence.
       - `git show --stat HEAD` for this task's commit lists exactly these three test files.
     </acceptance_criteria>
-    <done>Every route-target assertion in the pre-existing suites names the new routes (including the titles and messages that carry the old artifact name), the two-way composite pins all six legs (CLI → landing → CLI plus the 404 and new-tab chip legs) in one test, the route-existence row proves index.html = landing and cli.html = CLI while asserting the explore artifact and out/cli/index.html are absent, and the full 14-suite gate is green — the plan-01 merge hold is lifted.</done>
+      - `git show --stat HEAD` for this task's commit lists exactly these three test files. **Commit message pinned (checker W-1): `test(phase-12): renew the route-target assertions and lock the two-way composite`.**
   </task>
 
   <task type="auto">
