@@ -1090,3 +1090,117 @@ test('EXPLORE-08 invariant (REV-07): arc geometry derives from cos/sin over meas
     );
   }
 });
+
+test('traceability: phase-10 projects-stack surfaces cite REV-18/REV-20, never phase-11 REV-21 (VERIFICATION AP-12)', () => {
+  // Phase 10 gap closure (VERIFICATION AP-12): the Projects stack is phase-10
+  // REV-18/REV-20, never phase 11's Credentials REV-21. This is a traceability
+  // pin, not a behaviour pin: it fails while a projects-stack surface cites
+  // another phase's requirement id, and passes once every citation is
+  // reclassified. The budget it measures over THIS file's own pre-existing
+  // corpus is sliced at the marker below, so the test's own literals (its
+  // title names phase 11's REV-21 in order to retire it, and its probes carry
+  // the token) never enter the count. That is deliberate: a whole-file count
+  // would be unsatisfiable, and a hand-maintained allowance would stop
+  // detecting a reintroduced mis-cite. This whole comment block lives AFTER
+  // the marker, so it cannot inflate the corpus it describes.
+  //
+  // Clause 1 — the four phase-10 SOURCE surfaces carry ZERO phase-11 REV-21.
+  const cardStateFile = read('src/components/explore/projects-card-state.ts');
+  const panelsFile = read('src/components/explore/explore-panels.tsx');
+  const sectionFile = read('src/components/explore/sections/projects-section.tsx');
+  const mobileStackFile = read('src/components/explore/sections/projects-mobile-stack.tsx');
+
+  assert.strictEqual(
+    (cardStateFile.match(/REV-21/g) || []).length,
+    0,
+    'src/components/explore/projects-card-state.ts still cites phase 11\'s REV-21 — the ring-buffer card-state module is phase-10 REV-18 (AP-12)',
+  );
+  assert.strictEqual(
+    (panelsFile.match(/REV-21/g) || []).length,
+    0,
+    'src/components/explore/explore-panels.tsx still cites phase 11\'s REV-21 — the natural-height Projects placement is phase-10 REV-18 (AP-12)',
+  );
+  assert.strictEqual(
+    (sectionFile.match(/REV-21/g) || []).length,
+    0,
+    'src/components/explore/sections/projects-section.tsx still cites phase 11\'s REV-21 — this panel body is phase-10 REV-18 (AP-12)',
+  );
+  assert.strictEqual(
+    (mobileStackFile.match(/REV-21/g) || []).length,
+    0,
+    'src/components/explore/sections/projects-mobile-stack.tsx still cites phase 11\'s REV-21 — the compact stack is phase-10 REV-18/REV-20 (AP-12)',
+  );
+
+  // Clause 2 — and each of them names its own phase-10 requirement.
+  assert.ok(
+    (cardStateFile.match(/REV-18/g) || []).length >= 1,
+    'src/components/explore/projects-card-state.ts cites no phase-10 requirement id — it must name REV-18',
+  );
+  assert.ok(
+    (panelsFile.match(/REV-18/g) || []).length >= 1,
+    'src/components/explore/explore-panels.tsx cites no phase-10 requirement id — it must name REV-18',
+  );
+  assert.ok(
+    (sectionFile.match(/REV-18/g) || []).length >= 1,
+    'src/components/explore/sections/projects-section.tsx cites no phase-10 requirement id — it must name REV-18',
+  );
+  assert.ok(
+    (mobileStackFile.match(/REV-18/g) || []).length >= 1,
+    'src/components/explore/sections/projects-mobile-stack.tsx cites no phase-10 requirement id — it must name REV-18',
+  );
+
+  // Clause 3 — the pure-module suite carries its OWN phase-10 id.
+  const stackSuiteFile = read('tests/projects-stack.test.mjs');
+  assert.strictEqual(
+    (stackSuiteFile.match(/REV-21/g) || []).length,
+    0,
+    'tests/projects-stack.test.mjs still cites phase 11\'s REV-21 — this suite pins phase-10 REV-18 (AP-12)',
+  );
+
+  // Clause 4 — this file's OWN budget, sliced at this test's block marker so
+  // the four phase-11 credential lines are the only REV-21 left in the
+  // pre-existing corpus. Never a whole-file count.
+  const ownFile = read('tests/explore-visuals.test.mjs');
+  const TRACE_MARKER = "test('traceability:";
+  const at = ownFile.indexOf(TRACE_MARKER);
+  assert.ok(
+    at > 0,
+    'the traceability test could not locate its own block marker — the budget below would be measured over the traceability test itself',
+  );
+  const corpus = ownFile.slice(0, at);
+  const legacyRev21Lines = corpus.split('\n').filter((line) => line.includes('REV-21'));
+  assert.strictEqual(
+    (corpus.match(/REV-21/g) || []).length,
+    4,
+    `the pre-existing corpus of tests/explore-visuals.test.mjs must carry exactly the 4 phase-11 credential/registry lines and no projects-stack mis-cite; found ${legacyRev21Lines.length} line(s):\n${legacyRev21Lines.join('\n')}`,
+  );
+  for (const line of legacyRev21Lines) {
+    assert.match(
+      line,
+      /credentials|registry spine|5-section|five panel headers/i,
+      `a REV-21 line in the pre-existing corpus is not a phase-11 credential/registry line — a projects-stack mis-cite came back: ${line.trim()}`,
+    );
+  }
+
+  // Clause 5 — the sibling suites' projects-natural-height messages, in BOTH
+  // word forms. The bracketed `[ -]` is load-bearing: tests/explore-sweep
+  // carries "natural height" on one line and "natural-height" on another, so
+  // a space-only pattern is blind to exactly one of the lines this pins.
+  for (const file of ['tests/explore-shell.test.mjs', 'tests/explore-sweep.test.mjs']) {
+    const src = read(file);
+    const offenders = src
+      .split('\n')
+      .filter((line) => /REV-21[^\n]*natural[ -]height|natural[ -]height[^\n]*REV-21/i.test(line));
+    assert.strictEqual(
+      offenders.length,
+      0,
+      `${file}: a natural-height claim still carries phase 11's REV-21 — the projects natural-height contract is phase-10 REV-18 (AP-12); offending line(s): ${offenders.map((line) => line.trim()).join(' | ')}`,
+    );
+  }
+
+  // Clause 6 — the positive half: the EXPLORE-10 invariant names the phase-10 id.
+  assert.ok(
+    ownFile.includes('EXPLORE-10 invariant (REV-18)'),
+    'the EXPLORE-10 invariant test title must cite the phase-10 id (REV-18), not phase 11 REV-21',
+  );
+});
