@@ -945,9 +945,13 @@ test('EXPLORE-10 invariant (REV-21): projects stack is swipe-driven, centered, l
 
   const panels = read('src/components/explore/explore-panels.tsx');
   assert.ok(panels.includes('data-editorial-wrapper="true"'), 'explore-panels keeps the data-editorial-wrapper attribute for the Experience sticky range');
+  // Renewal (2026-10-02 defect fix DEFECT 1): the placement KEEPS the
+  // natural-height shape (no wrapper, no sticky range, gate false) and now
+  // carries the md-scoped centering shell, so the panel body centers inside
+  // the grid-stretched panel whose height stays content-driven.
   assert.ok(
-    panels.includes("projects: { wrapper: '', shell: '', gate: false }"),
-    'projects placement returned to natural height — no wrapper/shell/sticky classes (REV-21)',
+    panels.includes("projects: { wrapper: '', shell: 'md:flex md:flex-col md:justify-center', gate: false }"),
+    'projects placement is still natural height (no wrapper/sticky classes) and carries the md centering shell (REV-21 + DEFECT 1)',
   );
 
   const section = read('src/components/explore/sections/projects-section.tsx');
@@ -970,7 +974,18 @@ test('EXPLORE-10 invariant (REV-21): projects stack is swipe-driven, centered, l
   assert.ok(stack.includes('drag=') && stack.includes("'x'"), 'foreground card is draggable along x');
   assert.ok(stack.includes('swipeAccepts'), 'stack uses the pinned swipe-decision helper');
   assert.ok(stack.includes('projectVisualVariant'), 'generative visuals selected by the curated per-project table (name-hash fallback for uncurated names)');
-  assert.ok(stack.includes('overflow-visible'), 'stack container/card allows shadow overflow (not clipped)');
+  // Renewal (2026-10-02 defect fix DEFECT 2): the STAGE clips (containment, so
+  // the depth peeks + fly-off cannot extend the document) while the foreground
+  // CARD stays overflow-visible, so the bloom still renders onto the cards
+  // beneath — inside the stage's peek band, above the front card.
+  assert.ok(
+    stack.includes('overflow-hidden'),
+    'the stage container clips the depth peeks and the swipe fly-off (no page overflow past the footer)',
+  );
+  assert.ok(
+    stack.includes("'overflow-visible'"),
+    'the foreground card keeps overflow-visible so the bloom still lands on the cards beneath (inside the band)',
+  );
   assert.ok(
     stack.includes('--panel-shadow-hover') || stack.includes('boxShadow'),
     'foreground card casts the bloom shadow from behind onto the cards beneath',

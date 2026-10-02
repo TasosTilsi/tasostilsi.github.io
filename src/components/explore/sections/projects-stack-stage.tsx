@@ -25,6 +25,24 @@
  * Shadows: the foreground card carries the shell's --panel-shadow-hover bloom
  * and is overflow-visible so the shadow renders visibly behind it onto the
  * cards beneath.
+ *
+ * Containment (2026-10-02 defect fix, DEFECT 2): the stage container carries a
+ * FIXED height that holds the full depth range (card + peek band + safe
+ * margin, see PEEK_BAND_PX) and clips with `overflow-hidden`, so the
+ * behind-card peeks and the 500px swipe fly-off can never extend the layout —
+ * no negative-space escape upward or downward and no scroll height added to
+ * the document. The card box is BOTTOM-ANCHORED inside the stage, which
+ * decouples the card's own height from the band the peeks travel through. The
+ * bloom glow that lands on the peeking cards lives INSIDE that band, so it
+ * survives the clip; only the ≤4px outward side/bottom glow softens at the
+ * clip edge (depth shading on the cards beneath is what the design needs).
+ *
+ * Centering (2026-10-02 defect fix, DEFECT 1): the stack root is a flex column
+ * with `items-center justify-center` around the stage wrapper, and the
+ * Projects panel body is vertically centered inside its (content-driven,
+ * grid-stretched) PanelShell by the md-scoped placement shell classes in
+ * explore-panels.tsx — genuine centering in both axes at md+, same
+ * containment + centering inside the compact stage at <md.
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -66,6 +84,45 @@ const ANNOUNCEMENT_THROTTLE_MS = 500;
 /** Fly-off animation constants. */
 const EXIT_X = 500;
 const EXIT_ROTATION = 12;
+
+/**
+ * Stage containment arithmetic (2026-10-02 defect fix, DEFECT 2).
+ *
+ * The stage container carries a FIXED height that holds the FULL depth range:
+ *
+ *   full    520 + 250 + 20 = 790   (md+: 560 + 250 + 20 = 830)
+ *   compact 420 + 250 + 20 = 690   (the <md surface)
+ *
+ * = the front card's own box + the deepest behind-card peek band + a safe
+ * margin. PEEK_BAND_PX covers the LEVELS table's depth-5 magnitudes (|yUp|
+ * 190, |yLeave| 246) rounded up to 250px, so a behind-card at any depth peeks
+ * ABOVE the front card but never OUTSIDE the stage — no negative-space escape
+ * upward; the bottom-anchored card box means none downward either.
+ * PEEK_SAFE_PX covers the curated ±1° rotation and ±4px translateX overhang.
+ *
+ * The card box is BOTTOM-ANCHORED inside the stage (left/right/bottom 0) so
+ * the card's own height stays decoupled from the band the peeks travel
+ * through. `overflow-hidden` on the stage then clips the 500px swipe fly-off
+ * and any rotation overhang, so no card can extend the layout — the stage
+ * never adds scroll height to <main> or to the document. The bloom glow that
+ * lands on the peeking cards lives INSIDE the band and survives the clip;
+ * only the ≤4px outward side/bottom glow softens at the clip edge, which is
+ * exactly the depth shading on the cards beneath the design needs.
+ */
+const PEEK_BAND_PX = 250;
+const PEEK_SAFE_PX = 20;
+
+/** The front card's own box per mode — unchanged geometry (520/560 / 420). */
+const CARD_HEIGHT_CLASS: Record<SwipeMode, string> = {
+  full: 'h-[520px] md:h-[560px]',
+  compact: 'h-[420px]',
+};
+
+/** The stage's fixed height per mode = card + PEEK_BAND_PX + PEEK_SAFE_PX. */
+const STAGE_HEIGHT_CLASS: Record<SwipeMode, string> = {
+  full: 'h-[790px] md:h-[830px]',
+  compact: 'h-[690px]',
+};
 
 /** Editorial-calm promotion transition when cards advance one depth level. */
 const PROMOTE_TRANSITION = { duration: 0.25, ease: [0.25, 1, 0.5, 1] as const };
@@ -505,10 +562,12 @@ function SwipeCard({
 
   return (
     <motion.div
-      className={`${CARD_SHELL} ${isFront ? 'overflow-visible' : 'pointer-events-none overflow-hidden'}`}
+      className={`${CARD_SHELL} ${CARD_HEIGHT_CLASS[mode]} ${isFront ? 'overflow-visible' : 'pointer-events-none overflow-hidden'}`}
       style={{
         position: 'absolute',
-        inset: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
         zIndex: state.zIndex,
         visibility,
         boxShadow: isFront ? 'var(--panel-shadow-hover)' : undefined,
@@ -628,12 +687,12 @@ export function ProjectsSwipeStack({ projects, mode }: ProjectsSwipeStackProps) 
     );
   }
 
-  const heightClass = mode === 'full' ? 'h-[520px] md:h-[560px]' : 'h-[420px]';
+  const stageHeightClass = STAGE_HEIGHT_CLASS[mode];
   const widthClass = mode === 'full' ? 'max-w-[540px]' : 'max-w-[320px]';
 
   return (
     <div
-      className="flex h-full flex-col justify-center"
+      className="flex h-full w-full flex-col items-center justify-center"
       role="group"
       aria-label="Projects carousel"
       onKeyDown={handleKeyDown}
@@ -641,7 +700,7 @@ export function ProjectsSwipeStack({ projects, mode }: ProjectsSwipeStackProps) 
       <div className="sr-only" aria-live="polite" aria-atomic="true">
         {announcement}
       </div>
-      <div className={`relative mx-auto w-full ${widthClass} ${heightClass} overflow-visible`}>
+      <div className={`relative mx-auto w-full ${widthClass} ${stageHeightClass} overflow-hidden`}>
         {projects.map((project, index) => (
           <SwipeCard
             key={project.name}

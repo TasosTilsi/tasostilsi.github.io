@@ -442,3 +442,147 @@ test('swipeAccepts: threshold semantics — offset or velocity must cross the pi
   assert.equal(swipeAccepts(120, -300), 1, 'right offset dominates left velocity');
   assert.equal(swipeAccepts(-120, 300), -1, 'left offset dominates right velocity');
 });
+
+// ---------------------------------------------------------------------------
+// 2026-10-02 defect fix (DEFECT 1 centering / DEFECT 2 containment)
+//
+// The stage's geometry contract moved from "card box == stage box,
+// overflow-visible" to "stage box = card box + peek band + safe margin,
+// overflow-hidden, card box bottom-anchored". These pins derive the arithmetic
+// from the source's own constants instead of copying the class literals, so a
+// silent re-numbering cannot pass.
+// ---------------------------------------------------------------------------
+
+const PANELS_PATH = join(root, 'src/components/explore/explore-panels.tsx');
+const SHELL_PATH = join(root, 'src/components/explore/explore-shell.tsx');
+const stageSource = () => readFileSync(STACK_STAGE_PATH, 'utf8');
+
+/** Extract a Record<'full'|'compact', string> block's entries from the stage source. */
+function heightMap(source, constName) {
+  const block = source.match(new RegExp(`const ${constName}[\\s\\S]*?\\n\\};`));
+  assert.ok(block, `${constName}: height map present in the stage`);
+  const entries = Object.fromEntries(
+    [...block[0].matchAll(/(full|compact):\s*'([^']+)'/g)].map((m) => [m[1], m[2]]),
+  );
+  assert.deepEqual(Object.keys(entries).sort(), ['compact', 'full'], `${constName}: one entry per mode`);
+  return entries;
+}
+
+/** Every px height in a Tailwind height class string ('h-[520px] md:h-[560px]' -> [520, 560]). */
+const heightPx = (cls) => [...cls.matchAll(/(?:^|\s|:)h-\[(\d+)px\]/g)].map((m) => Number(m[1]));
+
+test('stage containment: the fixed stage height IS the arithmetic card + peek band + safe margin', () => {
+  const src = stageSource();
+  const constPx = (name) => {
+    const m = src.match(new RegExp(`const ${name} = (\\d+);`));
+    assert.ok(m, `${name}: constant present (the peek band / safe margin are named, not inlined)`);
+    return Number(m[1]);
+  };
+  const band = constPx('PEEK_BAND_PX');
+  const safe = constPx('PEEK_SAFE_PX');
+  assert.equal(
+    band,
+    250,
+    'the peek band covers the LEVELS table depth-5 magnitudes (|yUp| 190, |yLeave| 246) rounded up',
+  );
+  assert.equal(safe, 20, 'the safe margin covers the curated ±1° rotation and ±4px translateX overhang');
+
+  const card = heightMap(src, 'CARD_HEIGHT_CLASS');
+  const stage = heightMap(src, 'STAGE_HEIGHT_CLASS');
+  for (const mode of ['full', 'compact']) {
+    const cardPx = heightPx(card[mode]);
+    const stagePx = heightPx(stage[mode]);
+    assert.ok(cardPx.length > 0 && cardPx.length === stagePx.length, `${mode}: one stage height per card height`);
+    stagePx.forEach((value, i) => {
+      assert.equal(
+        value,
+        cardPx[i] + band + safe,
+        `${mode}: stage ${value}px = card ${cardPx[i]}px + band ${band}px + safe ${safe}px`,
+      );
+    });
+  }
+  // <md invariant: the compact stage owns the base (unprefixed) height.
+  assert.equal(heightPx(stage.compact).length, 1, 'compact carries exactly one (base, <md) stage height');
+  assert.ok(!/md:/.test(stage.compact), 'the compact stage height is unprefixed — 375px uses it as-is');
+});
+
+test('stage containment: overflow-hidden stage, bottom-anchored card box, zero negative-space escape', () => {
+  const src = stageSource();
+  assert.ok(
+    src.includes('${widthClass} ${stageHeightClass} overflow-hidden'),
+    'the stage container carries the fixed stage height AND overflow-hidden — the 500px fly-off and the depth peeks cannot extend the layout',
+  );
+  assert.ok(
+    !src.includes('${heightClass} overflow-visible'),
+    'the retired card-box-sized overflow-visible stage container is gone',
+  );
+  assert.ok(
+    /'overflow-visible'/.test(src),
+    'the foreground card keeps overflow-visible so the bloom still renders onto the cards beneath INSIDE the band',
+  );
+  assert.ok(
+    /left: 0,\s*\n\s*right: 0,\s*\n\s*bottom: 0,/.test(src),
+    'the card box is bottom-anchored in the stage (left/right/bottom 0) — decoupled from the peek band it travels through',
+  );
+  assert.ok(
+    !/inset: 0/.test(src),
+    'no card fills the stage box (inset: 0 would swallow the peek band)',
+  );
+  for (const [path, source] of [
+    [STACK_STAGE_PATH, src],
+    [PANELS_PATH, readFileSync(PANELS_PATH, 'utf8')],
+  ]) {
+    assert.ok(
+      !/(?:^|[\s"'`])-m[trblxy]?-/.test(source),
+      `${path}: no negative margin utility pulls the stage outside its parent`,
+    );
+    assert.ok(
+      !/(?:^|[\s"'`])-(?:inset|top|bottom|left|right)-/.test(source),
+      `${path}: no negative inset utility offsets the stage outside its parent`,
+    );
+  }
+});
+
+test('stack centering: flex items-center justify-center around the stage wrapper + the md panel-body centering', () => {
+  const src = stageSource();
+  assert.ok(
+    src.includes('flex h-full w-full flex-col items-center justify-center'),
+    'the stack root is a flex column centering the stage wrapper in BOTH axes (items-center + justify-center)',
+  );
+  const panels = readFileSync(PANELS_PATH, 'utf8');
+  assert.ok(
+    panels.includes("projects: { wrapper: '', shell: 'md:flex md:flex-col md:justify-center', gate: false }"),
+    'the Projects placement carries the md-scoped centering shell (content-driven height, no sticky range)',
+  );
+  assert.ok(
+    panels.includes('className={placement.shell || undefined}'),
+    'the shell seam applies a placement shell even when the sticky gate is false (gate guards the wrapper range only)',
+  );
+  assert.ok(
+    panels.includes('md:justify-center'),
+    'the PanelShell body group centers inside the grid-stretched, content-height panel',
+  );
+});
+
+test('window-scroll invariant: the stage adds no document scroll height — <main> stays the ONLY scroll container', () => {
+  const shell = readFileSync(SHELL_PATH, 'utf8');
+  assert.ok(
+    shell.includes('flex h-dvh flex-col'),
+    'the shell frame is clamped to the dynamic viewport height (documentElement cannot grow past innerHeight)',
+  );
+  assert.ok(
+    shell.includes('flex-1 overflow-y-auto'),
+    '<main> is the scroll container (flex-1 + overflow-y-auto)',
+  );
+  assert.equal(
+    (shell.match(/overflow-(?:y-)?(?:auto|scroll)/g) || []).length,
+    1,
+    'exactly ONE scroll container in the shell frame — the window itself never scrolls',
+  );
+  for (const path of [STACK_STAGE_PATH, PANELS_PATH]) {
+    assert.ok(
+      !/overflow-(?:y-)?(?:auto|scroll)/.test(readFileSync(path, 'utf8')),
+      `${path}: adds no nested scroll container — the stage CLIPS (overflow-hidden), so no scrollable overflow can propagate to the document`,
+    );
+  }
+});

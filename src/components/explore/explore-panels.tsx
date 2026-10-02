@@ -29,9 +29,12 @@
  * keyed by ExploreSectionId — no id-comparison conditional. The ONLY
  * data gate left is the Experience one (W-3, amended by phase-10 REV-21):
  * experienceGate keys on the selected-entry count (tech roles ∪ featured
- * education, the pure module's ONE derivation) > 1, while about, skills,
- * projects and credentials each carry `{ wrapper: '', shell: '', gate:
- * false }`, i.e. no sticky range; Projects renders at natural height. That
+ * education, the pure module's ONE derivation) > 1, while about, skills and
+ * credentials each carry `{ wrapper: '', shell: '', gate: false }` and
+ * projects carries the same gate-free shape with the md centering shells
+ * `shell: 'md:flex md:flex-col md:justify-center'` (2026-10-02 DEFECT 1 —
+ * no wrapper, no sticky range, panel height still content-driven). Projects
+ * renders at natural height. That
  * is the phase-10 REV-21 fact: Projects returned to natural height when the
  * panel became the swipe-driven ring-buffer stack (user directive
  * 2026-09-25, quick task `2026-09-25-projects-swipe-loop-stack`, commit
@@ -109,14 +112,22 @@ const SECTION_BODIES: Record<
 
 /**
  * Placement map factory (UI-SPEC §1.1/§4.1 — the phase-9 seam, amended by
- * phase-10 REV-21): a Record keyed by ExploreSectionId whose values carry
- * the ONLY placement classes of the phase. Only Experience retains the sticky
- * scroll-range wrapper + shell; Projects returns to natural height with its
- * swipe-driven stage as a centered block. About and Skills occupy one cell
- * each in row 1. Every value is md:-scoped (R-9). R-3: any wrapper stays a
- * plain div with NO id — the tour hole, the IO threshold and the drawer
- * anchors measure the sticky section by its stable id; the wrapper's
- * data-editorial-wrapper attribute is a stable hook nothing under src/ reads.
+ * phase-10 REV-21 and the 2026-10-02 centering fix): a Record keyed by
+ * ExploreSectionId whose values carry the ONLY placement classes of the phase.
+ * Only Experience retains the sticky scroll-range wrapper + shell; Projects
+ * returns to natural height with its swipe-driven stage as a centered block —
+ * its shell carries the md-scoped `md:flex md:flex-col md:justify-center`
+ * centering pair (DEFECT 1), which centers the panel body inside the
+ * grid-stretched panel whose height stays content-driven (no fixed height, no
+ * sticky range). About and Skills occupy one cell each in row 1. Every value
+ * is md:-scoped (R-9). R-3: any wrapper stays a plain div with NO id — the
+ * tour hole, the IO threshold and the drawer anchors measure the sticky
+ * section by its stable id; the wrapper's data-editorial-wrapper attribute is
+ * a stable hook nothing under src/ reads.
+ *
+ * `gate` remains the W-3 data condition on the STICKY range: when false the
+ * wrapper (and thus the sticky extension) is not rendered at all, so the
+ * shell's centering classes are the only thing a gate-free placement applies.
  */
 function buildPlacement(
   data: PortfolioData,
@@ -131,7 +142,7 @@ function buildPlacement(
       gate: experienceGate,
     },
     skills: { wrapper: '', shell: '', gate: false },
-    projects: { wrapper: '', shell: '', gate: false },
+    projects: { wrapper: '', shell: 'md:flex md:flex-col md:justify-center', gate: false },
     credentials: { wrapper: '', shell: '', gate: false },
   };
 }
@@ -153,7 +164,11 @@ export function ExplorePanels({ data }: { data: PortfolioData }) {
             label={section.label}
             accent={ACCENTS[section.id]}
             index={String(index + 1).padStart(2, '0')}
-            className={placement.gate && placement.shell ? placement.shell : undefined}
+            // The shell classes apply whenever a placement declares them; the
+            // `gate` condition guards the WRAPPER (the sticky scroll range)
+            // only — About/Skills/Credentials declare no shell, Projects
+            // declares the gate-free md centering shell (DEFECT 1).
+            className={placement.shell || undefined}
           >
             <Body data={data} />
           </PanelShell>
