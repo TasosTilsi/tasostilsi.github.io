@@ -9,13 +9,13 @@ next_phases: [12]
 progress:
   total_phases: 5
   completed_phases: 0
-  total_plans: 6
-  completed_plans: 36
+  total_plans: 3
+  completed_plans: 37
   percent: 0
 current_phase: 12
 current_phase_name: route-swap-promotion
-current_plan: 6
-last_updated: "2026-10-02T16:56:47.425Z"
+current_plan: 1
+last_updated: "2026-10-02T17:07:39.571Z"
 state_head: null
 last_activity: 2026-10-02
 stopped_at: null

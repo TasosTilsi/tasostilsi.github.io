@@ -328,5 +328,15 @@
     "started": "2026-09-29T21:16:25.558Z",
     "result": "SUMMARY written",
     "completed": "2026-09-29T21:23:35.345Z"
+  },
+  {
+    "id": "JOB-34",
+    "kind": "subagent",
+    "plan": "EXPLORE-12-route-swap-promotion-01",
+    "phase": 12,
+    "status": "done",
+    "started": "2026-10-02T16:59:47.413Z",
+    "result": "SUMMARY written",
+    "completed": "2026-10-02T17:07:39.558Z"
   }
 ]
