@@ -150,7 +150,7 @@ test('tour copy guard: chrome only, no digits beyond the allowed "60" (§12.4)',
     const stripped = s.replace(/60/g, '');
     assert.ok(!/\d/.test(stripped), `no digits beyond the allowed "60": "${s}"`);
   }
-  assert.equal(EXPLORE_TOUR_FINISH.linkHref, '/', 'finish card links the CLI at / (D-04)');
+  assert.equal(EXPLORE_TOUR_FINISH.linkHref, '/cli', 'finish card links the CLI at /cli (D-04)');
   assert.equal(EXPLORE_TOUR_FINISH.linkLabel, 'Open the terminal →', 'finish link label (§4)');
   assert.equal(
     EXPLORE_TOUR_FINISH.hint,
@@ -512,9 +512,9 @@ test('header: Tour → Theme → Drawer order, Compass icon, 44px px target (§1
   assert.ok(src.includes('h-[44px]'), '44px px-based Tour touch target (§5)');
 });
 
-test('export: Tour button SSRs into out/explore.html, tour overlay does not (§12.6)', () => {
-  const exportHtmlPath = join(root, 'out/explore.html');
-  assert.ok(existsSync(exportHtmlPath), 'out/explore.html missing — run `npm run build` first');
+test('export: Tour button SSRs into out/index.html, tour overlay does not (§12.6)', () => {
+  const exportHtmlPath = join(root, 'out/index.html');
+  assert.ok(existsSync(exportHtmlPath), 'out/index.html missing — run `npm run build` first');
   const html = readFileSync(exportHtmlPath, 'utf8');
   assert.ok(
     html.includes('aria-label="Start the guided tour"'),
@@ -629,8 +629,8 @@ test('shell: single visited instance lifted, tour composed as LAST child (OQ-7, 
 });
 
 test('export: literal-0 SSR counter + Tour button survive, overlay still absent (§12.6/§12.7)', () => {
-  const exportHtmlPath = join(root, 'out/explore.html');
-  assert.ok(existsSync(exportHtmlPath), 'out/explore.html missing — run `npm run build` first');
+  const exportHtmlPath = join(root, 'out/index.html');
+  assert.ok(existsSync(exportHtmlPath), 'out/index.html missing — run `npm run build` first');
   const html = readFileSync(exportHtmlPath, 'utf8');
   assert.ok(
     html.includes('0/5 sections visited'),

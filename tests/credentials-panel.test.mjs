@@ -8,7 +8,7 @@
  * Two layers, modelled on the existing suite:
  *  1. Source/data-level rows — hold against src/ immediately, and are the ONLY
  *     place the client-only contracts are asserted (see the HARD BOUNDARY).
- *  2. Export-level rows — hold against out/explore.html from `npm run build`.
+ *  2. Export-level rows — hold against out/index.html from `npm run build`.
  *
  * HARD BOUNDARY (measured, plan <context>): SSR emits the panel chrome, the
  * three tab labels, the status counter and the DEFAULT Articles tab body only.
@@ -19,7 +19,7 @@
  *     `present: forceMount || isSelected`; with `defaultValue="articles"` and no
  *     forceMount, the Certifications and Presentations bodies exist only after
  *     hydration — their content is asserted at SOURCE/DATA level.
- * Asserting any of those against out/explore.html would make this suite
+ * Asserting any of those against out/index.html would make this suite
  * unfixable, not stricter.
  *
  * SCRIPT STRIPPING IS LOAD-BEARING (measured): the RSC payload inlined in the
@@ -36,10 +36,10 @@ import { fileURLToPath } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const read = (p) => readFileSync(join(root, p), 'utf8');
-const exportHtmlPath = join(root, 'out/explore.html');
+const exportHtmlPath = join(root, 'out/index.html');
 
 const readExport = () => {
-  assert.ok(existsSync(exportHtmlPath), 'out/explore.html missing — run `npm run build` first');
+  assert.ok(existsSync(exportHtmlPath), 'out/index.html missing — run `npm run build` first');
   return readFileSync(exportHtmlPath, 'utf8');
 };
 

@@ -4,7 +4,7 @@
  *  • plan 04: Layer-2 cross-cutting source invariants over the settled
  *    wave-2 tree (client boundary, motion, interaction, parsing site,
  *    literals, registry spine, dependencies, css) and Layer-3 export-level
- *    invariants against out/explore.html after `npm run build`.
+ *    invariants against out/index.html after `npm run build`.
  *  • phase EXPLORE-06 plan 04: rewritten to the post-removal contract — the
  *    recharts charts, the treemap and the techMentions mention machinery are
  *    deleted (D-06), the Skills panel is competency cards over the surviving
@@ -684,19 +684,19 @@ test('motion: hover/focus/active vocabulary — lift+bloom, nudge, underline par
 // both-theme legibility — listed for the verify step's human pass.
 // ---------------------------------------------------------------------------
 
-const exportHtmlPath = join(root, 'out/explore.html');
+const exportHtmlPath = join(root, 'out/index.html');
 const readExport = () => readFileSync(exportHtmlPath, 'utf8');
 const escapeRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-test('export: /explore is recharts-free — zero hydration shells after the chart/treemap removal (OQ-4, plan 04)', () => {
-  assert.ok(existsSync(exportHtmlPath), 'out/explore.html missing — run `npm run build` first');
+test('export: the landing is recharts-free — zero hydration shells after the chart/treemap removal (OQ-4, plan 04)', () => {
+  assert.ok(existsSync(exportHtmlPath), 'out/index.html missing — run `npm run build` first');
   const html = readExport();
   const shells = (html.match(/recharts-responsive-container/g) || []).length;
   assert.equal(shells, 0, `zero recharts hydration shells — found ${shells} (the charts are deleted, D-06)`);
 });
 
 test('export: competency cards render every cluster name + proof from the refreshed data (REV-05)', () => {
-  assert.ok(existsSync(exportHtmlPath), 'out/explore.html missing — run `npm run build` first');
+  assert.ok(existsSync(exportHtmlPath), 'out/index.html missing — run `npm run build` first');
   // React escapes & and quotes in text nodes — decode the common entities
   // before matching (verify-script convention from plan 03).
   const html = readExport()
@@ -718,7 +718,7 @@ test('export: competency cards render every cluster name + proof from the refres
 });
 
 test('export: calendar removed — no year-grid remains, tiles + exactly 6 cards render (REV-08)', () => {
-  assert.ok(existsSync(exportHtmlPath), 'out/explore.html missing — run `npm run build` first');
+  assert.ok(existsSync(exportHtmlPath), 'out/index.html missing — run `npm run build` first');
   const html = readExport();
   assert.ok(
     !html.includes('Projects calendar — '),
@@ -745,7 +745,7 @@ test('export: calendar removed — no year-grid remains, tiles + exactly 6 cards
 });
 
 test('export: stat tiles server-rendered with JSON-derived values (OQ-1/U-1 — no pinned linked literal)', () => {
-  assert.ok(existsSync(exportHtmlPath), 'out/explore.html missing — run `npm run build` first');
+  assert.ok(existsSync(exportHtmlPath), 'out/index.html missing — run `npm run build` first');
   const html = readExport();
   const stats = projectStats(data.projects);
   // The module output must agree with a raw-JSON derivation — the promoted
@@ -773,7 +773,7 @@ test('export: stat tiles server-rendered with JSON-derived values (OQ-1/U-1 — 
 });
 
 test('export: the five panel headers render the aria-hidden mono index spans 01-05 (UI-SPEC §5/§10.6, D-02; phase-11 REV-21)', () => {
-  assert.ok(existsSync(exportHtmlPath), 'out/explore.html missing — run `npm run build` first');
+  assert.ok(existsSync(exportHtmlPath), 'out/index.html missing — run `npm run build` first');
   const html = readExport();
   // The class signature keeps the assertion off the drawer's decorative
   // chart-N digits, which carry entirely different classes (UI-SPEC §5 scope).
@@ -791,12 +791,15 @@ test('export: the five panel headers render the aria-hidden mono index spans 01-
 });
 
 test('export: CLI and resume still emitted (EXPLORE-05/D-07)', () => {
-  assert.ok(existsSync(join(root, 'out/index.html')), 'out/index.html still emitted (D-10)');
+  assert.ok(
+    existsSync(join(root, 'out/cli.html')),
+    'out/cli.html emitted (D-04 — route-existence renewal)',
+  );
   assert.ok(existsSync(join(root, 'out/resume.html')), 'out/resume.html still emitted (D-10)');
 });
 
 test('export: the REV-11 motion vocabulary ships in the built stylesheet (UI-SPEC §9.1/§10.8, plan 03)', () => {
-  assert.ok(existsSync(exportHtmlPath), 'out/explore.html missing — run `npm run build` first');
+  assert.ok(existsSync(exportHtmlPath), 'out/index.html missing — run `npm run build` first');
   // The export links the compiled CSS as a static chunk (hashed name) —
   // discover it instead of pinning the hash.
   const cssDir = join(root, 'out/_next/static/css');

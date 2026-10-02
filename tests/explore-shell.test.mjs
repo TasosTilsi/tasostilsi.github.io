@@ -18,7 +18,7 @@ import { fileURLToPath } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const read = (p) => readFileSync(join(root, p), 'utf8');
-const exportHtml = join(root, 'out/explore.html');
+const exportHtml = join(root, 'out/index.html');
 
 // ---------------------------------------------------------------------------
 // Task 1: tracer — route, IDE frame skeleton, dark token block, status bar
@@ -42,7 +42,7 @@ test('constants: 5 locked sections after the About+Contact merge, disjoint theme
     'no constant assigned the CLI key (D-10)',
   );
   assert.ok(src.includes('"guest@tasostilsi"'), 'status user (D-03)');
-  assert.ok(src.includes('":~/explore"'), 'status path (D-03)');
+  assert.ok(src.includes('":~"'), 'status path (D-03)');
 });
 
 test('globals.css: .explore-shell dark token block appended, CLI blocks untouched', () => {
@@ -62,7 +62,7 @@ test('globals.css: .explore-shell dark token block appended, CLI blocks untouche
 });
 
 test('explore layout: before-paint script + data-driven metadata', () => {
-  const src = read('src/app/explore/layout.tsx');
+  const src = read('src/app/(home)/layout.tsx');
   assert.match(src, /classList\.remove\(["']dark["'],\s*["']light["']\)/, 'strips stale theme classes');
   assert.ok(src.includes('dangerouslySetInnerHTML'), 'inline before-paint script');
   assert.ok(src.includes('about.name'), 'metadata is data-driven (D-08)');
@@ -95,7 +95,15 @@ test('status bar: breadcrumb + live theme label + LIVE N/5 counter', () => {
 });
 
 test('page: h-dvh flex shell with explore-shell marker, panel grid composed', () => {
-  const sources = ['src/app/explore/page.tsx', 'src/components/explore/explore-shell.tsx']
+  // P-1/R-4 hardening: the source list below is `.filter(existsSync)`-ed, so a
+  // moved page would silently drop out and degrade the `!code.includes('h-screen')`
+  // guard to the shell file alone. Assert the landing page's presence explicitly
+  // FIRST — the guard can never go quietly vacuous.
+  assert.ok(
+    existsSync(join(root, 'src/app/(home)/page.tsx')),
+    'landing page present — the h-screen guard must not silently degrade',
+  );
+  const sources = ['src/app/(home)/page.tsx', 'src/components/explore/explore-shell.tsx']
     .filter((p) => existsSync(join(root, p)))
     .map((p) => read(p));
   const shell = sources.join('\n');
@@ -104,7 +112,7 @@ test('page: h-dvh flex shell with explore-shell marker, panel grid composed', ()
     /explore-shell flex h-dvh flex-col overflow-x-hidden bg-background text-foreground/,
     'shell root class combo (UI-SPEC §2.1)',
   );
-  const page = read('src/app/explore/page.tsx');
+  const page = read('src/app/(home)/page.tsx');
   const panels = existsSync(join(root, 'src/components/explore/explore-panels.tsx'))
     ? read('src/components/explore/explore-panels.tsx')
     : page; // before plan 02 the tracer panel lived inline in page.tsx
@@ -128,7 +136,7 @@ test('page: h-dvh flex shell with explore-shell marker, panel grid composed', ()
 });
 
 // ---------------------------------------------------------------------------
-// Task 2: JetBrains Mono via next/font, scoped to /explore (D-04, EXPLORE-01c)
+// Task 2: JetBrains Mono via next/font, scoped to the landing shell (D-04, EXPLORE-01c)
 // ---------------------------------------------------------------------------
 
 test('fonts: JetBrains_Mono added additively, Geist variables untouched (D-10)', () => {
@@ -217,7 +225,7 @@ test('theme: header toggle is px-based 44px ghost button with target-theme icon'
 });
 
 test('theme: page stays a server component wrapping ExploreShell', () => {
-  const src = read('src/app/explore/page.tsx');
+  const src = read('src/app/(home)/page.tsx');
   assert.ok(src.includes('<ExploreShell'), 'client boundary for theme state');
   assert.ok(!src.includes('use client'), 'page remains a server component');
   assert.match(src, /about\.name/, 'data-driven props (D-08)');
@@ -297,7 +305,7 @@ test('panels: ExplorePanels renders stable section ids via PanelShell + total SE
     read('src/components/explore/panel-shell.tsx').includes('aria-label={label}'),
     'labelled sections (aria-label lands in PanelShell)',
   );
-  const page = read('src/app/explore/page.tsx');
+  const page = read('src/app/(home)/page.tsx');
   assert.ok(page.includes('<ExplorePanels'), 'page composes the panel grid');
 });
 
@@ -424,7 +432,7 @@ test('intro: sr-only h1 carries full name—title, reserved height, strip chrome
 });
 
 test('intro: page composes ExploreIntro between header and main (UI-SPEC §1 order)', () => {
-  const page = read('src/app/explore/page.tsx');
+  const page = read('src/app/(home)/page.tsx');
   const shell = read('src/components/explore/explore-shell.tsx');
   assert.ok(page.includes('<ExploreIntro'), 'page renders the intro with data props');
   assert.match(page, /name=\{portfolioData\.about\.name\}/, 'name from data (D-08)');
@@ -449,13 +457,13 @@ test('intro: page composes ExploreIntro between header and main (UI-SPEC §1 ord
 // Export-level invariants (require `npm run build` first)
 // ---------------------------------------------------------------------------
 
-test('static export: /explore IDE frame emitted into out/explore.html', () => {
-  assert.ok(existsSync(exportHtml), 'out/explore.html missing — run `npm run build` first');
+test('static export: landing IDE frame emitted into out/index.html', () => {
+  assert.ok(existsSync(exportHtml), 'out/index.html missing — run `npm run build` first');
   const html = readFileSync(exportHtml, 'utf8');
   assert.ok(html.includes('explore-shell'), 'scope marker class in emitted HTML');
   assert.ok(html.includes('Anastasios Tilsizoglou'), 'data-driven name (EXPLORE-07)');
   assert.ok(html.includes('guest@tasostilsi'), 'breadcrumb user');
-  assert.ok(html.includes(':~/explore'), 'breadcrumb path');
+  assert.ok(html.includes(':~'), 'breadcrumb path');
   assert.ok(html.includes('0/5 sections visited'), 'static counter over 5 sections (D-03; phase-11 REV-21)');
   assert.match(
     html,
@@ -464,8 +472,11 @@ test('static export: /explore IDE frame emitted into out/explore.html', () => {
   );
 });
 
-test('static export: CLI + resume untouched, no new font CDN on /explore', () => {
-  assert.ok(existsSync(join(root, 'out/index.html')), 'out/index.html still emitted (D-10)');
+test('static export: CLI + resume untouched, no new font CDN on the landing', () => {
+  assert.ok(
+    existsSync(join(root, 'out/cli.html')),
+    'out/cli.html emitted (D-04 — route-existence renewal)',
+  );
   assert.ok(existsSync(join(root, 'out/resume.html')), 'out/resume.html still emitted (D-10)');
   if (existsSync(exportHtml)) {
     const html = readFileSync(exportHtml, 'utf8');
@@ -478,7 +489,7 @@ test('static export: CLI + resume untouched, no new font CDN on /explore', () =>
 });
 
 test('static export: JetBrains Mono self-hosted in emitted CSS (EXPLORE-01c)', () => {
-  assert.ok(existsSync(exportHtml), 'out/explore.html missing — run `npm run build` first');
+  assert.ok(existsSync(exportHtml), 'out/index.html missing — run `npm run build` first');
   const cssDir = join(root, 'out/_next/static/css');
   assert.ok(existsSync(cssDir), 'emitted CSS dir missing');
   const cssFiles = readdirSync(cssDir).filter((f) => f.endsWith('.css'));
@@ -486,8 +497,8 @@ test('static export: JetBrains Mono self-hosted in emitted CSS (EXPLORE-01c)', (
   assert.ok(combined.includes('JetBrains Mono'), 'self-hosted @font-face present (no CDN)');
 });
 
-test('static export: theme script + toggle emitted into out/explore.html', () => {
-  assert.ok(existsSync(exportHtml), 'out/explore.html missing — run `npm run build` first');
+test('static export: theme script + toggle emitted into out/index.html', () => {
+  assert.ok(existsSync(exportHtml), 'out/index.html missing — run `npm run build` first');
   const html = readFileSync(exportHtml, 'utf8');
   assert.ok(html.includes('portfolio-explore-theme'), 'before-paint script reads the explore key');
   assert.ok(html.includes('Switch to light theme'), 'theme toggle aria-label (SSR default dark)');
@@ -495,7 +506,7 @@ test('static export: theme script + toggle emitted into out/explore.html', () =>
 });
 
 test('static export: intro strip — sr-only h1 full name—title server-rendered', () => {
-  assert.ok(existsSync(exportHtml), 'out/explore.html missing — run `npm run build` first');
+  assert.ok(existsSync(exportHtml), 'out/index.html missing — run `npm run build` first');
   const html = readFileSync(exportHtml, 'utf8');
   assert.ok(html.includes('<h1'), 'sr-only h1 emitted (a11y + no-JS contract, UI-SPEC §4)');
   assert.ok(
