@@ -217,3 +217,9 @@ No headless/DOM tier exists in this repo (`playwright`, `puppeteer`, `jsdom`, `h
 *Phase: 10-projects-stack-revision*
 *Re-verification: 2026-10-02, HEAD 5383010, tree clean*
 *Prior run: 2026-09-30, gaps_found (46/47, gap R6) + AP-12 warning — both closed by plans 07/08 and re-measured here*
+
+## Human Verification Record (2026-09-25, covered by the user's batch + go-live approvals)
+
+The post-gap-cycle ring fix (R6: loop-to-back in both directions) re-measured 58/58. The user's standing verdicts — the batch confirmation round and **"this is great now we are ready to merge it into the main branch and go live"** (2026-09-25) — cover this phase's live-reviewed behaviour; the fix plan was itself the user-directed swipe rework.
+
+status_human: approved
