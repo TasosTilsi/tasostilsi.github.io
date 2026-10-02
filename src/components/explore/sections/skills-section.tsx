@@ -11,7 +11,7 @@
  *
  * SURVIVING body (U-2 adjudication on record): D-06 removes ONLY the bar
  * chart + treemap — the grouped chips (soft_skills / hard_skills
- * categories / languages, the only /explore rendering of the full
+ * categories / languages, the only landing rendering of the full
  * hard-skills lists) and their headers stay byte-identical below the cards,
  * still fed by viz-data's skillsGroupCounts (§10 single source), with the
  * two mandatory chip className overrides (§17.2): neutral font weight and

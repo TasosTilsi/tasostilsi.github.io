@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * ExploreTour — the spotlight wizard tour on /explore (phase EXPLORE-04).
+ * ExploreTour — the spotlight wizard tour on the landing page (phase EXPLORE-04).
  *
  * A hand-rolled, NON-modal overlay (UI-SPEC §0/§1): Radix Dialog's modal
  * machinery would set pointer-events none + aria-hidden on the whole page and

@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
   subsets: ['latin'],
 });
 
-// D-04: JetBrains Mono for the /explore IDE shell, exposed as --font-jetbrains.
+// JetBrains Mono for the landing IDE shell, exposed as --font-jetbrains.
 // Purely additive — the Geist variables below/above stay untouched so CLI
 // pages keep Geist Mono via the body rule (globals.css:5-8). next/font
 // self-hosts the font at build (no runtime CDN fetch).

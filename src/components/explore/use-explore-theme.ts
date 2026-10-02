@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * useExploreTheme — hand-rolled dark/light theme state for the /explore shell
+ * useExploreTheme — hand-rolled dark/light theme state for the landing shell
  * (D-05, UI-SPEC §9.1/§14).
  *
  * Contract:

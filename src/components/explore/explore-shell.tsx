@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * ExploreShell — client boundary of the /explore IDE frame (D-01, UI-SPEC §2.1).
+ * ExploreShell — client boundary of the landing IDE frame (D-01, UI-SPEC §2.1).
  *
  * Owns the single useExploreTheme state and composes the frame in order:
  * header bar → typewriter intro strip (optional `intro` slot) →
