@@ -104,3 +104,45 @@ $ git diff --stat -- src/app/globals.css                          ← EMPTY (exi
 The deployed site currently lags the repo — the live `/` title still reads `Senior Software Engineer in Test` while the repo data carries the refreshed docx branding. The first deploy after this phase ships the route swap AND the REV-01 data refresh together; the changed landing copy is **not a phase-12 defect**.
 
 ## Finality
+
+Green-gate finality governs this section: the sweep table exists BEFORE the gate runs, so the recorded runs cover the workspace state that includes this table.
+
+**Run 1 — the finality gate on the frozen tree (2026-10-02).** Frozen-workspace precondition, measured immediately before the run:
+
+```
+$ git status --porcelain -- src tests
+                                                            ← EMPTY (exit 0)
+$ git status --porcelain
+ M .planning/async-jobs.json    ← harness bookkeeping, not product
+                                                            (+ untracked tooling/output artefacts)
+```
+
+Command sequence and exit codes:
+
+```
+$ rm -rf out && npm run typecheck && npm run build && node --test tests/*.test.mjs
+  npm run typecheck → tsc --noEmit                        exit 0
+  npm run build     → next build + Exporting (2/2)         exit 0
+  node --test tests/*.test.mjs                             exit 0
+gate-exit=0
+```
+
+Build route table (verbatim, the three live routes, all `○ (Static) prerendered as static content`):
+
+```
+┌ ○ /                                    69.7 kB         194 kB
+├ ○ /_not-found                            131 B         103 kB
+├ ○ /cli                                 4.51 kB         107 kB
+└ ○ /resume                              12.8 kB         126 kB
+```
+
+No `/explore` node exists. Suite totals: `ℹ tests 289 · ℹ pass 289 · ℹ fail 0 · ℹ cancelled 0 · ℹ skipped 0 · ℹ todo 0` across **14 test files**.
+
+**Run 2 — post-commit re-run (checker W-3).** Run 1 predates the commit that carries this section, so it cannot by itself cover the committed tree. The same command was therefore executed AFTER that commit as the phase's chronologically last action:
+
+```
+rm -rf out && npm run typecheck && npm run build && node --test tests/*.test.mjs
+post-commit re-run: typecheck/build/suite = 0/0/0 — this run, chronologically last, covers the final tree including the commit below it.
+```
+
+Because that commit changes no file the gate reads — `git show --stat HEAD` lists exactly two `.planning/` artefacts, this table and `EXPLORE-12-route-swap-promotion-03-SUMMARY.md` — the post-commit re-run covers content byte-identical to run 1's subject. **No write follows it**: the SUMMARY named above was written BEFORE the commit (it is one of that commit's two files), and nothing under `src/` or `tests/` was written after run 1 or run 2.
