@@ -364,6 +364,11 @@ test('css: the capsule tab hooks are shell-scoped, so the ONE guard suppresses t
     /\.explore-shell \.exp-tab\[data-state='inactive'\] \{\s*opacity: 0\.85;/,
     'inactive sits at 0.85 emphasis until hover/focus',
   );
+  assert.match(
+    css,
+    /\.explore-shell \.exp-tab,[\s\S]*?transition: opacity 200ms/,
+    'the capsule rides the 200ms floor — the motion region pins 200–280ms, the directive 150–200ms',
+  );
   assert.equal(
     (css.match(/@media \(prefers-reduced-motion: reduce\)/g) || []).length,
     1,
