@@ -55,7 +55,14 @@ export function ExploreShell({
   }, []);
 
   return (
-    <div className="explore-shell flex h-dvh flex-col overflow-x-hidden bg-background text-foreground">
+    // Single-scrollbar invariant: overflow-hidden (BOTH axes), never
+    // overflow-x-hidden. Hiding only one axis makes the CSS spec compute the
+    // other as `auto`, so the h-dvh frame could paint its OWN vertical
+    // scrollbar for anything poking past the box — a second scroll container
+    // next to <main>. overflow-hidden clips both axes: <main> is the only
+    // scroll container in the shell, and zero horizontal scroll stays
+    // structural at every width.
+    <div className="explore-shell flex h-dvh flex-col overflow-hidden bg-background text-foreground">
       <ExploreHeader
         name={name}
         title={title}

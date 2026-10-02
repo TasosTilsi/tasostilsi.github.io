@@ -136,15 +136,28 @@ test('sweep row EXPLORE@375 (P): grid-cols-1 base class present — single-colum
   );
 });
 
-test('sweep rows EXPLORE@375-1920 (P): .explore-shell overflow-x-hidden — zero horizontal scroll is structural', () => {
+test('sweep rows EXPLORE@375-1920 (P): .explore-shell overflow-hidden — zero horizontal scroll is structural AND the shell paints no scrollbar', () => {
   const src = read('src/components/explore/explore-shell.tsx');
+  // Comments stripped on purpose: the shell's own doc comment NAMES the retired
+  // overflow-x-hidden form, so a raw-source negative assertion would be red on
+  // prose rather than on the class list (house pattern, explore-shell.test.mjs:126).
+  const code = src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
   assert.match(
-    src,
-    /className="explore-shell flex h-dvh flex-col overflow-x-hidden/,
-    'shell root (explore-shell.tsx:58) — overflow-x-hidden makes horizontal scroll structurally impossible on /explore',
+    code,
+    /className="explore-shell flex h-dvh flex-col overflow-hidden /,
+    'shell root (explore-shell.tsx:58) — overflow-hidden clips both axes, so horizontal scroll stays structurally impossible at 375px',
   );
-  assert.ok(src.includes('overflow-y-auto'), 'main is the single vertical scroll container');
-  assert.ok(!/overflow-x-auto/.test(src), 'no horizontal scroll container anywhere in the shell');
+  assert.ok(
+    !/overflow-x-hidden/.test(code),
+    'never overflow-x-hidden: the hidden axis computes the other as `auto` (CSS spec), which lets the h-dvh frame paint its OWN vertical scrollbar beside main',
+  );
+  assert.ok(code.includes('overflow-y-auto'), 'main is the single vertical scroll container');
+  assert.ok(!/overflow-x-auto/.test(code), 'no horizontal scroll container anywhere in the shell');
+  assert.equal(
+    (code.match(/overflow-(?:y-)?(?:auto|scroll)/g) || []).length,
+    1,
+    'exactly ONE scroll container in the shell frame — <main>',
+  );
 });
 
 test('sweep rows CLI@375/768/1440/1920 (P): cli layout overflow invariants + pre-wrapped output', () => {

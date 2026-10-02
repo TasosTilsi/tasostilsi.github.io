@@ -109,8 +109,8 @@ test('page: h-dvh flex shell with explore-shell marker, panel grid composed', ()
   const shell = sources.join('\n');
   assert.match(
     shell,
-    /explore-shell flex h-dvh flex-col overflow-x-hidden bg-background text-foreground/,
-    'shell root class combo (UI-SPEC §2.1)',
+    /explore-shell flex h-dvh flex-col overflow-hidden bg-background text-foreground/,
+    'shell root class combo (UI-SPEC §2.1) — overflow-hidden clips BOTH axes: the frame never paints its own scrollbar next to <main>',
   );
   const page = read('src/app/(home)/page.tsx');
   const panels = existsSync(join(root, 'src/components/explore/explore-panels.tsx'))
@@ -207,8 +207,8 @@ test('theme: ExploreShell client boundary owns theme state, composes header/main
   assert.ok(src.includes('<ExploreStatusBar'), 'composes status bar');
   assert.match(
     src,
-    /explore-shell flex h-dvh flex-col overflow-x-hidden bg-background text-foreground/,
-    'shell root class combo moved here',
+    /explore-shell flex h-dvh flex-col overflow-hidden bg-background text-foreground/,
+    'shell root class combo moved here (overflow-hidden, not overflow-x-hidden — single-scrollbar invariant)',
   );
   assert.ok(src.includes('aria-label="Portfolio sections"'), 'main pinned for keyboard scroll');
 });

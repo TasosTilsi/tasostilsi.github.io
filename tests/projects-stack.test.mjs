@@ -579,6 +579,39 @@ test('window-scroll invariant: the stage adds no document scroll height — <mai
     1,
     'exactly ONE scroll container in the shell frame — the window itself never scrolls',
   );
+
+  // Single-scrollbar invariant (3-scrollbar user report). The shell root pins
+  // overflow-hidden on BOTH axes; overflow-x-hidden is NOT equivalent — per the
+  // CSS spec a single hidden axis makes the other compute as `auto`, so the
+  // h-dvh frame could paint its OWN vertical scrollbar next to main. Comments
+  // are stripped because the shell's doc comment names the retired form.
+  const shellCode = shell.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
+  assert.ok(
+    /explore-shell flex h-dvh flex-col overflow-hidden /.test(shellCode),
+    'the shell root pins overflow-hidden (both axes)',
+  );
+  assert.ok(
+    !/overflow-x-hidden/.test(shellCode),
+    'the shell root must NOT pin overflow-x-hidden — its computed overflow-y:auto is the shell-owned vertical scrollbar',
+  );
+
+  // ...and the WINDOW side: the landing layout locks the document, so the
+  // post-shell wrappers + Radix portal roots cannot extend the document past
+  // the visual viewport. Route-scoped to (home): /cli and /resume own their
+  // height rules and must stay byte-unchanged.
+  const landing = readFileSync(join(root, 'src/app/(home)/layout.tsx'), 'utf8');
+  assert.match(
+    landing,
+    /html,\s*body\s*\{[^}]*height:\s*100%;[^}]*overflow:\s*hidden;/s,
+    'the landing layout pins html, body { height: 100%; overflow: hidden; } — kills the WINDOW scrollbar',
+  );
+  for (const p of ['src/app/cli/layout.tsx', 'src/app/resume/page.tsx']) {
+    assert.ok(
+      !/height:\s*100%;[^}]*overflow:\s*hidden;/.test(readFileSync(join(root, p), 'utf8')),
+      `${p}: must NOT inherit the landing's document lock (CLI = own h-screen shell, resume = document scroll by design)`,
+    );
+  }
+
   for (const path of [STACK_STAGE_PATH, PANELS_PATH]) {
     assert.ok(
       !/overflow-(?:y-)?(?:auto|scroll)/.test(readFileSync(path, 'utf8')),

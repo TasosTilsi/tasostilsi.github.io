@@ -127,9 +127,51 @@ test('row 3 (P): landing does not inherit the CLI h-screen wrapper (UI-SPEC §2.
   assert.ok(!code.includes('h-screen'), 'no h-screen anywhere in the landing page + shell chain — h-dvh only');
   assert.match(
     shell,
-    /explore-shell flex h-dvh flex-col overflow-x-hidden/,
-    'the explore shell root keeps its own h-dvh frame (explore-shell.tsx)',
+    /explore-shell flex h-dvh flex-col overflow-hidden /,
+    'the explore shell root keeps its own h-dvh frame (explore-shell.tsx) — overflow-hidden on BOTH axes',
   );
+
+  // 3b SINGLE-SCROLLBAR INVARIANT (both scrollbars, 3-axis report).
+  // (i) The SHELL must not use `overflow-x-hidden`: hiding one axis makes the
+  // CSS spec compute the other as `auto`, so the h-dvh frame could paint its
+  // OWN vertical scrollbar alongside main's. overflow-hidden clips both.
+  // Comment-stripped on purpose — the shell's doc comment NAMES the retired
+  // form, and a raw-source negative would be red on prose, not on code.
+  const shellCode = shell.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
+  assert.ok(
+    !/overflow-x-hidden/.test(shellCode),
+    'the shell root must NOT carry overflow-x-hidden — the single-hidden-axis computed `auto` is exactly the shell-owned vertical scrollbar (explore-shell.tsx)',
+  );
+  assert.equal(
+    (shellCode.match(/overflow-(?:y-)?(?:auto|scroll)/g) || []).length,
+    1,
+    'exactly ONE scroll container in the shell — <main>',
+  );
+
+  // (ii) The WINDOW scrollbar: the landing layout locks the document, so the
+  // empty post-shell wrappers + the Radix portal roots (live region, toaster)
+  // cannot make the document taller than the visual viewport (the long-standing
+  // "scroll past the footer" report). Route-scoped to (home) ON PURPOSE: /cli
+  // keeps its own h-screen overflow-hidden shell and /resume scrolls as a
+  // document BY DESIGN — neither may pick up this rule.
+  const landing = read('src/app/(home)/layout.tsx');
+  assert.match(
+    landing,
+    /html,\s*body\s*\{[^}]*height:\s*100%;[^}]*overflow:\s*hidden;/s,
+    'the landing layout pins the route-scoped document lock (html, body { height: 100%; overflow: hidden; }) — the WINDOW never scrolls',
+  );
+
+  for (const [path, keeps, why] of [
+    ['src/app/cli/layout.tsx', 'h-screen', 'the CLI keeps its own h-screen overflow-hidden shell'],
+    ['src/app/resume/page.tsx', 'min-h-screen', 'resume scrolls as a document BY DESIGN'],
+  ]) {
+    const src = read(path);
+    assert.ok(src.includes(keeps), `${path} still carries ${keeps} (${why})`);
+    assert.ok(
+      !/height:\s*100%;[^}]*overflow:\s*hidden;/.test(src),
+      `${path} must NOT pick up the landing's document lock (${why})`,
+    );
+  }
 });
 
 // ---------------------------------------------------------------------------

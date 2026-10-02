@@ -32,6 +32,32 @@ try {
 `;
 
 /**
+ * Single-scrollbar invariant (WINDOW side).
+ *
+ * The explore shell is h-dvh and <main> owns the scroll, but the document
+ * itself could still scroll: the shell is not the body's only child — the
+ * empty post-shell wrapper elements plus the Radix portal roots (live region,
+ * toaster) render after it, and dvh rounding on a dynamic viewport makes the
+ * document marginally taller than the visual viewport. The result was a window
+ * scrollbar next to main's, i.e. the long-standing "scroll past the footer"
+ * report. Locking the document removes that scrollbar; main's own internal
+ * scroll is untouched (this rule never touches .explore-shell or its subtree).
+ *
+ * Route-scoped ON PURPOSE (same reasoning as the theme script above): this
+ * layout is the landing route's ONLY layout, so the lock never reaches
+ * /cli (which keeps its own h-screen overflow-hidden shell) or /resume
+ * (which scrolls as a document BY DESIGN). Never lift this into
+ * src/app/layout.tsx — that would freeze both sibling routes.
+ */
+const documentScrollLock = `
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+}
+`;
+
+/**
  * D-08: data-driven page metadata, mirroring the root pattern
  * (src/app/layout.tsx:29-57) with the landing (explore) identity.
  *
@@ -79,6 +105,7 @@ export default function ExploreLayout({
   return (
     <>
       <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      <style dangerouslySetInnerHTML={{ __html: documentScrollLock }} />
       {children}
     </>
   );
