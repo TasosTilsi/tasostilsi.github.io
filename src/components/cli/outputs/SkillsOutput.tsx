@@ -7,6 +7,19 @@ const portfolioData = portfolioDataJson as PortfolioData;
 
 export const SkillsOutput = () => (
   <>
+    {portfolioData.core_competencies && portfolioData.core_competencies.length > 0 && (
+      <div className="mb-3">
+        <p className="text-accent font-semibold">Core Competencies:</p>
+        <div className="space-y-1.5">
+          {portfolioData.core_competencies.map((cluster) => (
+            <div key={cluster.name}>
+              <span className="bg-primary/10 text-primary px-2 py-0.5 rounded text-xs">{cluster.name}</span>
+              <p className="text-muted-foreground text-xs mt-0.5">{cluster.proof}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
     {portfolioData.skills.soft_skills && portfolioData.skills.soft_skills.length > 0 && (
       <div className="mb-3">
         <p className="text-accent font-semibold">Soft Skills:</p>

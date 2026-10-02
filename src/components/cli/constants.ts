@@ -58,7 +58,8 @@ export const AVAILABLE_COMMANDS = [
   "portfolio", "articles", "presentations", "talks", "slides",
   "interests", "hobbies", "certifications", "certs", "gaming",
   "games", "resume", "pdf", "cv", "date", "echo", "theme",
-  "supermario", "alias", "revelio", "clear", "shortcuts", "keys", "achievements"
+  "supermario", "alias", "revelio", "clear", "shortcuts", "keys", "achievements",
+  "explore"
 ];
 
 export const LOCAL_STORAGE_EASTER_EGGS_KEY = "portfolioCliFoundEasterEggs";

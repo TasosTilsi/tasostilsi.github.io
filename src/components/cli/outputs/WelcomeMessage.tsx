@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import portfolioDataJson from '@/data/portfolio-main-data.json';
 import type { PortfolioData } from '@/data/portfolio-main-data';
 import { TypingEffect } from '../TypingEffect';
+import Link from 'next/link';
 
 const portfolioData = portfolioDataJson as PortfolioData;
 
@@ -28,7 +29,7 @@ export const WelcomeMessage = () => {
         {`/**
  * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
  * ANASTASIOS TILSIZOGLOU
- * Senior Software Engineer in Test
+ * ${portfolioData.about.title}
  * Open to selective part-time work
  * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
  */`}
@@ -37,7 +38,7 @@ export const WelcomeMessage = () => {
       {/* Mobile-friendly version */}
       <div className="sm:hidden text-accent font-bold text-sm border-b border-accent/30 pb-2 mb-2">
         <div>ANASTASIOS TILSIZOGLOU</div>
-        <div className="text-xs font-normal text-muted-foreground">Senior Software Engineer in Test</div>
+        <div className="text-xs font-normal text-muted-foreground">{portfolioData.about.title}</div>
         <div className="text-xs font-normal text-muted-foreground/80 italic mt-1">Open to selective part-time work</div>
       </div>
 
@@ -60,6 +61,15 @@ export const WelcomeMessage = () => {
           </ul>
         </div>
       )}
+
+      {/* Visual tour link — the CLI's exit to the landing at /; unconditional so returning visitors see it too (D-01, OQ-3; phase-12 REV-22 repointed it to the promoted landing) */}
+      <div
+        style={{
+          fontFamily: "var(--font-jetbrains), var(--font-geist-mono), Menlo, Monaco, 'Courier New', monospace",
+        }}
+      >
+        <span className="text-accent">[</span> NEW <span className="text-accent">→</span> visual tour: <Link href="/" className="text-accent">explore</Link> <span className="text-accent">]</span>
+      </div>
       <br />
     </div>
   );

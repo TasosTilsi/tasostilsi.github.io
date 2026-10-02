@@ -1,0 +1,297 @@
+# WINDOWS
+
+## WIN-01
+- id: WIN-01
+- phase: 1
+- step: execute
+- opened: 2026-09-21T07:10:22.493Z
+- closed: 2026-09-21T07:10:22.493Z
+- summary: Executed 1/2 plans
+
+## WIN-02
+- id: WIN-02
+- phase: 1
+- step: execute
+- opened: 2026-09-21T07:18:17.958Z
+- closed: 2026-09-21T07:18:17.958Z
+- summary: Executed 1/2 plans
+
+## WIN-03
+- id: WIN-03
+- phase: 2
+- step: execute
+- opened: 2026-09-21T10:10:55.020Z
+- closed: 2026-09-21T10:10:55.020Z
+- summary: Executed 1/2 plans
+
+## WIN-04
+- id: WIN-04
+- phase: 2
+- step: execute
+- opened: 2026-09-21T10:18:12.285Z
+- closed: 2026-09-21T10:18:12.285Z
+- summary: Executed 1/2 plans
+
+## WIN-05
+- id: WIN-05
+- phase: 3
+- step: execute
+- opened: 2026-09-21T14:29:12.654Z
+- closed: 2026-09-21T14:29:12.654Z
+- summary: Executed 1/4 plans
+
+## WIN-06
+- id: WIN-06
+- phase: 3
+- step: execute
+- opened: 2026-09-21T14:49:11.258Z
+- closed: 2026-09-21T14:49:11.258Z
+- summary: Executed 2/4 plans
+
+## WIN-07
+- id: WIN-07
+- phase: 3
+- step: execute
+- opened: 2026-09-21T15:02:16.758Z
+- closed: 2026-09-21T15:02:16.758Z
+- summary: Executed 1/4 plans
+
+## WIN-08
+- id: WIN-08
+- phase: 4
+- step: execute
+- opened: 2026-09-21T22:46:30.649Z
+- closed: 2026-09-21T22:46:30.649Z
+- summary: Executed 1/2 plans
+
+## WIN-09
+- id: WIN-09
+- phase: 4
+- step: execute
+- opened: 2026-09-21T22:59:07.009Z
+- closed: 2026-09-21T22:59:07.009Z
+- summary: Executed 1/2 plans
+
+## WIN-10
+- id: WIN-10
+- phase: 5
+- step: execute
+- opened: 2026-09-22T05:56:34.399Z
+- closed: 2026-09-22T05:56:34.399Z
+- summary: Executed 2/3 plans
+
+## WIN-11
+- id: WIN-11
+- phase: 5
+- step: execute
+- opened: 2026-09-22T06:01:22.666Z
+- closed: 2026-09-22T06:01:22.666Z
+- summary: Executed 1/3 plans
+
+## WIN-12
+- id: WIN-12
+- phase: 6
+- step: execute
+- opened: 2026-09-23T06:48:08.385Z
+- closed: 2026-09-23T06:48:08.385Z
+- summary: Executed 1/4 plans
+
+## WIN-13
+- id: WIN-13
+- phase: 6
+- step: execute
+- opened: 2026-09-23T20:07:15.024Z
+- closed: 2026-09-23T20:07:15.024Z
+- summary: Executed 1/4 plans
+
+## WIN-14
+- id: WIN-14
+- phase: 6
+- step: execute
+- opened: 2026-09-23T20:22:29.295Z
+- closed: 2026-09-23T20:22:29.295Z
+- summary: Executed 1/4 plans
+
+## WIN-15
+- id: WIN-15
+- phase: 6
+- step: execute
+- opened: 2026-09-23T20:39:50.912Z
+- closed: 2026-09-23T20:39:50.912Z
+- summary: Executed 1/4 plans
+
+## WIN-16
+- id: WIN-16
+- phase: 7
+- step: execute
+- opened: 2026-09-23T21:55:01.451Z
+- closed: 2026-09-23T21:55:01.451Z
+- summary: Executed 1/3 plans
+
+## WIN-17
+- id: WIN-17
+- phase: 7
+- step: execute
+- opened: 2026-09-23T22:04:38.388Z
+- closed: 2026-09-23T22:04:38.388Z
+- summary: Executed 1/3 plans
+
+## WIN-18
+- id: WIN-18
+- phase: 7
+- step: execute
+- opened: 2026-09-23T22:16:11.057Z
+- closed: 2026-09-23T22:16:11.057Z
+- summary: Executed 1/3 plans
+
+## WIN-19
+- id: WIN-19
+- phase: 8
+- step: execute
+- opened: 2026-09-24T12:58:12.156Z
+- closed: 2026-09-24T12:58:12.156Z
+- summary: Executed 1/3 plans
+
+## WIN-20
+- id: WIN-20
+- phase: 8
+- step: execute
+- opened: 2026-09-24T13:11:36.427Z
+- closed: 2026-09-24T13:11:36.427Z
+- summary: Executed 1/3 plans
+
+## WIN-21
+- id: WIN-21
+- phase: 8
+- step: execute
+- opened: 2026-09-24T13:16:48.410Z
+- closed: 2026-09-24T13:16:48.410Z
+- summary: Executed 1/3 plans
+
+## WIN-22
+- id: WIN-22
+- phase: 9
+- step: execute
+- opened: 2026-09-24T16:32:11.069Z
+- closed: 2026-09-24T16:32:11.069Z
+- summary: Executed 1/4 plans
+
+## WIN-23
+- id: WIN-23
+- phase: 9
+- step: execute
+- opened: 2026-09-24T17:04:03.718Z
+- closed: 2026-09-24T17:04:03.718Z
+- summary: Executed 2/4 plans
+
+## WIN-24
+- id: WIN-24
+- phase: 9
+- step: execute
+- opened: 2026-09-24T17:21:32.686Z
+- closed: 2026-09-24T17:21:32.686Z
+- summary: Executed 1/4 plans
+
+## WIN-25
+- id: WIN-25
+- phase: 10
+- step: execute
+- opened: 2026-09-25T16:11:30.446Z
+- closed: 2026-09-25T16:11:30.446Z
+- summary: Executed 1/3 plans
+
+## WIN-26
+- id: WIN-26
+- phase: 10
+- step: execute
+- opened: 2026-09-25T16:25:44.503Z
+- closed: 2026-09-25T16:25:44.503Z
+- summary: Executed 1/3 plans
+
+## WIN-27
+- id: WIN-27
+- phase: 10
+- step: execute
+- opened: 2026-09-25T16:31:17.824Z
+- closed: 2026-09-25T16:31:17.824Z
+- summary: Executed 1/3 plans
+
+## WIN-28
+- id: WIN-28
+- phase: 11
+- step: execute
+- opened: 2026-09-29T19:30:27.256Z
+- closed: 2026-09-29T19:30:27.256Z
+- summary: Executed 1/2 plans
+
+## WIN-29
+- id: WIN-29
+- phase: 11
+- step: execute
+- opened: 2026-09-29T19:36:05.621Z
+- closed: 2026-09-29T19:36:05.621Z
+- summary: Executed 1/2 plans
+
+## WIN-30
+- id: WIN-30
+- phase: 10
+- step: execute
+- opened: 2026-09-29T21:13:45.912Z
+- closed: 2026-09-29T21:13:45.912Z
+- summary: Executed 1/6 plans
+
+## WIN-31
+- id: WIN-31
+- phase: 10
+- step: execute
+- opened: 2026-09-29T21:16:22.618Z
+- closed: 2026-09-29T21:16:22.618Z
+- summary: Executed 1/6 plans
+
+## WIN-32
+- id: WIN-32
+- phase: 10
+- step: execute
+- opened: 2026-09-29T21:23:35.349Z
+- closed: 2026-09-29T21:23:35.349Z
+- summary: Executed 1/6 plans
+
+## WIN-33
+- id: WIN-33
+- phase: 12
+- step: execute
+- opened: 2026-10-02T17:07:39.565Z
+- closed: 2026-10-02T17:07:39.565Z
+- summary: Executed 1/3 plans
+
+## WIN-34
+- id: WIN-34
+- phase: 12
+- step: execute
+- opened: 2026-10-02T17:12:46.342Z
+- closed: 2026-10-02T17:12:46.342Z
+- summary: Executed 1/3 plans
+
+## WIN-35
+- id: WIN-35
+- phase: 12
+- step: execute
+- opened: 2026-10-02T17:15:26.759Z
+- closed: 2026-10-02T17:15:26.759Z
+- summary: Executed 1/3 plans
+
+## WIN-36
+- id: WIN-36
+- phase: 10
+- step: ship
+- opened: 2026-10-02T17:45:06.160Z
+- closed: 2026-10-02T17:45:06.160Z
+- summary: Executed 1/8 plans
+
+## WIN-37
+- id: WIN-37
+- phase: 10
+- step: execute
+- opened: 2026-10-02T17:48:44.076Z
+- closed: 2026-10-02T17:48:44.076Z
+- summary: Executed 1/8 plans

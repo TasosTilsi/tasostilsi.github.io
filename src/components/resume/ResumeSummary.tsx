@@ -12,7 +12,7 @@ const ResumeSummary: React.FC<ResumeSummaryProps> = ({ data, isDarkMode = true }
   return (
     <section className="resume-section mb-10 overflow-hidden" style={{ breakInside: "avoid" }}>
       <h3 className={`text-[10px] font-black uppercase tracking-[0.4em] mb-4 flex items-center ${accentColor}`}>
-        <span className="mr-2 opacity-50">//</span> SUMMARY.EXE
+        <span className="mr-2 opacity-50">//</span> SUMMARY
       </h3>
       <p className={`text-[11.5px] leading-relaxed font-mono ${textColor} opacity-90 print:text-black print:text-[10px]`}>
         {data.about.description}

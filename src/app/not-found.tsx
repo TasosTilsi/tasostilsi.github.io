@@ -102,7 +102,7 @@ export default function NotFound() {
                     {/* Action button */}
                     <div className="mt-8 pt-6 border-t border-border">
                         <Link
-                            href="/"
+                            href="/cli"
                             className="inline-flex items-center gap-2 px-4 py-2 bg-accent text-accent-foreground rounded hover:opacity-90 transition-opacity"
                         >
                             <span className="text-sm">←</span>

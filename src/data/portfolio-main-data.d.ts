@@ -8,6 +8,7 @@ export interface ExperienceEntry {
 }
 
 export interface EducationEntry {
+  featured?: boolean;
   duration: string;
   location: string;
   specialization?: string;
@@ -22,12 +23,14 @@ export interface Project {
   date?: string;
   link?: string;
   sourceUrl?: string;
+  featured?: boolean;
 }
 
 export interface Certification {
   name: string;
   date: string;
   link?: string | null;
+  featured?: boolean;
 }
 
 export interface Article {
@@ -36,12 +39,15 @@ export interface Article {
   summary: string;
   link: string;
   date: string;
+  featured?: boolean;
 }
 
 export interface Presentation {
   name: string;
   description: string;
   framework: string;
+  /** Curated-surface flag, same typed mechanism as Certification/Article (phase-11 D-03). */
+  featured?: boolean;
   link: string;
   sourceUrl?: string;
   date: string;
@@ -74,7 +80,14 @@ export interface PortfolioData {
       twitch?: string;
     };
     profileImageUrl: string;
+    /** Two pinned positioning lines, rendered as two block spans, never joined (EXPLORE-09 UI-SPEC §2.2). */
+    positioning?: string[];
+    /** Verbatim transcription of the CLI welcome-banner availability line (WelcomeMessage.tsx:42). */
+    availability?: string;
+    /** Impact-metric stats; values are data transcriptions, never computed at render (UI-SPEC §2.3). */
+    metrics?: { value: string; label: string }[];
   };
+  core_competencies: { name: string; proof: string }[];
   experience: ExperienceEntry[];
   education: EducationEntry[];
   skills: {

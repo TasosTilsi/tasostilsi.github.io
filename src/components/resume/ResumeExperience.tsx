@@ -15,7 +15,7 @@ const ResumeExperience: React.FC<ResumeExperienceProps> = ({ data, isDarkMode = 
   return (
     <section className="resume-section">
       <h3 className={`text-[10px] font-black uppercase tracking-[0.4em] mb-8 flex items-center ${accentColor}`}>
-        <span className="mr-2 opacity-50">//</span> EXPERIENCE.SH
+        <span className="mr-2 opacity-50">//</span> PROFESSIONAL EXPERIENCE
       </h3>
       <div className="space-y-12">
         {data.experience
