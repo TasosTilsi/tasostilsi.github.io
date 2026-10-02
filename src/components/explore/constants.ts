@@ -1,5 +1,6 @@
 /**
- * Locked chrome constants for the /explore IDE shell (phase EXPLORE-01).
+ * Locked chrome constants for the IDE landing shell (phase EXPLORE-01; the
+ * visual route became the primary landing in phase EXPLORE-12, REV-22).
  *
  * Plain TS module — no "use client" needed; importable from server components,
  * client components, and the layout's inline before-paint script constant.
@@ -46,6 +47,23 @@ export type ExploreTheme = (typeof EXPLORE_THEME_VALUES)[number];
  */
 export const EXPLORE_STATUS_USER = "guest@tasostilsi";
 export const EXPLORE_STATUS_PATH = ":~";
+
+/**
+ * D-03 / UI-SPEC §2.3: the status bar's `cli` new-tab chip — the phase's only
+ * new control. Plain values (no JSX) so the component and the acceptance rows
+ * read ONE derivation site; the href is static, so the anchor has no
+ * open-redirect surface, and `rel` lives literally in the component.
+ * The accessible name deliberately leads with the visible label: WCAG 2.5.3
+ * requires the name to CONTAIN the visible text, so this is the
+ * UI-SPEC §5.1 RESOLVED-NAME wording, not the brief's literal string.
+ * Keep all three strings digit-free (the EXPLORE_TOUR_FINISH digit guard
+ * sweeps the finish constants; the same discipline applies here).
+ */
+export const EXPLORE_STATUS_CLI_LINK = {
+  label: "cli",
+  href: "/cli",
+  ariaLabel: "cli — open the terminal in a new tab",
+} as const;
 
 /**
  * D-05: tour trigger flag — 'seen' written on any dismissal, 'completed' on
