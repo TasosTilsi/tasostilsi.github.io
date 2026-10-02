@@ -26,3 +26,15 @@ yarn.lock
 .claude/
 .agent/
 .bmad/
+
+# Tooling/session artifacts (local only — never shipped)
+.cursor/
+.serena/
+.deepindex.db
+tsconfig.tsbuildinfo
+doublecheck-report.md
+doublecheck-spec.md
+resume-print-check.pdf
+resume-probe-print.pdf
+resume-screen-check.png
+PRODUCT.md
