@@ -996,6 +996,54 @@ test('EXPLORE-10 invariant (REV-21): projects stack is swipe-driven, centered, l
   assert.ok(stack.includes('aria-hidden'), 'non-active cards are aria-hidden');
   assert.ok(stack.includes('pointer-events-none'), 'non-active cards are removed from pointer events');
 
+  // Call-site mapping pins (gap-closure plan 10-07, phase-10 VERIFICATION gap
+  // R6 / AP-13). The pure ring-step contract is only worth anything if every
+  // step path CONSUMES it, so each path is pinned here as well as in the pure
+  // suite: a corrected module with a swapped control would still be broken.
+  assert.ok(
+    stack.includes("ringStep('next')"),
+    'the Next control advances the ring forward through the pure ring step (REV-18 loop-to-the-back; gap R6)',
+  );
+  assert.ok(
+    stack.includes("ringStep('previous')"),
+    'the Previous control is the exact inverse of Next through the pure ring step — it brings the back card forward',
+  );
+  assert.ok(
+    /ringStep\('swipe', accepted\)/.test(stack),
+    "an accepted swipe supplies ONLY the exit sign; the ring delta comes from ringStep('swipe', accepted)",
+  );
+  // Exact counts, not mere presence: swapping either control's step keeps both
+  // strings present but breaks the counts. This is the pin that bites.
+  assert.equal(
+    (stack.match(/ringStep\('next'\)/g) || []).length,
+    2,
+    'exactly two Next call sites — the ArrowDown/ArrowRight key map and the Next button (a swapped control fails here)',
+  );
+  assert.equal(
+    (stack.match(/ringStep\('previous'\)/g) || []).length,
+    2,
+    'exactly two Previous call sites — the ArrowUp/ArrowLeft key map and the Prev button (a swapped control fails here)',
+  );
+  assert.ok(
+    !stack.includes('cycle(1)') && !stack.includes('cycle(-1)'),
+    'the fly-off side is no longer the ring-rotation sign (the one-sign coupling that failed gap R6 is gone)',
+  );
+  assert.ok(
+    stack.includes('ringDepth(') && stack.includes('advanceFront('),
+    'the stage consumes the pure ring step and depth instead of re-deriving them',
+  );
+  const cardStateModule = read('src/components/explore/projects-card-state.ts');
+  for (const exported of [
+    'export function ringStep',
+    'export function advanceFront',
+    'export function ringDepth',
+  ]) {
+    assert.ok(
+      cardStateModule.includes(exported),
+      `${exported}: the mapping lives in the pure module, so a refactor that moves it back into the stage fails here`,
+    );
+  }
+
   const mobilePath = 'src/components/explore/sections/projects-mobile-stack.tsx';
   assert.ok(existsSync(join(root, mobilePath)), 'mobile stack file exists');
   const mobile = codeOf(mobilePath);
