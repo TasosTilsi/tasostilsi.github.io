@@ -2,9 +2,9 @@
 gsd_state_version: 1
 milestone: v1.0
 milestone_name: "Explore Visual Landing"
-status: ui
+status: execute
 active_phase: 12
-next_action: ui-phase
+next_action: execute-phase
 next_phases: [12]
 progress:
   total_phases: 5
@@ -15,7 +15,7 @@ progress:
 current_phase: 12
 current_phase_name: route-swap-promotion
 current_plan: 6
-last_updated: "2026-10-02T16:24:07.585Z"
+last_updated: "2026-10-02T16:56:47.425Z"
 state_head: null
 last_activity: 2026-10-02
 stopped_at: null
@@ -89,6 +89,7 @@ _No active phase._
 - quick 2026-10-02-stack-center-and-overflow: Fix two user-reported defects on the Projects swipe stack (http://localhost:3000/explore, static export; files: src/components/explore/sections/projects-stack-stage.tsx, src/components/explore/sections/projects-mobile-stack.tsx, src/components/explore/explore-panels.tsx, stale tests as needed):
 - Phase 12: SPEC.md sealed (ambiguity 0.133)
 - Phase 12: CONTEXT.md sealed — 4 decisions
+- Phase 12: planned — 3 plan(s) across 3 wave(s); checker issues remain after 3 iterations (manual review).
 
 ### Blockers / Concerns
 - Shipping decision (user, 2026-09-21): ship the milestone AS A WHOLE at milestone close — no per-phase PRs. phase-1 and phase-2 branches pushed to origin (backup only); gsd_ship deferred for both phases. phase-2 branch contains phase-1 commits (stacked).
