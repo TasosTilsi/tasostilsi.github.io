@@ -2,20 +2,20 @@
 gsd_state_version: 1
 milestone: v1.0
 milestone_name: "Explore Visual Landing"
-status: execute
-active_phase: 10
-next_action: execute-phase
-next_phases: [10]
+status: spec
+active_phase: 12
+next_action: discuss-phase
+next_phases: [12]
 progress:
   total_phases: 5
   completed_phases: 0
   total_plans: 6
   completed_plans: 36
   percent: 0
-current_phase: 10
-current_phase_name: projects-stack-revision
+current_phase: 12
+current_phase_name: route-swap-promotion
 current_plan: 6
-last_updated: "2026-10-02T16:00:10.566Z"
+last_updated: "2026-10-02T16:23:35.121Z"
 state_head: null
 last_activity: 2026-10-02
 stopped_at: null
@@ -86,16 +86,8 @@ _No active phase._
 - Phase 10: planned — 6 plan(s) across 3 wave(s); checker issues remain after 3 iterations (manual review).
 - Phase 10: planned — 8 plan(s) across 7 wave(s).
 - quick 2026-10-02-credentials-bar-navigation: Rework the Credentials panel's tab list (in src/components/explore/sections/credentials-section.tsx) from the shadcn muted-pill TabsList into a floating-capsule bar navigation, per the user's brief (icon-above-label bottom-nav pattern adapted inside the panel). KEEP the Radix Tabs primitives (Tabs/TabsTrigger/TabsContent) — only className/content styling changes, so the keyboard pattern (arrow keys), aria-selected, and tab semantics are preserved free.
-
-Design contract (from the user's brief, pinned):
-1. TabsList becomes a CAPSULE: `rounded-full` (fully rounded), horizontally centered if the panel width allows (or full-width within the body), visually elevated: a subtle background contrasting with the card (e.g. `bg-muted/70` or the card + border + soft diffuse shadow `shadow-lg shadow-black/10 dark:shadow-black/30` — both-theme legible), padded (`px-2 py-1.5`), ~64-72px tall via the stacked items.
-2. Each TabsTrigger: `flex flex-1 flex-col items-center justify-center gap-1 rounded-full min-h-[56px] px-2` — the ICON (16px lucide, the locked map: Articles→FileText, Certifications→Award, Presentations→MonitorPlay, `aria-hidden`) rendered ABOVE the label; label `text-[11px] leading-none`.
-3. ACTIVE trigger: accent-colored icon + accent label (`text-accent` on both), font-medium (slightly stronger), PLUS a soft accent-tinted pill background (`bg-accent/10`) — user decision: accent + soft pill.
-4. INACTIVE trigger: muted icon + muted label (`text-muted-foreground`), lower emphasis (opacity ~0.85), NO background.
-5. Hover (inactive items): icon translates up 1-2px, label color darkens toward foreground, opacity increases — 150-200ms transitions (Editorial-calm easing, within the phase-7 vocabulary; the reduced-motion guard suppresses automatically).
-6. Keep the tab labels EXACTLY: Articles | Certifications | Presentations (locked phase-11 copy). Keep the row anatomy below unchanged.
-7. Stale-test discipline: renew tests/explore-credentials-related assertions that pin the old TabsList recipe (`inline-flex h-10 items-center` / `bg-muted` / the 44px trigger pin — the trigger min-height changes to 56px stacked; update the assertion + the A11Y-01 record note so the height contract matches the new anatomy); anything pinning the old inline layout.
-8. Gate chronologically last: npm run typecheck && npm run build && node --test tests/*.mjs — all green. Commit atomically: "feat(explore): credentials tab bar becomes floating capsule navigation (icon-over-label, accent+pill active) per user directive". Do NOT push. Report the commit hash + the new bar's anatomy summary.
+- quick 2026-10-02-stack-center-and-overflow: Fix two user-reported defects on the Projects swipe stack (http://localhost:3000/explore, static export; files: src/components/explore/sections/projects-stack-stage.tsx, src/components/explore/sections/projects-mobile-stack.tsx, src/components/explore/explore-panels.tsx, stale tests as needed):
+- Phase 12: SPEC.md sealed (ambiguity 0.133)
 
 ### Blockers / Concerns
 - Shipping decision (user, 2026-09-21): ship the milestone AS A WHOLE at milestone close — no per-phase PRs. phase-1 and phase-2 branches pushed to origin (backup only); gsd_ship deferred for both phases. phase-2 branch contains phase-1 commits (stacked).
