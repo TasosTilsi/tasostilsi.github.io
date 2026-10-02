@@ -202,6 +202,48 @@ Honest framing: this is an accepted, recorded skip of one gate for a pre-existin
 
 **Open items (not closed by this plan).** Human Verification items 1-5 from `EXPLORE-10-projects-stack-revision-VERIFICATION.md` remain open: swipe feel; shadow bloom in both themes; the 75-85% visual-area proportion with the 375px invariant; OS reduced-motion browser parity with a clean console; the keyboard/screen-reader pass. AP-2 remains an accepted deviation (the delegated mobile stack). No browser-verified or visually-measured result is claimed anywhere in this sweep.
 
+## Gap-closure resolution (2026-09-30)
+
+Both items of the `gaps_found` verification run are resolved. Gap R6 was closed **in code (option R1)**, not by amending the contract text (option R2); AP-12 was closed by a traceability correction plus an executable pin. Nothing below restates a figure already recorded in the 2026-09-29 Contract sweep - those are cited, not re-derived.
+
+### R6 - the ring rotation, closed in code (option R1) rather than by amending the text (option R2)
+
+**Reason on record, quoted verbatim from the directive** - `.planning/quick/2026-09-25-projects-swipe-loop-stack/TASK.md`, req 3: "then LOOPS to the BACK of the stack (depth = last level, zIndex lowest, offsets reset)"; "Swipe left AND right both cycle (the fly-off direction follows the swipe side)"; req 7: "Next = send front card to back with a left-fly-off, Previous = bring the back card forward with a right-fly-off - mirrored directions". The stage's own comments at `projects-stack-stage.tsx:594` and `:597` (recorded as AP-13) described that same mapping while the code contradicted it. The contract text was right and the wiring was wrong, so the fix belongs in the code: **R1 chosen, R2 declined**. Plan 07 (commits `320c7a0`, `7547bee`, `ce5f495`) made the change red-first, and AP-13 closed by making the code match those two comments - never by deleting them, so both fields are named inline on the same lines.
+
+**The delivered ring-step contract.** `ringStep(source, gesture)`, `advanceFront` and `ringDepth` in `src/components/explore/projects-card-state.ts` are the module's ONE mapping site and ONE index-advance site.
+
+| source | ring delta | exit sign | where the departing foreground card lands |
+|---|---|---|---|
+| swipe, either side | +1 | the gesture side (`-1` left, `+1` right) | depth `count - 1` (the back) |
+| Next (button, ArrowRight, ArrowDown) | +1 | `-1` (left fly-off) | depth `count - 1` (the back) |
+| Previous (button, ArrowLeft, ArrowUp) | -1 | `+1` (right fly-off) | depth 1 (the peek); the card that WAS at depth `count - 1` is promoted to the foreground |
+
+The counter (`NN / 06`) and the throttled `aria-live` announcement were **never changed** - they derive from `frontIndex + 1`, so they read forward again by construction once Next advances the ring forward. The swipe arm never branches on the gesture for the delta; that identity IS the fix.
+
+### What did NOT change in this gap closure
+
+No line of `.planning/ROADMAP.md`, `.planning/REQUIREMENTS.md`, the phase `SPEC.md` or the phase `UI-SPEC.md`. No geometry constant, no LEVELS entry, no threshold, no layout class, no aria attribute, no reduced-motion branch. No data field, no new dependency. The 2026-09-29 amendment block's quarantined lines remain byte-for-byte. Plan 07's two file edits are `projects-card-state.ts` (+67/-0, purely additive: `cardState`, `LEVELS`, the imperfection contract, the curated variant table and both swipe thresholds are byte-identical) and `projects-stack-stage.tsx` (+35/-31, call sites only). Plan 08 (this record's own plan) touched comment and assertion-message strings only - 13 changed lines across 8 files, no predicate.
+
+### AP-12 - the mis-cited requirement ids, closed
+
+**Measured at planning time** with `grep -rn "REV-21" src/ tests/`: **36 occurrences = 13 phase-10 Projects-stack mis-cites + 23 phase-11 citations**. All 13 are rewritten to the id they actually describe; all 23 phase-11 citations are left untouched. The verification report's list of five source files and four test sites missed three of the thirteen - the projects-natural-height assertion messages at `tests/explore-shell.test.mjs:377` and `tests/explore-sweep.test.mjs:57,87` (positions as they stand after plan 07; they were `:369` / `:57,87` at planning time).
+
+**Rewritten (13).** `src/components/explore/projects-card-state.ts:3`; `src/components/explore/explore-panels.tsx:30,38,115`; `src/components/explore/sections/projects-section.tsx:2`; `src/components/explore/sections/projects-mobile-stack.tsx:5`; `tests/projects-stack.test.mjs:3`; `tests/explore-visuals.test.mjs` (the dual-engine rationale comment, the EXPLORE-10 invariant TEST TITLE, and the natural-height assertion message); `tests/explore-shell.test.mjs:377`; `tests/explore-sweep.test.mjs:57,87`. The suite-side three are title/message text: no assertion predicate, regex, expected value or component behaviour changed, and every suite's pass count is identical before and after apart from the one new test.
+
+**Untouched (23, phase 11 owns REV-21).** `src/components/explore/constants.ts:89`; `tests/portfolio-data-integrity.test.mjs:113`; `tests/explore-shell.test.mjs:31,255,278,283,361,365,467`; `tests/explore-visuals.test.mjs:314,332,341,775`; `tests/explore-sweep.test.mjs:52,77`; `tests/explore-visuals-skills.test.mjs:163,167,172`; `tests/explore-tour.test.mjs:64,181,187,235,637`. No occurrence was genuinely ambiguous - the classification rule (a reference about the Projects stack keeps a phase-10 id; a reference about the Credentials panel, the 5-section grid, chart-5, the drawer counter or the tour copy keeps REV-21) resolved every one of them.
+
+**The pin, so the mis-cite cannot return.** One new traceability test at the end of `tests/explore-visuals.test.mjs` (commit `bfbf81d`, RED first) asserts: zero REV-21 in each of the four phase-10 source surfaces and in `tests/projects-stack.test.mjs`; at least one REV-18 in each of the four; this file's own pre-existing corpus - sliced at the test's own block marker, never counted over the whole file - carrying exactly the four phase-11 credential/registry lines and no others; the sibling suites' projects-natural-height messages free of REV-21 in **both** word forms; and the EXPLORE-10 invariant title naming REV-18. The RED run measured 32 pass / 1 fail, the failure naming `projects-card-state.ts`; the GREEN run is 33 / 33 on that suite and 293 pass / 0 fail / 0 skipped over the full suite (the +1 test is this pin; plan 07 recorded 292).
+
+**One plan-text correction, measured.** The plan's task-2 acceptance asked `grep -c "natural-height" tests/explore-sweep.test.mjs` and `grep -c "natural height" tests/explore-shell.test.mjs` to both return 0. Both read **1** after the rewrite, because "natural height" IS the claim those messages assert - only the requirement-id token moved. Zero would have required deleting the phrase, i.e. damaging the very message the plan's own edit list prescribes. The falsifiable intent is met instead by the Node clause-5 pattern (both word forms) and by `grep -cE 'natural[ -]height.*REV-21|REV-21.*natural[ -]height'` - measured **0 matching lines per file** after the rewrite (pre-edit: 1 in `explore-shell`, 2 in `explore-sweep`).
+
+**Commit scope note.** The plan records and the 2026-09-29 sweep use the zero-padded scope `10-07` / `10-08` in their text, and plan 08's commits land as `test(10-08)` / `docs(10-08)` - the scope `tddAuditGate` actually derives (`planScope` = the zero-padded `{phase}-{plan}` pair, `lib/gates.js:124-126`), not a long form. Recorded for the gate only; the phase-level `skip_gates: ["tdd_audit"]` decision above is unaffected and is not re-litigated here.
+
+### Still open / unchanged
+
+- The five perceptible human items are discharged only by the recorded batch approval (`c97b0e8`, `status_human: approved`). **This gap closure claims no browser-verified and no visually-measured result** - every number above is a shell or test-run measurement.
+- AP-2 (the 20-line delegated mobile stack) and AP-8 (the `RESEARCH.md` line count) stay accepted deviations; AP-10 and AP-11 stay INFO. No override is re-opened or re-litigated.
+- Human Verification items 1-5 of the verification report remain open as user-facing checks (swipe feel; shadow bloom in both themes; the 75-85% visual-area proportion with the 375px invariant; OS reduced-motion browser parity with a clean console; the keyboard/screen-reader pass).
+
 ---
 
 *Phase: 10-projects-stack-revision*
