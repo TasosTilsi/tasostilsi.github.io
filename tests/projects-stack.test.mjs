@@ -34,6 +34,9 @@ import {
   projectVisualVariant,
   djb2,
   cardState,
+  ringStep,
+  advanceFront,
+  ringDepth,
   swipeAccepts,
   SWIPE_THRESHOLD,
   SWIPE_VELOCITY_THRESHOLD,
@@ -617,5 +620,147 @@ test('window-scroll invariant: the stage adds no document scroll height — <mai
       !/overflow-(?:y-)?(?:auto|scroll)/.test(readFileSync(path, 'utf8')),
       `${path}: adds no nested scroll container — the stage CLIPS (overflow-hidden), so no scrollable overflow can propagate to the document`,
     );
+  }
+});
+
+// ---------------------------------------------------------------------------
+// 2026-10-03 gap-closure fix (phase-10 VERIFICATION gap R6 / AP-13)
+//
+// The fly-off SIDE and the ring-advance DELTA were the same value at every call
+// site (cycle(1) / cycle(-1) / newFront = frontIndex + direction), so the Next
+// control and a left swipe rotated the ring BACKWARD and landed the departing
+// card at depth 1 (the peek) instead of the back. The contract below separates
+// the two inputs: the ring advance is primary, the exit sign is presentation.
+// ---------------------------------------------------------------------------
+
+test('ringStep: the Next step sends the foreground card to the back (tracer)', () => {
+  assert.deepEqual(ringStep('next'), { ringDelta: 1, exitSign: -1 }, 'Next = ring +1 with a left fly-off');
+
+  const newFront = advanceFront(0, ringStep('next').ringDelta, COUNT);
+  assert.equal(newFront, 1, 'the Next step advances the ring from 0 to 1 (the counter reads 01 -> 02)');
+
+  // Pure half: the departing card 0 must land at the LAST depth level.
+  assert.equal(
+    ringDepth(0, newFront, COUNT),
+    COUNT - 1,
+    'the departing foreground card lands at depth count - 1 (the back of the stack)',
+  );
+
+  // User-visible half: the geometry the visitor actually sees for the departed
+  // card — the depth-5 level, NOT the depth-1 peek.
+  const departed = cardState(0, newFront, COUNT, false);
+  assert.equal(departed.zIndex, 50, 'the departed card carries the LOWEST zIndex (50) — the back of the stack');
+  assert.equal(departed.opacity, 0.30, 'the departed card carries the depth-5 opacity 0.30');
+  assert.equal(departed.translateY, -190, 'the departed card carries the depth-5 offset -190');
+  assert.equal(departed.scale, 0.80, 'the departed card carries the depth-5 scale 0.80');
+  assert.equal(departed.visible, true, 'the departed card is still rendered — it peeks from the back');
+
+  // The RETIRED / UNMET mapping (measured pre-fix, the reason gap R6 exists):
+  // the -1 step landed the departed card at depth 1 — the peek — with z 90 and
+  // opacity 0.95. Asserted here so the RED/GREEN difference is self-documenting.
+  assert.equal(
+    ringDepth(0, 5, COUNT),
+    1,
+    'retired/unmet mapping: frontIndex 5 is the depth-1 peek landing the Next/left path used to produce',
+  );
+  assert.equal(
+    cardState(0, 5, COUNT, false).zIndex,
+    90,
+    'retired/unmet mapping: the peek landing showed zIndex 90, never the back\'s 50',
+  );
+  assert.equal(
+    cardState(0, 5, COUNT, false).opacity,
+    0.95,
+    'retired/unmet mapping: the peek landing showed opacity 0.95, never the back\'s 0.30',
+  );
+});
+
+test('ringStep: the direction map — both swipe sides advance the ring, the fly-off side is presentation only', () => {
+  assert.deepEqual(ringStep('previous'), { ringDelta: -1, exitSign: 1 }, 'Previous = ring -1 with a right fly-off');
+
+  // The identity that IS the fix: the gesture side never rotates the ring.
+  for (const gesture of [-1, 1]) {
+    const step = ringStep('swipe', gesture);
+    assert.equal(
+      step.ringDelta,
+      1,
+      `swipe ${gesture}: the ring ALWAYS advances forward — the gesture side never rotates the ring`,
+    );
+    assert.equal(step.exitSign, gesture, `swipe ${gesture}: the exit sign follows the gesture side`);
+  }
+
+  // Defensive defaults: an absent, zero or non-finite gesture cannot produce a
+  // non-finite exit sign or a reversed ring.
+  for (const gesture of [undefined, 0, NaN]) {
+    const step = ringStep('swipe', gesture);
+    assert.equal(step.ringDelta, 1, `swipe gesture ${String(gesture)}: the ring still advances forward`);
+    assert.ok(
+      step.exitSign === -1 || step.exitSign === 1,
+      `swipe gesture ${String(gesture)}: the exit sign is a finite ±1 (never NaN)`,
+    );
+  }
+
+  // Every advancing path lands the departing foreground card at the back, for
+  // EVERY front index — not just the frontIndex-0 case the tracer pins.
+  for (const step of [ringStep('next'), ringStep('swipe', -1), ringStep('swipe', 1)]) {
+    for (let f = 0; f < COUNT; f++) {
+      assert.equal(
+        ringDepth(f, advanceFront(f, step.ringDelta, COUNT), COUNT),
+        COUNT - 1,
+        `front ${f}: the departing foreground card is at the back on every advancing path`,
+      );
+    }
+  }
+});
+
+test('ringStep: Previous is the exact inverse of Next and promotes the back card', () => {
+  for (let f = 0; f < COUNT; f++) {
+    assert.equal(advanceFront(advanceFront(f, -1, COUNT), 1, COUNT), f, `front ${f}: prev then next is the identity`);
+    assert.equal(advanceFront(advanceFront(f, 1, COUNT), -1, COUNT), f, `front ${f}: next then prev is the identity`);
+
+    const promoted = advanceFront(f, ringStep('previous').ringDelta, COUNT);
+    assert.equal(
+      ringDepth(promoted, f, COUNT),
+      COUNT - 1,
+      `front ${f}: the promoted card WAS the back card (depth ${COUNT - 1}) — directive req 7 "bring the back card forward"`,
+    );
+    assert.equal(ringDepth(promoted, promoted, COUNT), 0, `front ${f}: the promoted card IS the foreground now`);
+  }
+
+  // Round trip over every supported variant: the six real top-6 projects cover
+  // all six curated visuals, and each advancing path restores the arrangement.
+  for (const project of top6) {
+    assert.ok(
+      ALL_VARIANTS.includes(projectVisualVariant(project.name)),
+      `${project.name}: the curated variant is exercised by the round trip`,
+    );
+    for (const step of [ringStep('next'), ringStep('swipe', -1), ringStep('swipe', 1)]) {
+      let front = 0;
+      for (let k = 0; k < COUNT; k++) front = advanceFront(front, step.ringDelta, COUNT);
+      assert.equal(front, 0, `${project.name}: six successive steps return the front index to 0`);
+      assert.deepEqual(
+        top6.map((_, i) => cardState(i, front, COUNT, false)),
+        top6.map((_, i) => cardState(i, 0, COUNT, false)),
+        `${project.name}: after a full cycle the stack arrangement is identical to the initial one`,
+      );
+    }
+  }
+
+  // Totality: neither helper can throw or emit NaN, whatever it is handed.
+  for (const index of [NaN, Infinity, -Infinity, 0, 1, 5]) {
+    for (const front of [NaN, Infinity, -Infinity, 0, 1, 5]) {
+      for (const count of [NaN, Infinity, -Infinity, 0, -1, 1, 6]) {
+        const advanced = advanceFront(index, 1, count);
+        assert.ok(Number.isFinite(advanced), `advanceFront(${index}, 1, ${count}): finite result`);
+        if (!(Number.isFinite(count) && count > 1)) {
+          assert.equal(advanced, 0, `advanceFront(${index}, 1, ${count}): a ring of at most one card pins the front index to 0`);
+        }
+        assert.ok(Number.isFinite(ringDepth(index, front, count)), `ringDepth(${index}, ${front}, ${count}): finite result`);
+      }
+    }
+  }
+  for (const delta of [NaN, Infinity, -Infinity]) {
+    assert.ok(Number.isFinite(advanceFront(0, delta, COUNT)), `advanceFront(0, ${delta}, ${COUNT}): finite result`);
+    assert.ok(Number.isFinite(ringDepth(0, delta, COUNT)), `ringDepth(0, ${delta}, ${COUNT}): finite result`);
   }
 });
