@@ -15,7 +15,7 @@ progress:
 current_phase: 10
 current_phase_name: projects-stack-revision
 current_plan: 8
-last_updated: "2026-10-02T17:57:29.838Z"
+last_updated: "2026-10-02T17:58:14.484Z"
 state_head: null
 last_activity: 2026-10-02
 stopped_at: null
@@ -94,6 +94,7 @@ _No active phase._
 - Phase 12: plan 02 executed — the stale-test renewal in three atomic commits: the four export-reader suites repathed to `out/index.html` (`out/cli.html` for the "other surface" rows) with titles + assertion messages renewed (386a55f, 128/128 on record), the three route-target suites renewed with both checker BLOCKERs closed and the two-way composite expanded from four to **six legs** (7fbe829 — CLI welcome/`explore` command → `/`, header Terminal link/finish card/status-bar chip/404 → `/cli`, both directions in ONE test), then the comment-only route-prose sweep over five `src` files (64c263c). Two traps closed: the silent `.filter(existsSync)` no-op now has an explicit landing-page existence assertion, and E-1 carries the `!existsSync(out/cli/index.html)` trailingSlash tripwire. **MERGE HOLD LIFTED** — `npm run typecheck` + `npm run build` + `node --test tests/*.test.mjs` = 0/0/0 with **289/289 tests across 14 files** on record as the chronologically last action on the code range; the 38 plan-01 failures are all renewed. Accepted debt with pointers: `src/app/globals.css:496`'s stale route prose (UI-SPEC §9 / RESEARCH §9.1-9.2 forbid editing that file — byte-untouched) and the drawer's `~/explore` SheetTitle (the single permitted residue hit). Remote-write hold stands: no push, no PR, no deploy.
 - quick 2026-10-02-single-scrollbar-invariant: Eliminate the 3-scrollbar state on the landing page (/, the explore experience) so exactly ONE scroll container exists: <main>. User-report: 3 scrollbars visible. Root causes identified in source:
 - Phase 12: LEARNINGS.md extracted (decisions: 4, lessons: 8, patterns: 9, surprises: 10)
+- Milestone Explore Visual Landing: AUDIT.md written (status not-ready)
 - Milestone Explore Visual Landing: AUDIT.md written (status not-ready)
 
 ### Blockers / Concerns
