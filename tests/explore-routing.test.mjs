@@ -16,14 +16,14 @@
  *   (b) D-01  — the bracket welcome link line `[ NEW → visual tour: explore ]`,
  *               JetBrains Mono font stack, accent brackets, same-tab <Link>,
  *               UNCONDITIONAL sibling AFTER the tutorial box (OQ-3).
- *   (c) D-02  — `case "explore"` returns the `{ navigate: "/explore" }` sentinel,
+ *   (c) D-02  — `case "explore"` returns the `{ navigate: "/" }` sentinel,
  *               handled in executeCommand before the ReactNode branch:
  *               chrome line → ~600ms delay → router.push (OQ-2 pinned variant).
  *   (d) OQ-1  — HelpOutput.tsx lists explore (the CONTEXT auto-derivation claim
  *               is false — the help lists are hardcoded li elements, RESEARCH §1.4);
  *               AdvancedHelpOutput + MobileCommandPalette untouched (OQ-9).
  *   (e) D-01/D-05 — additive-only: every pre-existing welcome segment intact.
- *   (f) D-05  — zero new dependencies; the /explore → CLI finish-card return leg
+ *   (f) D-05  — zero new dependencies; the landing → /cli finish-card return leg
  *               stays intact (unchanged clause of D-03).
  */
 import { test } from 'node:test';
@@ -71,7 +71,7 @@ test('registry: explore appended as the 39th and last AVAILABLE_COMMANDS entry (
 // (b) Welcome link line — D-01, OQ-3 (unconditional sibling), OQ-4 (font stack)
 // ---------------------------------------------------------------------------
 
-test('welcome link line: exactly one <Link href="/explore"> in the locked bracket format (D-01)', () => {
+test('welcome link line: exactly one <Link href="/"> targeting the landing in the locked bracket format (D-03)', () => {
   const src = welcomeSrc();
   // The "exactly one added link line" proof counts <Link elements — the word
   // "explore" already exists in the pre-existing typing line (line 48).
@@ -81,9 +81,9 @@ test('welcome link line: exactly one <Link href="/explore"> in the locked bracke
     'exactly one <Link element in WelcomeMessage (the added link line)',
   );
   assert.equal(
-    (src.match(/href="\/explore"/g) || []).length,
+    (src.match(/href="\/"/g) || []).length,
     1,
-    'the link targets /explore exactly once',
+    'the link targets / exactly once — the promoted landing (D-03)',
   );
   for (const needle of ['NEW', 'visual tour:', '→', 'text-accent', 'var(--font-jetbrains)']) {
     assert.ok(src.includes(needle), `locked line contains "${needle}"`);
@@ -93,7 +93,7 @@ test('welcome link line: exactly one <Link href="/explore"> in the locked bracke
 
 test('welcome link: unconditional sibling AFTER the tutorial box, before the trailing <br /> (D-01, OQ-3)', () => {
   const src = welcomeSrc();
-  const hrefIdx = src.indexOf('href="/explore"');
+  const hrefIdx = src.indexOf('href="/"');
   const tutorialIdx = src.indexOf('showTutorial &&');
   const brIdx = src.indexOf('<br />');
   assert.ok(tutorialIdx > -1, 'the showTutorial block still exists (untouched)');
@@ -112,7 +112,7 @@ test('welcome link: unconditional sibling AFTER the tutorial box, before the tra
   const openBracket = src.lastIndexOf('[', i);
   const arrow = src.indexOf('→', i);
   const label = src.indexOf('visual tour:', i);
-  const href = src.indexOf('href="/explore"', i);
+  const href = src.indexOf('href="/"', i);
   const closeBracket = src.indexOf(']', href);
   assert.ok(openBracket > -1 && openBracket < i, 'opening "[" precedes NEW');
   assert.ok(arrow > -1 && i < arrow, 'arrow "→" follows NEW');
@@ -133,7 +133,7 @@ test('dispatch: explore case returns the navigate sentinel, routed via useRouter
   );
   assert.ok(src.includes('case "explore":'), 'processCommand has an explore case');
   assert.ok(
-    src.includes('{ navigate: "/explore" }'),
+    src.includes('{ navigate: "/" }'),
     'the case returns the navigate sentinel (house idiom: resume openModal sentinel, RESEARCH §1.2)',
   );
   assert.ok(
@@ -194,7 +194,7 @@ test('additive-only: every pre-existing welcome segment still present (D-01/D-05
 // (f) Guards — zero new deps; return leg intact (D-05, D-03 unchanged clause)
 // ---------------------------------------------------------------------------
 
-test('guards: zero new dependencies; the /explore → CLI return leg stays intact (D-05)', () => {
+test('guards: zero new dependencies; the landing → /cli return leg stays intact (D-03)', () => {
   const pkg = JSON.parse(read('package.json'));
   assert.equal(
     Object.keys(pkg.dependencies).length,
@@ -208,7 +208,7 @@ test('guards: zero new dependencies; the /explore → CLI return leg stays intac
   );
   assert.equal(
     EXPLORE_TOUR_FINISH.linkHref,
-    '/',
-    'the tour finish card still links the CLI at / (unchanged clause of D-03, constants.ts:92)',
+    '/cli',
+    'the tour finish card now links the CLI at /cli (D-03)',
   );
 });

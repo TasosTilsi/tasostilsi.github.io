@@ -5,7 +5,7 @@
  *
  * Implements the Type-P (programmatic/static) sweep rows not owned by the
  * plan-01/02 suites, plus — appended in Task 2 — the Type-E export-level rows
- * and the two-way routing loop composite.
+ * and the six-leg two-way routing composite.
  *
  * Every test comments its sweep row id from
  * .planning/phases/EXPLORE-05-explore-routing/EXPLORE-05-explore-routing-SWEEP.md
@@ -15,7 +15,7 @@
  *
  * Disposition rule (RESEARCH OQ-5): a P row failing on a phase surface
  * (WelcomeMessage.tsx / explore-header.tsx / explore-shell.tsx /
- * (main)/layout.tsx) is a `fixed` defect — red-first fix; a P row failing on
+ * cli/layout.tsx) is a `fixed` defect — red-first fix; a P row failing on
  * panels/visualizations/wizard or other non-phase surfaces is `deferred`.
  */
 import { test } from 'node:test';
@@ -29,7 +29,7 @@ const read = (p) => readFileSync(join(root, p), 'utf8');
 
 // Read-only import from the explore constants module — house precedent
 // (tests/explore-header.test.mjs:27, tests/explore-routing.test.mjs:38)
-import { EXPLORE_TOUR_FINISH } from '../src/components/explore/constants.ts';
+import { EXPLORE_STATUS_CLI_LINK, EXPLORE_TOUR_FINISH } from '../src/components/explore/constants.ts';
 // The phase-9 ONE derivation site — the E-6 expectation derives entry 1 from
 // the real JSON THROUGH the pure module (zero copied literals).
 import { selectTimelineEntries } from '../src/components/explore/timeline-geometry.ts';
@@ -147,15 +147,15 @@ test('sweep rows EXPLORE@375-1920 (P): .explore-shell overflow-x-hidden — zero
   assert.ok(!/overflow-x-auto/.test(src), 'no horizontal scroll container anywhere in the shell');
 });
 
-test('sweep rows CLI@375/768/1440/1920 (P): (main) layout overflow invariants + pre-wrapped output', () => {
-  const layout = read('src/app/(main)/layout.tsx');
+test('sweep rows CLI@375/768/1440/1920 (P): cli layout overflow invariants + pre-wrapped output', () => {
+  const layout = read('src/app/cli/layout.tsx');
   assert.ok(
     layout.includes('overflow-hidden'),
-    'wrapper overflow-hidden ((main)/layout.tsx:16) — the CLI frame never overflows its own box',
+    'wrapper overflow-hidden (cli/layout.tsx:16) — the CLI frame never overflows its own box',
   );
   assert.ok(
     layout.includes('overflow-auto'),
-    'main overflow-auto ((main)/layout.tsx:19) — scrolling lives inside main, vertical-capable',
+    'main overflow-auto (cli/layout.tsx:19) — scrolling lives inside main, vertical-capable',
   );
   const ti = read('src/components/cli/TerminalInterface.tsx');
   assert.ok(
@@ -171,7 +171,7 @@ test('sweep row CLI@375 (P): welcome link line fit arithmetic — 30 chars ≤ 4
   const end = src.indexOf('<br />', start);
   assert.ok(start > -1 && end > start, 'link-line block located between its comment and <br />');
   const block = src.slice(start, end);
-  assert.ok(block.includes('<Link href="/explore"'), 'the token `explore` is the clickable link (D-01)');
+  assert.ok(block.includes('<Link href="/"'), 'the token `explore` is the clickable link, now targeting the landing / (D-03)');
   // rendered text = the JSX text nodes: the block starts INSIDE the JSX comment
   // (the anchor is its text), so strip through the comment's closing */, then the
   // style object, then the tags
@@ -236,26 +236,43 @@ test('sweep rows CLI@375 vs CLI≥768 (P): mobile banner at 375, ASCII banner fr
 // (dependency-count pin).
 // ---------------------------------------------------------------------------
 
-test('sweep E-1 (E): all three routes still export statically', () => {
-  for (const route of ['out/index.html', 'out/explore.html', 'out/resume.html']) {
+test('sweep E-1 (E): the three live routes export statically, the deleted route does not (D-04)', () => {
+  for (const route of ['out/index.html', 'out/cli.html', 'out/resume.html']) {
     assert.ok(existsSync(join(root, route)), `${route} missing — run \`npm run build\` first`);
   }
+  // D-04 route-existence renewal: /explore is deleted outright — a static host
+  // has no redirect machinery, so GitHub Pages answers the dead path with 404.html.
+  assert.ok(
+    !existsSync(join(root, 'out/explore.html')),
+    'out/explore.html absent — the /explore route is deleted (D-01)',
+  );
+  assert.ok(
+    !existsSync(join(root, 'out/explore.txt')),
+    'out/explore.txt absent — the /explore RSC payload is deleted (D-01)',
+  );
+  // R-8 trailingSlash tripwire: next.config.ts leaves trailingSlash unset, so /cli
+  // emits out/cli.html (the /resume precedent). If anyone ever flips it, href="/cli"
+  // would silently 404 on GitHub Pages — this row fails loudly instead.
+  assert.ok(
+    !existsSync(join(root, 'out/cli/index.html')),
+    'out/cli/index.html absent — trailingSlash is unset, so /cli emits cli.html (R-8)',
+  );
 });
 
-test('sweep E-2 (E): header Terminal link SSRs into out/explore.html — /explore → CLI leg at L3', () => {
-  const html = read('out/explore.html');
+test('sweep E-2 (E): header Terminal link SSRs into out/index.html — the landing → /cli leg at L3', () => {
+  const html = read('out/index.html');
   assert.ok(
     html.includes('aria-label="Open the terminal"'),
     'Terminal-link aria-label present in the exported HTML (explore-header.tsx SSRs)',
   );
-  assert.ok(html.includes('href="/"'), 'the link target / present in the exported HTML');
+  assert.ok(html.includes('href="/cli"'), 'the link target /cli present in the exported HTML');
 });
 
 test('sweep E-3 (E): CLI welcome is client-only — documents why the welcome link + command stay L2-only', () => {
-  const html = read('out/index.html');
+  const html = read('out/cli.html');
   assert.ok(
     !html.includes('System initialized'),
-    'no SSR\'d CLI welcome content in out/index.html (RESEARCH §1.7 — TerminalInterface mounts ssr:false)',
+    'no SSR\'d CLI welcome content in out/cli.html (RESEARCH §1.7 — TerminalInterface mounts ssr:false)',
   );
 });
 
@@ -273,26 +290,52 @@ test('sweep E-4 (E): recharts removed — package.json dependencies length stays
   );
 });
 
-test('sweep E-5: two-way routing loop composite — all four legs in one assertion set', () => {
-  // leg 1: CLI welcome link → /explore (plan 01, D-01)
-  assert.ok(
-    read('src/components/cli/outputs/WelcomeMessage.tsx').includes('href="/explore"'),
-    'leg 1: welcome bracket link href="/explore"',
-  );
-  // leg 2: explore command → Next router, same tab (plan 01, D-02)
+test('sweep E-5: two-way routing loop composite — all six legs in one assertion set', () => {
+  // The two directions of the loop — CLI → landing → CLI — are asserted in this
+  // ONE test so no half-rewire can pass: a change that repoints one direction
+  // without the other cannot leave this row green.
+  //
+  // leg 1: CLI welcome link → the landing `/` (D-03)
+  const welcome = read('src/components/cli/outputs/WelcomeMessage.tsx');
+  assert.ok(welcome.includes('href="/"'), 'leg 1: welcome bracket link href="/"');
+  assert.ok(!welcome.includes('target='), 'leg 1 guard: same tab, no target attribute');
+  // leg 2: the `explore` command → Next router, same tab (D-03)
   const ti = read('src/components/cli/TerminalInterface.tsx');
   assert.ok(
-    ti.includes('{ navigate: "/explore" }') && ti.includes('router.push(result.navigate)'),
+    ti.includes('{ navigate: "/" }') && ti.includes('router.push(result.navigate)'),
     'leg 2: explore-command sentinel + router.push(result.navigate)',
   );
   assert.ok(!ti.includes('window.location'), 'leg 2 guard: no window.location in TerminalInterface');
-  // leg 3: header Terminal link → / (plan 02, D-03)
+  // leg 3: header Terminal link → /cli (D-03)
   assert.ok(
-    read('src/components/explore/explore-header.tsx').includes('href="/"'),
-    'leg 3: header Terminal link href="/"',
+    read('src/components/explore/explore-header.tsx').includes('href="/cli"'),
+    'leg 3: header Terminal link href="/cli"',
   );
-  // leg 4: tour finish card → / (phase 4, EXPLORE_TOUR_FINISH, constants.ts:89-94)
-  assert.equal(EXPLORE_TOUR_FINISH.linkHref, '/', 'leg 4: finish-card linkHref === "/"');
+  // leg 4: tour finish card → /cli (D-03; EXPLORE_TOUR_FINISH, constants.ts)
+  assert.equal(EXPLORE_TOUR_FINISH.linkHref, '/cli', 'leg 4: finish-card linkHref === "/cli"');
+  // leg 5: the status-bar `cli` chrome chip → /cli in a NEW tab (D-03). The `rel`
+  // pair is the phase's one security-relevant token — omitting it is reverse
+  // tabnabbing, so BOTH halves are asserted at source level AND in the export.
+  const statusBar = read('src/components/explore/explore-status-bar.tsx');
+  assert.ok(statusBar.includes('target="_blank"'), 'leg 5: chip opens a new tab');
+  assert.ok(
+    /rel="[^"]*noopener[^"]*"/.test(statusBar) && /rel="[^"]*noreferrer[^"]*"/.test(statusBar),
+    'leg 5: chip rel carries BOTH noopener and noreferrer (reverse-tabnabbing guard)',
+  );
+  assert.equal(EXPLORE_STATUS_CLI_LINK.href, '/cli', 'leg 5: chip href === "/cli"');
+  const landingHtml = read('out/index.html');
+  assert.ok(landingHtml.includes('target="_blank"'), 'leg 5 (export): the new-tab attribute is SSR-visible');
+  assert.ok(
+    landingHtml.includes('rel="noopener noreferrer"'),
+    'leg 5 (export): the rel pair is SSR-visible in the landing artifact',
+  );
+  // leg 6: the 404 page's "Return to Terminal" → /cli (the declared 6th link site;
+  // output:'export' emits out/404.html, which GitHub Pages serves for the deleted
+  // /explore — leaving this at "/" would promise the terminal and deliver the landing).
+  assert.ok(
+    read('src/app/not-found.tsx').includes('href="/cli"'),
+    'leg 6: not-found.tsx "Return to Terminal" targets /cli',
+  );
 });
 
 // ---------------------------------------------------------------------------
@@ -313,17 +356,17 @@ const portfolio = JSON.parse(read('src/data/portfolio-main-data.json'));
 // React inserts <!-- --> between adjacent text nodes, so a rendered
 // "01 / 05" counter only matches after the separators are stripped.
 const exportText = () =>
-  read('out/explore.html')
+  read('out/index.html')
     .replace(/&amp;/g, '&')
     .replace(/&#39;/g, "'")
     .replace(/&quot;/g, '"')
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>')
     .replace(/<!-- -->/g, '');
-const exportRaw = () => read('out/explore.html');
+const exportRaw = () => read('out/index.html');
 
-test('sweep E-6 (E, phase EXPLORE-09): entry 1 (first selectTimelineEntries result — Chubb role, present-first) renders real text in out/explore.html — data-derived (D-03/§9 + user directive)', () => {
-  assert.ok(existsSync(join(root, 'out/explore.html')), 'out/explore.html missing — run `npm run build` first');
+test('sweep E-6 (E, phase EXPLORE-09): entry 1 (first selectTimelineEntries result — Chubb role, present-first) renders real text in out/index.html — data-derived (D-03/§9 + user directive)', () => {
+  assert.ok(existsSync(join(root, 'out/index.html')), 'out/index.html missing — run `npm run build` first');
   const html = exportText();
   // The FIRST merged entry (year-DESCENDING — 2023, the Chubb role) is the
   // SSR-visible layer the export must carry (D-03 → D-07 static-text
@@ -349,7 +392,7 @@ test('sweep E-6 (E, phase EXPLORE-09): entry 1 (first selectTimelineEntries resu
 });
 
 test('sweep E-7 (E, phase EXPLORE-09): layers 2-5 SSR visibility:hidden — layer 1 visible (§9)', () => {
-  assert.ok(existsSync(join(root, 'out/explore.html')), 'out/explore.html missing — run `npm run build` first');
+  assert.ok(existsSync(join(root, 'out/index.html')), 'out/index.html missing — run `npm run build` first');
   const hidden = (exportRaw().match(/visibility:hidden/g) || []).length;
   assert.ok(
     hidden >= 4,
@@ -358,7 +401,7 @@ test('sweep E-7 (E, phase EXPLORE-09): layers 2-5 SSR visibility:hidden — laye
 });
 
 test('sweep E-8 (E, phase EXPLORE-09): stage anatomy markers — group, controls, counter, arc path (§9/§4)', () => {
-  assert.ok(existsSync(join(root, 'out/explore.html')), 'out/explore.html missing — run `npm run build` first');
+  assert.ok(existsSync(join(root, 'out/index.html')), 'out/index.html missing — run `npm run build` first');
   const html = exportText();
   assert.ok(html.includes('aria-label="Career timeline"'), 'the role="group" aria-label="Career timeline" renders (§10 landmark)');
   assert.ok(html.includes('Previous role'), 'the Prev control aria-label renders (§4 — the accessible non-scroll alternative)');
@@ -371,7 +414,7 @@ test('sweep E-8 (E, phase EXPLORE-09): stage anatomy markers — group, controls
 });
 
 test('sweep E-9 (E, phase EXPLORE-09): pre-JS markers render at inline opacity 0 — 5 dots + 5 labels unpositioned (§9)', () => {
-  assert.ok(existsSync(join(root, 'out/explore.html')), 'out/explore.html missing — run `npm run build` first');
+  assert.ok(existsSync(join(root, 'out/index.html')), 'out/index.html missing — run `npm run build` first');
   const html = exportRaw();
   const opaque = (html.match(/opacity:0/g) || []).length;
   assert.ok(

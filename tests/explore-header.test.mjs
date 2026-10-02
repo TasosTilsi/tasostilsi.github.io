@@ -15,8 +15,8 @@
  * must NOT change.
  *
  * Scope: source invariants over src/components/explore/explore-header.tsx
- * plus the finish-card constant. Export-level (out/explore.html) checks for
- * this link belong to plan 03, which owns the wave's single build point.
+ * plus the finish-card constant. Export-level checks for this link belong to
+ * the export-owning suites, which read the landing artifact after `npm run build`.
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -47,7 +47,7 @@ test('header file exists before the contract runs', () => {
   assert.ok(existsSync(join(root, headerPath)), 'explore-header.tsx missing');
 });
 
-test('D-03 Terminal link: aria-label, lucide Terminal, Next Link to / — same tab', () => {
+test('D-03 Terminal link: aria-label, lucide Terminal, Next Link to /cli — same tab', () => {
   const src = headerSrc();
   assert.ok(
     src.includes('aria-label="Open the terminal"'),
@@ -58,8 +58,8 @@ test('D-03 Terminal link: aria-label, lucide Terminal, Next Link to / — same t
     'Terminal icon imported from lucide-react (D-03)',
   );
   assert.ok(
-    /<Link\b[^>]*?href="\/"/.test(src),
-    'a Next <Link href="/"> routes back to the CLI (D-03)',
+    /<Link\b[^>]*?href="\/cli"/.test(src),
+    'a Next <Link href="/cli"> routes back to the CLI terminal (D-03)',
   );
   assert.ok(
     !stripComments(src).includes('target='),
@@ -189,11 +189,11 @@ test('pre-existing controls intact: Tour trigger id, drawer + theme labels (D-05
   );
 });
 
-test('finish-card regression guard: EXPLORE_TOUR_FINISH.linkHref stays "/" (D-03 unchanged clause)', () => {
+test('finish-card regression guard: EXPLORE_TOUR_FINISH.linkHref follows the CLI to "/cli" (D-03)', () => {
   assert.equal(
     EXPLORE_TOUR_FINISH.linkHref,
-    '/',
-    'the wizard finish card still links the CLI at / (src/components/explore/constants.ts:92)',
+    '/cli',
+    'the wizard finish card now links the CLI at /cli (src/components/explore/constants.ts)',
   );
   assert.equal(
     EXPLORE_TOUR_FINISH.linkLabel,
