@@ -2,9 +2,9 @@
 gsd_state_version: 1
 milestone: v1.0
 milestone_name: "Explore Visual Landing"
-status: spec
+status: plan
 active_phase: 12
-next_action: discuss-phase
+next_action: plan-phase
 next_phases: [12]
 progress:
   total_phases: 5
@@ -15,7 +15,7 @@ progress:
 current_phase: 12
 current_phase_name: route-swap-promotion
 current_plan: 6
-last_updated: "2026-10-02T16:23:35.121Z"
+last_updated: "2026-10-02T16:23:58.849Z"
 state_head: null
 last_activity: 2026-10-02
 stopped_at: null
@@ -88,6 +88,7 @@ _No active phase._
 - quick 2026-10-02-credentials-bar-navigation: Rework the Credentials panel's tab list (in src/components/explore/sections/credentials-section.tsx) from the shadcn muted-pill TabsList into a floating-capsule bar navigation, per the user's brief (icon-above-label bottom-nav pattern adapted inside the panel). KEEP the Radix Tabs primitives (Tabs/TabsTrigger/TabsContent) — only className/content styling changes, so the keyboard pattern (arrow keys), aria-selected, and tab semantics are preserved free.
 - quick 2026-10-02-stack-center-and-overflow: Fix two user-reported defects on the Projects swipe stack (http://localhost:3000/explore, static export; files: src/components/explore/sections/projects-stack-stage.tsx, src/components/explore/sections/projects-mobile-stack.tsx, src/components/explore/explore-panels.tsx, stale tests as needed):
 - Phase 12: SPEC.md sealed (ambiguity 0.133)
+- Phase 12: CONTEXT.md sealed — 4 decisions
 
 ### Blockers / Concerns
 - Shipping decision (user, 2026-09-21): ship the milestone AS A WHOLE at milestone close — no per-phase PRs. phase-1 and phase-2 branches pushed to origin (backup only); gsd_ship deferred for both phases. phase-2 branch contains phase-1 commits (stacked).
