@@ -53,17 +53,22 @@ import {
 } from 'framer-motion';
 import { ArrowUpRight, ChevronDown, ChevronUp } from 'lucide-react';
 import {
+  advanceFront,
   cardState,
   firstSentence,
   projectTechnologies,
   projectYear,
   projectVisualVariant,
+  ringDepth,
+  ringStep,
   swipeAccepts,
+  type RingStep,
 } from '../projects-card-state';
 import type { PortfolioData } from '@/data/portfolio-main-data';
 
 type ProjectEntry = PortfolioData['projects'][number];
 type SwipeMode = 'full' | 'compact';
+/** The fly-off SIDE only — the ring advance is `RingStep.ringDelta` (gap R6). */
 type SwipeDirection = -1 | 1;
 
 /** Card shell classes reused by SSR and motion stacks. */
@@ -450,8 +455,8 @@ interface SwipeCardProps {
   frontIndex: number;
   mode: SwipeMode;
   reducedMotion: boolean;
-  pendingSwipe: SwipeDirection | null;
-  onSwipe: (direction: SwipeDirection) => void;
+  pendingStep: RingStep | null;
+  onSwipe: (ringDelta: -1 | 1) => void;
 }
 
 /** A single swipeable stack card. */
@@ -462,7 +467,7 @@ function SwipeCard({
   frontIndex,
   mode,
   reducedMotion,
-  pendingSwipe,
+  pendingStep,
   onSwipe,
 }: SwipeCardProps) {
   const controls = useAnimationControls();
@@ -471,10 +476,7 @@ function SwipeCard({
   const [isExiting, setIsExiting] = useState(false);
   const hasMounted = useRef(false);
 
-  const depth = useMemo(
-    () => ((index - frontIndex) % count + count) % count,
-    [index, frontIndex, count],
-  );
+  const depth = useMemo(() => ringDepth(index, frontIndex, count), [index, frontIndex, count]);
   const compactHidden = mode === 'compact' && depth > 1;
   const state = useMemo(
     () => cardState(index, frontIndex, count, reducedMotion),
@@ -493,18 +495,17 @@ function SwipeCard({
     [],
   );
 
-  const performExit = async (direction: SwipeDirection) => {
+  const performExit = async (exitSign: SwipeDirection, ringDelta: -1 | 1) => {
     setIsExiting(true);
     await controls.start({
-      x: direction * EXIT_X,
-      rotate: direction * EXIT_ROTATION,
+      x: exitSign * EXIT_X,
+      rotate: exitSign * EXIT_ROTATION,
       opacity: 0,
       transition: { duration: 0.22, ease: 'easeOut' },
     });
-    const newFront = (frontIndex + direction + count) % count;
+    const newFront = advanceFront(frontIndex, ringDelta, count);
     const nextState = cardState(index, newFront, count, reducedMotion);
-    const nextHidden =
-      mode === 'compact' && ((index - newFront + count) % count) > 1;
+    const nextHidden = mode === 'compact' && ringDepth(index, newFront, count) > 1;
     controls.set({
       x: nextState.translateX,
       y: nextState.translateY,
@@ -513,7 +514,7 @@ function SwipeCard({
       opacity: nextHidden ? 0 : nextState.opacity,
     });
     setIsExiting(false);
-    onSwipe(direction);
+    onSwipe(ringDelta);
   };
 
   useEffect(() => {
@@ -535,16 +536,19 @@ function SwipeCard({
   }, [frontIndex, reducedMotion, mode, count, isExiting, isDragging, isFront, controls, index, depth]);
 
   useEffect(() => {
-    if (pendingSwipe === null || !isFront || reducedMotion || isExiting) return;
-    performExit(pendingSwipe);
+    if (pendingStep === null || !isFront || reducedMotion || isExiting) return;
+    performExit(pendingStep.exitSign, pendingStep.ringDelta);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pendingSwipe, isFront, reducedMotion, isExiting]);
+  }, [pendingStep, isFront, reducedMotion, isExiting]);
 
   const handleDragEnd = (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
     setIsDragging(false);
     const accepted = swipeAccepts(info.offset.x, info.velocity.x);
     if (accepted !== 0) {
-      performExit(accepted);
+      // The gesture side supplies ONLY the exit sign; the ring advance comes
+      // from the pure mapping, so both swipe directions loop to the back.
+      const step = ringStep('swipe', accepted);
+      performExit(step.exitSign, step.ringDelta);
       return;
     }
     const target = cardState(index, frontIndex, count, reducedMotion);
@@ -608,7 +612,7 @@ export function ProjectsSwipeStack({ projects, mode }: ProjectsSwipeStackProps) 
   // RM contract immediately after mount.
   const reducedMotion = mounted ? prefersReduced : false;
   const [frontIndex, setFrontIndex] = useState(0);
-  const [pendingSwipe, setPendingSwipe] = useState<SwipeDirection | null>(null);
+  const [pendingStep, setPendingStep] = useState<RingStep | null>(null);
   const [announcement, setAnnouncement] = useState('');
   const lastAnnouncementRef = useRef(0);
 
@@ -629,18 +633,18 @@ export function ProjectsSwipeStack({ projects, mode }: ProjectsSwipeStackProps) 
     setMounted(true);
   }, []);
 
-  const handleSwipe = (direction: SwipeDirection) => {
-    setFrontIndex((i) => (i + direction + count) % count);
-    setPendingSwipe(null);
+  const handleSwipe = (ringDelta: -1 | 1) => {
+    setFrontIndex((i) => advanceFront(i, ringDelta, count));
+    setPendingStep(null);
   };
 
-  const cycle = (direction: SwipeDirection) => {
+  const cycle = (step: RingStep) => {
     if (reducedMotion) {
-      handleSwipe(direction);
+      handleSwipe(step.ringDelta);
       return;
     }
-    if (pendingSwipe !== null) return;
-    setPendingSwipe(direction);
+    if (pendingStep !== null) return;
+    setPendingStep(step);
   };
 
   const goTo = (target: number) => {
@@ -650,10 +654,10 @@ export function ProjectsSwipeStack({ projects, mode }: ProjectsSwipeStackProps) 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     let handled = false;
     if (event.key === 'ArrowUp' || event.key === 'ArrowLeft') {
-      cycle(1); // Previous: right-fly-off, back card forward.
+      cycle(ringStep('previous')); // Previous: right-fly-off (exit +1), ring delta -1: brings the back card forward.
       handled = true;
     } else if (event.key === 'ArrowDown' || event.key === 'ArrowRight') {
-      cycle(-1); // Next: left-fly-off, front card to back.
+      cycle(ringStep('next')); // Next: left-fly-off (exit -1), ring delta +1: sends the front card to the back.
       handled = true;
     } else if (event.key === 'Home') {
       goTo(0);
@@ -710,7 +714,7 @@ export function ProjectsSwipeStack({ projects, mode }: ProjectsSwipeStackProps) 
             frontIndex={frontIndex}
             mode={mode}
             reducedMotion={reducedMotion}
-            pendingSwipe={pendingSwipe}
+            pendingStep={pendingStep}
             onSwipe={handleSwipe}
           />
         ))}
@@ -720,7 +724,7 @@ export function ProjectsSwipeStack({ projects, mode }: ProjectsSwipeStackProps) 
           <button
             type="button"
             aria-label="Previous project"
-            onClick={() => cycle(1)}
+            onClick={() => cycle(ringStep('previous'))}
             className={`inline-flex h-[44px] min-w-[44px] items-center justify-center text-muted-foreground transition-colors ${GHOST_INTERACTION}`}
           >
             <ChevronUp aria-hidden="true" className="h-4 w-4" />
@@ -731,7 +735,7 @@ export function ProjectsSwipeStack({ projects, mode }: ProjectsSwipeStackProps) 
           <button
             type="button"
             aria-label="Next project"
-            onClick={() => cycle(-1)}
+            onClick={() => cycle(ringStep('next'))}
             className={`inline-flex h-[44px] min-w-[44px] items-center justify-center text-accent transition-colors ${GHOST_INTERACTION}`}
           >
             <ChevronDown aria-hidden="true" className="h-4 w-4" />

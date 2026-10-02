@@ -255,6 +255,73 @@ export function swipeAccepts(offsetX: number, velocityX: number): -1 | 0 | 1 {
   return 0;
 }
 
+/** Which step source fed the ring: the drag gesture or one of the two controls. */
+export type RingSource = 'swipe' | 'next' | 'previous';
+
+/**
+ * RingStep — one step of the ring, as TWO independent inputs:
+ *
+ *   - `ringDelta` — the ring ADVANCE. It is authoritative on which card comes
+ *     forward and it is +1 for `next` and for an accepted swipe on EITHER side.
+ *   - `exitSign` — the fly-off SIDE only. Pure presentation: which way the
+ *     departing card leaves the screen.
+ *
+ * Keeping them separate is the contract, not a style choice. The retired
+ * coupling — one sign governing both the exit animation and the ring rotation
+ * (`cycle(1)` / `cycle(-1)` / `newFront = frontIndex + direction`) — inverted
+ * the rotation for `next` and for a left swipe, so the departing card landed at
+ * depth 1 (the peek) instead of the back and the Next control decremented the
+ * counter. That is phase-10 VERIFICATION gap R6 / AP-13.
+ */
+export interface RingStep {
+  ringDelta: -1 | 1;
+  exitSign: -1 | 1;
+}
+
+/**
+ * ringStep — the pinned mapping from a step source to its ring delta and exit
+ * sign, and the module's ONE mapping site:
+ *
+ *   next     -> { ringDelta:  1, exitSign: -1 }  advance the ring, fly off LEFT
+ *   previous -> { ringDelta: -1, exitSign:  1 }  step the ring back, fly off RIGHT
+ *   swipe    -> { ringDelta:  1, exitSign: gesture }
+ *
+ * The swipe arm NEVER branches on the gesture for the advance: both sides send
+ * the foreground card to the back and differ only in the exit sign. An absent,
+ * zero or non-finite gesture defaults the exit sign to +1, so the result is
+ * always a finite ±1 and the ring never reverses.
+ */
+export function ringStep(source: RingSource, gesture?: -1 | 0 | 1): RingStep {
+  if (source === 'previous') return { ringDelta: -1, exitSign: 1 };
+  if (source === 'next') return { ringDelta: 1, exitSign: -1 };
+  return { ringDelta: 1, exitSign: gesture === -1 ? -1 : 1 };
+}
+
+/**
+ * advanceFront — the ring's ONE index-advance site: the foreground index
+ * `ringDelta` steps around a ring of `count` cards and is normalised into
+ * [0, count). Non-finite `frontIndex`/`ringDelta` pin the result to 0; a
+ * non-finite or <= 0 `count` is treated as a one-card ring, whose only index is
+ * 0. Never throws, never emits NaN, always returns a finite integer.
+ */
+export function advanceFront(frontIndex: number, ringDelta: number, count: number): number {
+  const safeCount = Number.isFinite(count) && count > 0 ? count : 1;
+  if (!Number.isFinite(frontIndex) || !Number.isFinite(ringDelta)) return 0;
+  return (((Math.trunc(frontIndex) + Math.trunc(ringDelta)) % safeCount) + safeCount) % safeCount;
+}
+
+/**
+ * ringDepth — the ring's ONE cyclic-depth site: how many levels card
+ * `cardIndex` sits BEHIND the foreground index (0 = foreground, `count - 1` =
+ * the back of the stack). Same guards as advanceFront: non-finite inputs yield
+ * 0 and the result is always a finite integer in [0, count).
+ */
+export function ringDepth(cardIndex: number, frontIndex: number, count: number): number {
+  const safeCount = Number.isFinite(count) && count > 0 ? count : 1;
+  if (!Number.isFinite(cardIndex) || !Number.isFinite(frontIndex)) return 0;
+  return (((Math.trunc(cardIndex) - Math.trunc(frontIndex)) % safeCount) + safeCount) % safeCount;
+}
+
 /**
  * cardState — the §3 motion contract for card `cardIndex` when the ring-buffer
  * foreground is `frontIndex` across `count` cards.
