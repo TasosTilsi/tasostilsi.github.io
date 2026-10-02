@@ -75,7 +75,7 @@ AFTER
 | Accessible name | `cli — open the terminal in a new tab` (see §5.1 for why this is not the brief's literal string) |
 | Visible label | exactly `cli` — lowercase, 3 characters, no colon, no trailing glyph. Width-budget-driven: a leading terminal glyph costs ~16px that the 375px row does not have (§2.4). |
 | Icon | `ArrowUpRight` (lucide), `h-3 w-3` (12px px literal, immune to the ≤640px 14px root shrink), `aria-hidden="true"`, `text-muted-foreground`, always visible at rest (it *is* the new-tab affordance — unlike the credentials rows' hover-only arrow). |
-| Box | `inline-flex items-center gap-1 self-stretch rounded-md px-2` — `self-stretch` fills the footer's `h-7`/`sm:h-8` line so the hit box is the full bar height without any new height literal. |
+| Box | `inline-flex h-7 sm:h-8 items-center gap-1 rounded-md px-2` — **B-1 resolution, option (a): the chip anchor carries an explicit `h-7 sm:h-8` height — immune to the right-cluster's content-box height (the cluster is `items-center`, NOT stretch; the footer stays byte-identical); the pinned 50×28/54×32 hit boxes and §5.4's WCAG position hold as written.** |
 | Type | Inherits the footer's `text-[10px] sm:text-xs` — no per-chip size class (single-sourced type scale). |
 | Colour at rest | label `text-accent`, arrow `text-muted-foreground`. The breadcrumb's two-tone split, reused: identity in accent, chrome in muted. |
 | Position | Rightmost element of the row, in the right cluster, after the counter — per the taste review recorded in CONTEXT D-03. |
@@ -121,8 +121,8 @@ Base (<640px) is JetBrains Mono at `text-[10px]`; JetBrains Mono advances 0.6em 
 | State | Visual | Behaviour |
 |---|---|---|
 | **Default** | Label `text-accent`, arrow `text-muted-foreground`, transparent background, `rounded-md`. | Opens `/cli` in a **new tab**. |
-| **Hover** | `hover:bg-muted` (full strength, matching the shared ghost recipe), label stays accent, arrow nudges 2px right via the existing `.exp-nudge` hook. | Pointer cursor (anchor default). |
-| **Active (press)** | `active:bg-muted/80` — the same press feedback as the four header controls. Arrow settles. | — |
+| **Hover** | NO background pill (W-2 resolution — this was the phase's one uncomputed contrast claim; the hover stays colour/opacity-only: label stays accent, arrow nudges 2px right via the existing `.exp-nudge` hook). | Pointer cursor (anchor default). |
+| **Active (press)** | `active:opacity-80` — press feedback without a background (consistent with the W-2 hover resolution); arrow settles. | — |
 | **Focus visible** | `focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring` — **inset**, see §4.3. Same 2px arrow nudge as hover (`.exp-nudge` fires on `a:focus-visible`). | Enter activates. |
 | **Disabled** | Not used — the new-tab escape hatch is always available. | N/A |
 | **Loading** | Not used — static export, no async. | N/A |
@@ -274,7 +274,7 @@ No duplicate-canonical handling (the old route is deleted, not redirected).
 - **(RESOLVED-RING-INSET)** The chip uses `ring-inset` for focus visibility because a 28px bar cannot contain an offset ring. Every other control keeps the offset-2 recipe.
 - **(RESOLVED-NAME)** Accessible name is `cli — open the terminal in a new tab` (visible label included) rather than the brief's literal `Open the terminal in a new tab`, for WCAG 2.5.3.
 - **(RESOLVED-WIDTH)** The leading terminal glyph is dropped from the chip; label + trailing arrow only, because the 375px row budget leaves 13px of light-theme slack and a leading glyph would consume ~16px.
-- **(UNRESOLVED)** Arrow glyph final choice: `ArrowUpRight` pinned as the default (matches the credentials-row vocabulary); taste review may swap it for `ExternalLink` (same 12px box, same `exp-nudge`, same slot).
-- **(UNRESOLVED)** Hover tint strength: `bg-muted` pinned as the default (shared ghost recipe); `bg-muted/60` is the softer alternative if the full tint reads heavy inside a 28px bar. Must be verified in both themes at both bar sizes.
-- **(UNRESOLVED)** Whether the landing route group is named `(home)` or the explore layout is otherwise scoped — a mechanical choice, but the *outcome the planner must preserve* is a one-route blast radius for the before-paint theme script (§4.4) and no inheritance of the CLI's `h-screen overflow-hidden` wrapper.
-- **(UNRESOLVED)** Whether a status-bar width row is added to the sweep suite as an estimated-px assertion (house precedent: `estPx <= 359`) or as pure structural guards; recommend the structural guards plus the truncation-floor numbers from §2.4 recorded in a comment, so a font-metric change cannot make the suite brittle.
+- **(RESOLVED-ARROW — W-1)** Arrow glyph: `ArrowUpRight` — **FINAL for this phase** (no taste-review swap; the reviewer's alternative is a follow-up, not an executor choice).
+- **(RESOLVED-HOVER — W-1 + W-2)** Hover: colour/opacity-only — **FINAL for this phase** (the uncomputed tint pair dropped; no pill at hover or press; the reviewer's tint variants die with the pair).
+- **(PLANNER-CHOICE)** The landing route group name — the planner's mechanical choice; the outcome to preserve is a one-route blast radius for the before-paint theme script (§4.4) and no inheritance of the CLI's `h-screen overflow-hidden` wrapper.
+- **(RESOLVED-WIDTH-TEST — W-1)** The sweep covers the status bar with **structural guards** (the truncation-floor numbers from §2.4 recorded as a comment) — no estimated-px assertion, so a font-metric change cannot make the suite brittle.
