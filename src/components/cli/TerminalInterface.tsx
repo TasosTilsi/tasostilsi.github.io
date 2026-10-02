@@ -295,7 +295,7 @@ export const TerminalInterface = () => {
           </div>
         );
       case "explore":
-        return { navigate: "/explore" };
+        return { navigate: "/" };
       case "":
         return null;
       default:

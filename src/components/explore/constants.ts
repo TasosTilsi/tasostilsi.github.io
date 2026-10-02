@@ -39,11 +39,13 @@ export type ExploreTheme = (typeof EXPLORE_THEME_VALUES)[number];
 
 /**
  * D-03 / UI-SPEC §7: locked status-bar breadcrumb strings.
- * Rendered contiguously as `guest@tasostilsi` (accent) + `:~/explore`
- * (muted-foreground) — colors only, no separator spans.
+ * Rendered contiguously as `guest@tasostilsi` (accent) + `:~`
+ * (muted-foreground) — colors only, no separator spans. The `:~` prompt is
+ * the user's breadcrumb option 2 (phase-12 D-03): the shell is now the site
+ * root, so the prompt ends at the home directory.
  */
 export const EXPLORE_STATUS_USER = "guest@tasostilsi";
-export const EXPLORE_STATUS_PATH = ":~/explore";
+export const EXPLORE_STATUS_PATH = ":~";
 
 /**
  * D-05: tour trigger flag — 'seen' written on any dismissal, 'completed' on
@@ -92,13 +94,14 @@ export type TourStep = {
 
 /**
  * D-04: finish-card constants — the congratulation chrome line plus the ONLY
- * cross-surface pointer in this phase: an internal link to the CLI at / with
- * a one-line terminal hint (SPEC EXPLORE-04d).
+ * cross-surface pointer in this phase: an internal link across to the CLI at
+ * /cli (phase-12 D-03 moved it from / to /cli) with a one-line terminal hint
+ * (SPEC EXPLORE-04d).
  */
 export const EXPLORE_TOUR_FINISH = {
   congrats: "That's the lap — every section's marked visited on the counter below.",
   linkLabel: "Open the terminal →",
-  linkHref: "/",
+  linkHref: "/cli",
   hint: "the full story lives in the terminal — start with help",
 } as const;
 

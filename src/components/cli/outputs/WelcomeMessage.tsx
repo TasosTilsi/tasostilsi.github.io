@@ -62,13 +62,13 @@ export const WelcomeMessage = () => {
         </div>
       )}
 
-      {/* Visual tour link — the CLI's exit to /explore; unconditional so returning visitors see it too (D-01, OQ-3) */}
+      {/* Visual tour link — the CLI's exit to the landing at /; unconditional so returning visitors see it too (D-01, OQ-3; phase-12 REV-22 moved the target from /explore to the promoted landing) */}
       <div
         style={{
           fontFamily: "var(--font-jetbrains), var(--font-geist-mono), Menlo, Monaco, 'Courier New', monospace",
         }}
       >
-        <span className="text-accent">[</span> NEW <span className="text-accent">→</span> visual tour: <Link href="/explore" className="text-accent">explore</Link> <span className="text-accent">]</span>
+        <span className="text-accent">[</span> NEW <span className="text-accent">→</span> visual tour: <Link href="/" className="text-accent">explore</Link> <span className="text-accent">]</span>
       </div>
       <br />
     </div>

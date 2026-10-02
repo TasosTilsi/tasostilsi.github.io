@@ -100,10 +100,11 @@ export function ExploreHeader({
           </button>
         }
       />
-      {/* Terminal link: rightmost (phase-5, D-03) — Next Link back to the CLI,
+      {/* Terminal link: rightmost (phase-5, D-03) — Next Link across to the
+          CLI at /cli (phase-12 REV-22 moved the target from / to /cli),
           44px ghost recipe copied verbatim, same-tab navigation */}
       <Link
-        href="/"
+        href="/cli"
         aria-label="Open the terminal"
         className="flex h-[44px] w-[44px] shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background active:bg-muted/80"
       >
