@@ -38,8 +38,8 @@ try {
  * The Open Graph + Twitter card fields are declared EXPLICITLY and are NOT
  * optional polish: metadata merges per top-level field, so a layout that
  * declares only title/description silently inherits the ROOT's CLI-branded
- * social card — measured on the pre-swap build, out/explore.html carried
- * `og:title = "<name> | Interactive CLI Portfolio"`. The social card is what
+ * social card — measured on the pre-swap build, the sibling export document
+ * carried `og:title = "<name> | Interactive CLI Portfolio"`. The social card is what
  * a recruiter sees when the link is pasted into Slack or LinkedIn, so it must
  * carry the landing branding (phase-12 R-3 / P-11).
  * The base URL for relative metadata images stays on the root layout

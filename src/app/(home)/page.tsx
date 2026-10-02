@@ -1,6 +1,6 @@
 /**
  * / — Visual Portfolio Explorer, the primary landing (phase EXPLORE-01,
- * plan 02; promoted from /explore by phase EXPLORE-12, REV-22).
+ * plan 02; promoted to the root route by phase EXPLORE-12, REV-22).
  *
  * Composition (D-01, UI-SPEC §2.1):
  *

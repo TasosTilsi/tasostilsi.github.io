@@ -62,7 +62,7 @@ export const WelcomeMessage = () => {
         </div>
       )}
 
-      {/* Visual tour link — the CLI's exit to the landing at /; unconditional so returning visitors see it too (D-01, OQ-3; phase-12 REV-22 moved the target from /explore to the promoted landing) */}
+      {/* Visual tour link — the CLI's exit to the landing at /; unconditional so returning visitors see it too (D-01, OQ-3; phase-12 REV-22 repointed it to the promoted landing) */}
       <div
         style={{
           fontFamily: "var(--font-jetbrains), var(--font-geist-mono), Menlo, Monaco, 'Courier New', monospace",
