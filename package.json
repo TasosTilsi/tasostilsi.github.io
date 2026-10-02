@@ -9,7 +9,8 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "build:resume": "node scripts/generate-static-resume.js"
+    "build:resume": "node scripts/generate-static-resume.js",
+    "test": "node --test tests/*.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^4.1.3",
