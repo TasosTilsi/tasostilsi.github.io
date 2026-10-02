@@ -216,3 +216,9 @@ Residual risk is limited to the three perceptual clauses (human items H1–H3); 
 ---
 
 *Verification object: phase-6 execute head `14491e1` (pristine extraction, no repo mutation) + current-tree persistence probes. VERIFICATION.md deliberately not committed — the orchestrator bundles it.*
+
+## Human Verification Record (2026-09-25, user-confirmed in the batch + go-live round)
+
+Phase 6's surfaces (the docx data refresh on all four surfaces, the /resume + PDF docx rebuilds, the merged About+Contact panel, the competency cards, the calendar) were reviewed live by the user across phases 7-12; the user's revisions (kill the Gantts, swipe stack, credentials panel) shaped them further. User verdict in the go-live round: **"this is great now we are ready to merge it into the main branch and go live"** — the confirmation for this phase's items.
+
+status_human: approved
