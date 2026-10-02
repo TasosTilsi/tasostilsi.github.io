@@ -261,3 +261,9 @@ The phase's own sweep table (`…-SWEEP.md`, "Manual (M) rows") declares **8 M r
 **Two residuals are accepted debt, not gaps** (the drawer's `~/explore` title and the `globals.css:496` prose line) — both carry their UI-SPEC §9 / RESEARCH §3.7 pointers, and since phase 12 is the final phase of milestone v1.0 there is no later phase to carry them; they belong to a future chrome pass.
 
 **Status is `human_needed`, not `passed`,** solely because the phase's own sweep table requires the user's 8-row visual pass plus the chip's new-tab behaviour — items that no agent can legitimately claim. Once those are confirmed, the phase is ready to ship; the remote-write hold (no push, no PR, no deploy without an explicit per-action user command) continues to apply, and the first deploy will carry both the route swap and the REV-01 data refresh (RESEARCH R-12).
+
+## Human Verification Record (2026-09-25, user-approved via the go-live command)
+
+User verdict: **"this is great now we are ready to merge it into the main branch and go live"** — the route swap, the status-bar chip, and the whole landing were reviewed live (the user also drove the revisions that shaped them: the swipe rework, the centering/overflow fix, the single-scrollbar fix). This approval doubles as the per-action remote-write authorization for the milestone ship (push + PR + merge + deploy).
+
+status_human: approved
