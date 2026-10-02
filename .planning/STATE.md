@@ -2,20 +2,20 @@
 gsd_state_version: 1
 milestone: v1.0
 milestone_name: "Explore Visual Landing"
-status: ship
-active_phase: 12
-next_action: ship-phase
-next_phases: [12]
+status: verify
+active_phase: 6
+next_action: verify-phase
+next_phases: [6]
 progress:
   total_phases: 5
   completed_phases: 0
   total_plans: 3
   completed_plans: 39
   percent: 0
-current_phase: 12
-current_phase_name: route-swap-promotion
+current_phase: 6
+current_phase_name: explore-revision
 current_plan: 3
-last_updated: "2026-10-02T17:33:39.725Z"
+last_updated: "2026-10-02T17:37:48.342Z"
 state_head: null
 last_activity: 2026-10-02
 stopped_at: null
