@@ -1,6 +1,8 @@
 # Roadmap — Explore Visual Landing (v1.0)
 
-11 phase(s) | requirements mapped per phase
+# Roadmap — Explore Visual Landing (v1.0)
+
+12 phase(s) | requirements mapped per phase
 
 | # | Phase | Goal | Requirements |
 |---|-------|------|--------------|
@@ -15,6 +17,7 @@
 | 09 | editorial-motion-revision | Panel order (About first), the About presentation package (positioning lead, impact metrics, availability badge, avatar), education merged onto the semicircular arc (5 entries, type-aware), and the Projects panel converted to a framer-motion-driven editorial scroll composition (top-6 rows entering from below) — experience stage stays hand-rolled. | REV-14 … REV-17 |
 | 10 | projects-stack-revision | The Projects panel's editorial scroll is replaced by a curated stacked-card carousel — 6 visual-first cards forming a swipe-driven, loopable ring buffer of physically stacked cards in depth (card appearance = cardState(cardIndex, frontIndex) from the pure projects-card-state module: translateY/scale/opacity/z-index derived from depth off the foreground card, continuous and reversible in both directions), the foreground card draggable with keyboard Prev/Next, Arrow and Home/End stepping the same ring buffer, the panel at natural height with the stack centered in its stage, six distinct deterministic generative IDE-language visuals curated per project (name-hash fallback for uncurated names), curated imperfection, in-card info on the active card, mount-gated reduced-motion and mobile-simplified-stack contracts — framer-motion confined to the projects composition, IDE aesthetic preserved. | REV-18 … REV-20 |
 | 11 | credentials-panel-revision | A combined tabbed 'Credentials' panel (Articles | Certifications | Presentations — curated items, calm rows) sits beside the Projects stack, completing the /explore page with the credibility story. | REV-21 |
+| 12 | route-swap-promotion | The explore experience is promoted to the primary landing: / serves the visual experience, /cli serves the CLI terminal, /explore is deleted, the breadcrumb becomes ~, cross-surface links rewire, and the status bar gains a new-tab cli hyperlink. | REV-22 |
 
 ## Progress
 
@@ -31,3 +34,4 @@
 | 09 | editorial-motion-revision | pending |  |
 | 10 | projects-stack-revision | pending |  |
 | 11 | credentials-panel-revision | pending |  |
+| 12 | route-swap-promotion | pending |  |
