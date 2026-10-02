@@ -15,7 +15,7 @@ progress:
 current_phase: 12
 current_phase_name: route-swap-promotion
 current_plan: 3
-last_updated: "2026-10-02T17:33:01.816Z"
+last_updated: "2026-10-02T17:33:36.326Z"
 state_head: null
 last_activity: 2026-10-02
 stopped_at: null
@@ -93,6 +93,7 @@ _No active phase._
 - Phase 12: plan 01 executed — RED acceptance suite `tests/route-swap.test.mjs` on record first (833a7d6, 13 of 14 rows failing for absent behaviour: CLI still at `/`, no `out/cli.html`, `out/explore.*` present, stale `/explore` route literals, no chip), then the atomic route swap (0bacb6a: `/` = the explore landing on a `(home)` route group, `/cli` = the CLI terminal, `/explore` deleted outright, the landing declares its own Open Graph/Twitter branding, and all six cross-surface links rewired — including the declared 6th site `not-found.tsx` "Return to Terminal") and the status-bar `cli` new-tab chip (690ca67, `rel="noopener noreferrer"`, inset ring, no new CSS); `npm run typecheck` + `npm run build` + the suite 14/14 green on record, `out/*.html`/`out/*.txt` free of `/explore`, exactly one accepted chunk hit (the drawer's `~/explore`). Seven pre-existing suites are knowingly RED (explore-shell 10, explore-sweep 9, explore-visuals 6, explore-routing 4, credentials-panel 4, explore-tour 3, explore-header 2 = 38 of 289) — plan 02 renews them; MERGE HOLD until plan 02's full-suite run is on record.
 - Phase 12: plan 02 executed — the stale-test renewal in three atomic commits: the four export-reader suites repathed to `out/index.html` (`out/cli.html` for the "other surface" rows) with titles + assertion messages renewed (386a55f, 128/128 on record), the three route-target suites renewed with both checker BLOCKERs closed and the two-way composite expanded from four to **six legs** (7fbe829 — CLI welcome/`explore` command → `/`, header Terminal link/finish card/status-bar chip/404 → `/cli`, both directions in ONE test), then the comment-only route-prose sweep over five `src` files (64c263c). Two traps closed: the silent `.filter(existsSync)` no-op now has an explicit landing-page existence assertion, and E-1 carries the `!existsSync(out/cli/index.html)` trailingSlash tripwire. **MERGE HOLD LIFTED** — `npm run typecheck` + `npm run build` + `node --test tests/*.test.mjs` = 0/0/0 with **289/289 tests across 14 files** on record as the chronologically last action on the code range; the 38 plan-01 failures are all renewed. Accepted debt with pointers: `src/app/globals.css:496`'s stale route prose (UI-SPEC §9 / RESEARCH §9.1-9.2 forbid editing that file — byte-untouched) and the drawer's `~/explore` SheetTitle (the single permitted residue hit). Remote-write hold stands: no push, no PR, no deploy.
 - quick 2026-10-02-single-scrollbar-invariant: Eliminate the 3-scrollbar state on the landing page (/, the explore experience) so exactly ONE scroll container exists: <main>. User-report: 3 scrollbars visible. Root causes identified in source:
+- Phase 12: LEARNINGS.md extracted (decisions: 4, lessons: 8, patterns: 9, surprises: 10)
 
 ### Blockers / Concerns
 - Shipping decision (user, 2026-09-21): ship the milestone AS A WHOLE at milestone close — no per-phase PRs. phase-1 and phase-2 branches pushed to origin (backup only); gsd_ship deferred for both phases. phase-2 branch contains phase-1 commits (stacked).
