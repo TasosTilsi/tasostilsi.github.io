@@ -1,6 +1,6 @@
 /**
  * Pure card-state module for the projects stacked-card carousel — swipe-driven
- * Tinder-style ring buffer (phase-10 REV-21, user directive 2026-09-25).
+ * Tinder-style ring buffer (phase-10 REV-18, user directive 2026-09-25).
  *
  * This is the stack composition's ONE derivation site: firstSentence,
  * projectYear, projectTechnologies, projectVisualVariant, cardState and the

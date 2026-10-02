@@ -614,7 +614,7 @@ test('motion: hover/focus/active vocabulary — lift+bloom, nudge, underline par
   const exploreFiles = readdirSync(join(root, 'src/components/explore'), { recursive: true })
     .filter((f) => /\.(tsx|ts)$/.test(f));
   // Phase-9 dual-engine renewal (plan 04, D-05 — renewed, never deleted;
-  // re-worded by phase-10 REV-21 when the projects stage became the
+  // re-worded by phase-10 REV-18 when the projects stage became the
   // swipe-driven stack): the vocabulary stays CSS-only for DISCRETE color
   // motion, with two sanctioned JS engines now — the hand-rolled rAF channels
   // (pinned below) and the projects swipe-driven stack stage. The '.animate('/
@@ -936,7 +936,7 @@ test('EXPLORE-08 invariant (§2.4/§4/§10): marker non-interactivity + the two-
   );
 });
 
-test('EXPLORE-10 invariant (REV-21): projects stack is swipe-driven, centered, loopable and shadowed', () => {
+test('EXPLORE-10 invariant (REV-18): projects stack is swipe-driven, centered, loopable and shadowed', () => {
   // Stale-test retirement: the phase-9 editorial artefacts are deleted.
   for (const deleted of [
     'src/components/explore/projects-row-state.ts',
@@ -954,7 +954,7 @@ test('EXPLORE-10 invariant (REV-21): projects stack is swipe-driven, centered, l
   // the grid-stretched panel whose height stays content-driven.
   assert.ok(
     panels.includes("projects: { wrapper: '', shell: 'md:flex md:flex-col md:justify-center', gate: false }"),
-    'projects placement is still natural height (no wrapper/sticky classes) and carries the md centering shell (REV-21 + DEFECT 1)',
+    'projects placement is still natural height (no wrapper/sticky classes) and carries the md centering shell (REV-18 + DEFECT 1)',
   );
 
   const section = read('src/components/explore/sections/projects-section.tsx');

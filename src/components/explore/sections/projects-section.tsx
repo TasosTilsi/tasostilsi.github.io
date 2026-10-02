@@ -1,5 +1,5 @@
 /**
- * ProjectsSection — Projects panel body (phase-10 REV-21).
+ * ProjectsSection — Projects panel body (phase-10 REV-18).
  *
  * The panel body opens with the three JSON-derived ProjectStatTiles, followed
  * by the swipe-driven stacked-card carousel. Both tiers now use the same

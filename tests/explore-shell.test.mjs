@@ -374,7 +374,7 @@ test('panels: responsive grid rebalance — placement whitelist, per-section cha
   assert.equal(
     (src.match(/md:col-span-2/g) || []).length,
     1,
-    'exactly one span-2 grid child — the experience wrapper only; projects returned to natural height (REV-21)',
+    'exactly one span-2 grid child — the experience wrapper only; projects returned to natural height (REV-18)',
   );
   assert.equal(
     (src.match(/md:order-first/g) || []).length,

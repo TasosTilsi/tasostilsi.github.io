@@ -1,6 +1,6 @@
 /**
  * Pure card-state contract suite for the projects swipe-driven stacked-card
- * carousel — phase-10 REV-21 (user directive 2026-09-25).
+ * carousel — phase-10 REV-18 (user directive 2026-09-25).
  *
  * RED-first TDD: this suite is written against the ring-buffer cardState
  * signature and the swipe-decision helpers.

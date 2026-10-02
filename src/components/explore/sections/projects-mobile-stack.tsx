@@ -2,7 +2,7 @@
 
 /**
  * ProjectsMobileStack — compact swipe-driven wrapper over the shared
- * ProjectsSwipeStack (phase-10 REV-21).
+ * ProjectsSwipeStack (phase-10 REV-18).
  *
  * The mobile surface reuses the same Tinder-style ring-buffer drag/keyboard
  * choreography as the md+ stage, but renders a simplified composition:

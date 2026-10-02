@@ -54,7 +54,7 @@ test('sweep rows EXPLORE@375/768/1440/1920 (P): panels grid 1→2 cols with the 
   assert.equal(
     (src.match(/md:col-span-2/g) || []).length,
     1,
-    'exactly one span-2 grid child — the experience wrapper only; projects returned to natural height (REV-21)',
+    'exactly one span-2 grid child — the experience wrapper only; projects returned to natural height (REV-18)',
   );
   assert.equal(
     (src.match(/md:order-first/g) || []).length,
@@ -84,7 +84,7 @@ test('sweep rows EXPLORE@* (P): 3-row rebalance structure — order locked, span
   assert.equal(
     (src.match(/md:col-span-2/g) || []).length,
     1,
-    'exactly one span-2 grid child — the experience wrapper only; projects is a natural-height panel (REV-21)',
+    'exactly one span-2 grid child — the experience wrapper only; projects is a natural-height panel (REV-18)',
   );
   assert.equal(
     (src.match(/md:order-first/g) || []).length,

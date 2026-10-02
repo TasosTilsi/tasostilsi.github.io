@@ -27,7 +27,7 @@
  * entrance-stagger nth-child delays re-derive from the array/DOM position —
  * zero literal renumbering. The placement map stays the data-driven Record
  * keyed by ExploreSectionId — no id-comparison conditional. The ONLY
- * data gate left is the Experience one (W-3, amended by phase-10 REV-21):
+ * data gate left is the Experience one (W-3, amended by phase-10 REV-18):
  * experienceGate keys on the selected-entry count (tech roles ∪ featured
  * education, the pure module's ONE derivation) > 1, while about, skills and
  * credentials each carry `{ wrapper: '', shell: '', gate: false }` and
@@ -35,7 +35,7 @@
  * `shell: 'md:flex md:flex-col md:justify-center'` (2026-10-02 DEFECT 1 —
  * no wrapper, no sticky range, panel height still content-driven). Projects
  * renders at natural height. That
- * is the phase-10 REV-21 fact: Projects returned to natural height when the
+ * is the phase-10 REV-18 fact: Projects returned to natural height when the
  * panel became the swipe-driven ring-buffer stack (user directive
  * 2026-09-25, quick task `2026-09-25-projects-swipe-loop-stack`, commit
  * b39b12c). The `data-editorial-wrapper="true"` attribute still rides every
@@ -112,7 +112,7 @@ const SECTION_BODIES: Record<
 
 /**
  * Placement map factory (UI-SPEC §1.1/§4.1 — the phase-9 seam, amended by
- * phase-10 REV-21 and the 2026-10-02 centering fix): a Record keyed by
+ * phase-10 REV-18 and the 2026-10-02 centering fix): a Record keyed by
  * ExploreSectionId whose values carry the ONLY placement classes of the phase.
  * Only Experience retains the sticky scroll-range wrapper + shell; Projects
  * returns to natural height with its swipe-driven stage as a centered block —
