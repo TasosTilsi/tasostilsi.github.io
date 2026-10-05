@@ -126,18 +126,18 @@ Base-height tolerance: any `H ∈ [180, 220]` satisfies the arithmetic above (R 
 
 **c. The hook's md gate narrows, it does not disappear.**
 - `derive()` (hook:203-204) **drops** the `if (!mdMedia.matches) return;` early return so markers are positioned/emphasised at every width.
-- The **layer write block** (hook:251-257) stays gated to `md+`, so `<md` keeps all five entries readable and `stageActive` stays false below md (hook:282/303) — i.e. no layer carries `aria-hidden` at `<md` (component line 252). **This is (UNRESOLVED-D1).**
+- The **layer write block** gains an EXPLICIT gate — B-2 pin (a): the loop at hook:251-257 wraps in `if (mdMedia.matches)` (there was NO separate layer gate in the code — the retirement of the early return at hook:204 would otherwise run the loop at `<md` with pin-0 progress and `contentLayer(i,0).visible = |i|<1` → FOUR of five CV entries vanish on phones); `<md` keeps all five entries readable and `stageActive` stays false below md (hook:282/303) — no layer carries `aria-hidden` at `<md` (component line 252). **B-2 pin (b): `clearLayerStyles()` (hook:~176-183) STAYS and is named the `<md` readable-stack mechanism** — the mount `else` branch + the compact `onMdChange` branch call it to strip the SSR `contentLayer` inline props (that is how the four hidden layers become readable on the phone). **B-2 pin (c): the compact branch's marker-style clear loop (`el.style.opacity=''; el.style.transform=''; ...` over dots+labels, hook:~283-287) is DELETED and replaced by a `derive()` call with `geometryDirty = true`** — the old clear piled all five markers untransformed at `left-0 top-0` on any md→`<md` transition. This cluster is the (RESOLVED-D1) resolution. **§5.5 correction: the sentence "the `<md` hook branch never rewrites the SSR style prop" is FALSE and is reworded — the branch rewrites (clears) exactly those SSR style props via `clearLayerStyles()`.**
 - The `md` change listener stays (hook:276-290); its renewed duty is the **layer-ownership + step-mode handoff**, not arc visibility.
 - `onScroll` may keep scheduling only at `md+` (below md `range = wrapperHeight − stageHeight ≈ 0` → `computeProgress` returns 0 → nothing to recompute); mount + ResizeObserver + discrete step must still `derive()` at every width.
 - Below md there is **no** scroll range, so progress is pinned at 0 → `c′ = 0` → the active role at rest is entry 0 = Chubb at θ=180, the focal point. **The active role at the focal point is a rest-state property at `<md`, and a motion-state property at `md+`.** (This is the honest reading of REV-23's "the active role stays at the focal point".)
 
-**d. Marker labels at `<md`: year-only (UNRESOLVED-D2, two options).**
-- **Option 2 — RECOMMENDED: one predicate, the anchor budget.** The date-line fit predicate stops using the zone width and uses the *room actually available left of the focal anchor*: `budget = W/2 − 0.38·R − 4` (derived from `centerX = (W+R)/2` and the `0.88R` label inset). `dateLineFits(duration, budget)` keeps its signature (its unit tests at explore-timeline.test.mjs:503-521/597-599 stay green) but its call site (`experience-section.tsx:128`) passes the budget. Outcome: year-only at `<md` (table §2.1), shown at ≥ ~1250px where it genuinely fits, **and the latent 768–1023 overhang (§2.3) dies at the same time** — one mechanism, three correct outcomes.
+**d. Marker labels at `<md`: year-only (RESOLVED-D2 (Option 2 pinned), two options).**
+- **Option 2 — RECOMMENDED + B-1-corrected: one predicate, the anchor budget — the predicate OWNS the 16px.** The real `dateLineFits` (timeline-geometry.ts:319-322) already subtracts a 16px padding floor INTERNALLY (`duration.length * 6 <= innerWidthPx - 16`) — the call site must therefore pass `budget = W/2 − 0.38·R` **without its own −4** (the original −4 double-counted: passed through the real function the effective budget was budget−16, suppressing Chubb at 1280 and Upstream/Netcompany at 1440 — the "shown at ≥ ~1250px" claim was FALSE). Resolved, honest ladder with effective budget = `W/2 − 0.38R`: year-only at `<md` (§2.1 holds), the date lines are a WIDE-DESKTOP affordance — they fit only where the effective budget genuinely reaches the duration's width (Chubb's 120px needs ~1440; the others wider). Boundary-sensitive unit row added (the false-green killer): `dateLineFits(<18-char duration>, 130)` → `18*6=108 <= 130-16=114` → **true** — an 18-char duration at budget 130 must NOT be suppressed. `dateLineFits` keeps its signature (unit rows at explore-timeline.test.mjs:503-521/597-599 stay green) — only the call site (experience-section.tsx:128) changes to pass the budget. The latent 768–1023 overhang (§2.3) dies with the same mechanism — one predicate, correct outcomes at every width.
 - **Option 1 — alternative: `hidden md:block` on the date-line span** (year-only below md, today's width-form predicate above). Smaller diff, zero tablet change, but the 768–1023 horizontal overhang stays (flagged INFO/deferred).
 
 Either way: the date-line span never renders where it cannot fit; **year labels never truncate** (`whitespace-nowrap` stays), never wrap, and never overlap (§2.1 separation arithmetic).
 
-**e. Controls and touch.** The Prev/Next pair (lines 206-229) renders at every width by virtue of (a) — that is the fix for the user's "header/buttons missing". 44×44px stays. Ends disabled over the 5 stops (`disabled:opacity-50`). At `md+` a step is a `main.scrollTo` through the sticky range (unchanged). At `<md` a step is a **discrete index change** (there is no range to scroll): it moves the focal marker and brings the stepped-to entry into view inside `main`. **(UNRESOLVED-D1)** covers the discrete-step + layer-visibility pairing; the planner may implement the step either as a discrete index ref in the hook or as any equivalent that keeps `continuousIndex`/`markerAngle` (timeline-geometry.ts:101/125) as the ONE derivation.
+**e. Controls and touch.** The Prev/Next pair (lines 206-229) renders at every width by virtue of (a) — that is the fix for the user's "header/buttons missing". 44×44px stays. Ends disabled over the 5 stops (`disabled:opacity-50`). At `md+` a step is a `main.scrollTo` through the sticky range (unchanged). At `<md` a step is a **discrete index change** (there is no range to scroll): it moves the focal marker and brings the stepped-to entry into view inside `main`. **(RESOLVED-D1)** covers the discrete-step + layer-visibility pairing; the planner may implement the step either as a discrete index ref in the hook or as any equivalent that keeps `continuousIndex`/`markerAngle` (timeline-geometry.ts:101/125) as the ONE derivation.
 
 **f. Markers remain non-interactive at every width.** The dots/labels keep `aria-hidden`, no hover/press/cursor affordance, and gain **no** touch target — the arc is not a scrubber surface this phase.
 
@@ -177,16 +177,18 @@ Edge: when lead + metrics + chip are all absent the summary gains a 12px top off
 
 ### 3.4 Viewport meta (REV-25a)
 
-**a. Typed export gains the fit** (`src/app/layout.tsx:59-64`):
+**a. Typed export gains the fit — W-1 correction: `width` and `initialScale` are NEW fields, not pre-existing.** Today `src/app/layout.tsx:59-64` carries ONLY the `themeColor` array; `width=device-width, initial-scale=1` arrive solely from the data line being retired (`portfolioData.meta.viewport` = `width=device-width, initial-scale=1, shrink-to-fit=no`) — if the executor adds only `viewportFit` (the minimal-edit trap), the phone gets `<meta viewport content="viewport-fit=cover">` with no device-width — a severe regression. The final state migrates BOTH fields off the retiring line:
 
 ```ts
 export const viewport: Viewport = {
-  width: 'device-width',
-  initialScale: 1,
+  width: 'device-width',       // ← NEW: migrated off the retiring data line (W-1)
+  initialScale: 1,             // ← NEW: migrated off the retiring data line (W-1)
   viewportFit: 'cover',        // ← new (REV-25a)
   themeColor: [ /* unchanged: two prefers-color-scheme entries */ ],
 };
 ```
+
+`shrink-to-fit=no` is INTENTIONALLY DROPPED (it is a legacy iOS directive with no modern effect; §2.1/§10 assert its absence — that absence is the intent, not an accident).
 
 Expected emitted tag: `<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>`. **Never** emit `maximum-scale` or `user-scalable=no` (the constraint "never disable zoom"); pinch-zoom and browser zoom stay available.
 
@@ -238,7 +240,7 @@ Why the added line is required: `body` is `flex flex-col h-full` (src/app/layout
 
 - `.explore-shell > header` / `> footer` are exact: both are **direct** children of the shell root (explore-shell.tsx:66 and :81; the elements are explore-header.tsx:39 and explore-status-bar.tsx:38).
 - The `env(..., 0px)` fallback keeps non-`viewport-fit` browsers at exactly today's geometry (inset resolves to 0 → no layout change).
-- Content bands: header 52px; footer 24.5px at ≤639 (root font is 14px there, globals.css:466) and 32px at ≥640 — preserved by construction.
+- Content bands: header 52px; footer band = 1.75rem/2rem rem-based (W-3 restatement: the root-font switch at `globals.css:466` is `max-width: 640px` INCLUSIVE — at exactly 640px BOTH the 14px root font and `sm:h-8` match, so the band tracks the rem at 640 too; the override being rem-based (`calc(1.75rem + env(...))` / `calc(2rem + env(...))`) is self-correcting — the band is preserved by construction, and the old "24.5px at ≤639 / 32px at ≥640" prose was wrong about the 640px boundary).
 - Notched iPhone reference: header 52 + 47 = 99px; footer 24.5 + 34 = 58.5px. **No** compression of the 44px controls.
 - Only top/bottom insets this phase. Landscape left/right insets are **deferred** (CONTEXT deferred idea: test once, adapt only if broken).
 
@@ -353,7 +355,7 @@ None. A missing/empty data field degrades by omission (above); a throwing data r
 | # | Edge | Expected | Enforced by |
 |---|---|---|---|
 | E1 | 375px width, arc at rest | semicircle R=100 visible above the content; Chubb (2023) at θ=180; 5 year labels, no collision, no truncation | grep (no `hidden md:flex`), §2.1 arithmetic, phone |
-| E2 | 375px width, tapping Next | focal marker moves to the stepped-to entry; the entry comes into view; both ends clamp | (UNRESOLVED-D1), phone |
+| E2 | 375px width, tapping Next | focal marker moves to the stepped-to entry; the entry comes into view; both ends clamp | (RESOLVED-D1), phone |
 | E3 | Any width, date line that cannot fit | not rendered (no overhang → no horizontal scroll) | `dateLineFits` with the anchor budget + unit rows (new) |
 | E4 | 375px, `<main>` horizontal overflow | none: no element paints outside its box | test: the label predicate + no clipping + the stage's `overflow-hidden` |
 | E5 | 375px swipe | touch drag works; behind-cards peek; centred; bloom visible; 44px controls | stage tests (renewed) + phone |
@@ -372,11 +374,14 @@ None. A missing/empty data field degrades by omission (above); a throwing data r
 
 ## §8 UNRESOLVED (each with the default the planner MUST assume)
 
-**UNRESOLVED-D1 — `<md` arc interaction pairing (the phase's one real fork).**
-Should the `<md` content column keep all five entries readable (with the arc as a focal indicator above) or follow the arc one-entry-at-a-time (true `md+` symmetry)? **Default to ASSUME = keep all five readable** + the arc positions/emphasises at every width + a `<md` step is a discrete index change that also brings the stepped-to entry into view inside `main` (so a tap has a visible result). Rationale: the SPEC enumerates only the arc zone and the swipe wrapper as retirements; the five-entry readable stack is the phase-9 readability form the user never complained about; and one-entry-at-a-time on a phone forces tap-through to read a CV. **The alternative (full symmetry) needs the user's word** — surface it in the phone checklist.
-*Consequence if the user later chooses symmetry:* the layer write block loses its md gate and the §3.1c branch disappears; nothing else changes.
+**RESOLVED-D1 — RESOLVED by W-2 (four pins):**
+- (1) `goToRole`'s `<md` early return (hook:331) is REPLACED — the discrete step works below md (the gate's retirement is named in the plan; the second gate goes with it).
+- (2) State persistence: the `<md` stepped active index lives in a state the scroll-driven `derive()` does NOT stomp (below md, derive()'s progress is pinned 0 — the derive() write path guards on the same gate: below md `setActiveIndex` is not called from the scroll path; the ResizeObserver pass (which fires on the URL-bar collapse right after a tap) must not reset a stepped index).
+- (3) Keyboard: `handleKeyDown`'s `<md` early return (hook:348) LIFTS — arrows step below md too.
+- (4) The stepped-to entry visual: scroll-into-view inside main + the SAME emphasis ladder (the focal marker's active styling + the stepped entry highlighted) — one look, both widths.
+- Programmatic assertion added: the `<md` derivation gets one test (the §9.1 renewal of explore-visuals.test.mjs:250-256 extends: ban the early return AND pin the compact clearLayerStyles mechanism + the gate around the layer loop).
 
-**UNRESOLVED-D2 — the date-line predicate (Option 2 vs Option 1).** Default to ASSUME = **Option 2** (one anchor-budget predicate; year-only below md; also fixes the latent 768–1023 horizontal overhang). Take Option 1 only if the user wants the sub-label preserved on tablets — in which case the latent overhang is recorded as INFO/deferred, not silently kept.
+**RESOLVED-D2 (Option 2 pinned) — the date-line predicate (Option 2 vs Option 1).** Default to ASSUME = **Option 2** (one anchor-budget predicate; year-only below md; also fixes the latent 768–1023 horizontal overhang). Take Option 1 only if the user wants the sub-label preserved on tablets — in which case the latent overhang is recorded as INFO/deferred, not silently kept.
 
 **UNRESOLVED-D3 — RESOLVED DEVIATION, flagged for the planner.** CONTEXT D-06 says "html/body keep `height:100%` + `overflow:hidden` … the gap-after-footer dies". The arithmetic in §3.5b shows those two declarations alone cannot kill it; the **added `height: 100dvh` line is required**. `height: 100%` is kept (first line, fallback + pinned regexes). Treat the extra line as in-scope for REV-25, not as scope creep.
 
@@ -438,7 +443,7 @@ Portrait, one notched device + one non-notched if available, both themes, reduce
 2. **No gap below the footer** at rest, while the URL bar hides/shows, and after scrolling to the bottom of the main area.
 3. **Exactly one scrollbar**: no window scrollbar and no horizontal scrollbar anywhere (test at the arc, at the Projects stack, mid-swipe).
 4. Experience: the semicircle renders above the content, scaled to the phone; the five year labels are readable and never truncated/overlapping; the active year sits at the left-bulge focal point.
-5. Prev/Next step the arc and are tappable (44px), disabled at the ends; a step has a visible result (per UNRESOLVED-D1's default: the stepped-to entry comes into view). **Answer UNRESOLVED-D1 here**: is the five-entry readable stack right, or do you want one entry at a time with the arc driving it?
+5. Prev/Next step the arc and are tappable (44px), disabled at the ends; a step has a visible result (per RESOLVED-D1's default: the stepped-to entry comes into view). **Answer RESOLVED-D1 here**: is the five-entry readable stack right, or do you want one entry at a time with the arc driving it?
 6. Projects: the full stack — touch drag swipes the card away, the card behind peeks, the stack is centred, the depth/bloom shadows render, the counter and both controls work.
 7. Vertical page scroll still works when the gesture starts on the card (drag horizontal = card, drag vertical = page).
 8. Wizard: still plays step-by-step; check the **docked** card's buttons are not under the home indicator (the overlay now measures a taller viewport).
@@ -479,4 +484,4 @@ Portrait, one notched device + one non-notched if available, both themes, reduce
 - **Safe-area padding must be paired with height compensation**, or the header's fixed `52px` box gets crushed by a 47px inset; carrier pinned to scoped CSS in `globals.css` to keep the header/footer files byte-identical (their px-immunity test pins).
 - **"No `profileImageUrl` consumption" is unsatisfiable repo-wide** — og:image/JSON-LD still consume it legitimately; scope the acceptance grep to the About panel.
 - **Root-level `viewport-fit=cover` also lands on `/cli` and `/resume`** — flagged as a phone-checklist item since those routes are out of scope.
-- **One real fork needs a decision** (`UNRESOLVED-D1`: `<md` five-entry readable stack vs one-entry symmetry) — default assumed, with the phone checklist asking the user directly.
+- **One real fork needs a decision** (`RESOLVED-D1`: `<md` five-entry readable stack vs one-entry symmetry) — default assumed, with the phone checklist asking the user directly.
