@@ -41,8 +41,16 @@
  * with `items-center justify-center` around the stage wrapper, and the
  * Projects panel body is vertically centered inside its (content-driven,
  * grid-stretched) PanelShell by the md-scoped placement shell classes in
- * explore-panels.tsx — genuine centering in both axes at md+, same
- * containment + centering inside the compact stage at <md.
+ * explore-panels.tsx — genuine centering in both axes at md+, and the same
+ * containment + centering at every width.
+ *
+ * One contract (phase 13 REV-23b / D-02): there is NO narrow-width variant.
+ * The retired <md wrapper — a 320px width cap that hid every card deeper than
+ * depth 1 — is gone, and with it the width-variant prop: every width renders
+ * this file's single depth composition, every depth card is visible, and only
+ * the height pair (base = the phone, md: = desktop) is width-specific. The
+ * stage box carries `data-projects-swipe-stage` — the stable selector hook the
+ * platform pack's `touch-action: pan-y` rule targets.
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -67,7 +75,6 @@ import {
 import type { PortfolioData } from '@/data/portfolio-main-data';
 
 type ProjectEntry = PortfolioData['projects'][number];
-type SwipeMode = 'full' | 'compact';
 /** The fly-off SIDE only — the ring advance is `RingStep.ringDelta` (gap R6). */
 type SwipeDirection = -1 | 1;
 
@@ -95,8 +102,13 @@ const EXIT_ROTATION = 12;
  *
  * The stage container carries a FIXED height that holds the FULL depth range:
  *
- *   full    520 + 250 + 20 = 790   (md+: 560 + 250 + 20 = 830)
- *   compact 420 + 250 + 20 = 690   (the <md surface)
+ *   base (<md)  420 + 250 + 20 = 690
+ *   md+         560 + 250 + 20 = 830
+ *
+ * Phase 13 (REV-23b/D-02): ONE contract at every width. The former
+ * width-variant split is retired — both tiers are the SAME two constants and
+ * the same arithmetic, so the phone keeps the 690px footprint with the full
+ * peek band and every depth card visible.
  *
  * = the front card's own box + the deepest behind-card peek band + a safe
  * margin. PEEK_BAND_PX covers the LEVELS table's depth-5 magnitudes (|yUp|
@@ -117,17 +129,17 @@ const EXIT_ROTATION = 12;
 const PEEK_BAND_PX = 250;
 const PEEK_SAFE_PX = 20;
 
-/** The front card's own box per mode — unchanged geometry (520/560 / 420). */
-const CARD_HEIGHT_CLASS: Record<SwipeMode, string> = {
-  full: 'h-[520px] md:h-[560px]',
-  compact: 'h-[420px]',
-};
+/**
+ * The front card's own box — ONE class string, two tiers: base (<md, the
+ * phone) 420px, md+ 560px (REV-23b).
+ */
+const CARD_HEIGHT_CLASS = 'h-[420px] md:h-[560px]';
 
-/** The stage's fixed height per mode = card + PEEK_BAND_PX + PEEK_SAFE_PX. */
-const STAGE_HEIGHT_CLASS: Record<SwipeMode, string> = {
-  full: 'h-[790px] md:h-[830px]',
-  compact: 'h-[690px]',
-};
+/**
+ * The stage's fixed height = card + PEEK_BAND_PX + PEEK_SAFE_PX at each tier:
+ * base (<md) 690px, md+ 830px (REV-23b).
+ */
+const STAGE_HEIGHT_CLASS = 'h-[690px] md:h-[830px]';
 
 /** Editorial-calm promotion transition when cards advance one depth level. */
 const PROMOTE_TRANSITION = { duration: 0.25, ease: [0.25, 1, 0.5, 1] as const };
@@ -453,7 +465,6 @@ interface SwipeCardProps {
   index: number;
   count: number;
   frontIndex: number;
-  mode: SwipeMode;
   reducedMotion: boolean;
   pendingStep: RingStep | null;
   onSwipe: (ringDelta: -1 | 1) => void;
@@ -465,7 +476,6 @@ function SwipeCard({
   index,
   count,
   frontIndex,
-  mode,
   reducedMotion,
   pendingStep,
   onSwipe,
@@ -477,7 +487,6 @@ function SwipeCard({
   const hasMounted = useRef(false);
 
   const depth = useMemo(() => ringDepth(index, frontIndex, count), [index, frontIndex, count]);
-  const compactHidden = mode === 'compact' && depth > 1;
   const state = useMemo(
     () => cardState(index, frontIndex, count, reducedMotion),
     [index, frontIndex, count, reducedMotion],
@@ -489,7 +498,7 @@ function SwipeCard({
       y: state.translateY,
       scale: state.scale,
       rotate: state.rotation,
-      opacity: compactHidden ? 0 : state.opacity,
+      opacity: state.opacity,
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
@@ -505,13 +514,12 @@ function SwipeCard({
     });
     const newFront = advanceFront(frontIndex, ringDelta, count);
     const nextState = cardState(index, newFront, count, reducedMotion);
-    const nextHidden = mode === 'compact' && ringDepth(index, newFront, count) > 1;
     controls.set({
       x: nextState.translateX,
       y: nextState.translateY,
       scale: nextState.scale,
       rotate: nextState.rotation,
-      opacity: nextHidden ? 0 : nextState.opacity,
+      opacity: nextState.opacity,
     });
     setIsExiting(false);
     onSwipe(ringDelta);
@@ -524,16 +532,15 @@ function SwipeCard({
     }
     if (isExiting || (isFront && isDragging)) return;
     const target = cardState(index, frontIndex, count, reducedMotion);
-    const hidden = mode === 'compact' && depth > 1;
     controls.start({
       x: target.translateX,
       y: target.translateY,
       scale: target.scale,
       rotate: target.rotation,
-      opacity: hidden ? 0 : target.opacity,
-      transition: hidden ? { duration: 0 } : PROMOTE_TRANSITION,
+      opacity: target.opacity,
+      transition: PROMOTE_TRANSITION,
     });
-  }, [frontIndex, reducedMotion, mode, count, isExiting, isDragging, isFront, controls, index, depth]);
+  }, [frontIndex, reducedMotion, count, isExiting, isDragging, isFront, controls, index]);
 
   useEffect(() => {
     if (pendingStep === null || !isFront || reducedMotion || isExiting) return;
@@ -557,16 +564,21 @@ function SwipeCard({
       y: target.translateY,
       scale: target.scale,
       rotate: target.rotation,
-      opacity: compactHidden ? 0 : target.opacity,
+      opacity: target.opacity,
       transition: { type: 'spring', stiffness: 500, damping: 30 },
     });
   };
 
-  const visibility = compactHidden || !state.visible ? 'hidden' : 'visible';
+  // Visibility contract (REV-23b): the ring-distance read is `depth` (0 =
+  // foreground). The retired <md cap suppressed every card with `depth > 1`;
+  // ONE contract at every width suppresses nothing, so the foreground card is
+  // always visible and every other card follows the pure cardState() derivation
+  // alone (every depth peeks on the phone).
+  const visibility = depth === 0 || state.visible ? 'visible' : 'hidden';
 
   return (
     <motion.div
-      className={`${CARD_SHELL} ${CARD_HEIGHT_CLASS[mode]} ${isFront ? 'overflow-visible' : 'pointer-events-none overflow-hidden'}`}
+      className={`${CARD_SHELL} ${CARD_HEIGHT_CLASS} ${isFront ? 'overflow-visible' : 'pointer-events-none overflow-hidden'}`}
       style={{
         position: 'absolute',
         left: 0,
@@ -594,11 +606,10 @@ function SwipeCard({
 
 interface ProjectsSwipeStackProps {
   projects: ProjectEntry[];
-  mode: SwipeMode;
 }
 
-/** Generic swipe stack: full (md+) or compact (mobile). */
-export function ProjectsSwipeStack({ projects, mode }: ProjectsSwipeStackProps) {
+/** The swipe stack — ONE contract at every width (REV-23b, no width variant). */
+export function ProjectsSwipeStack({ projects }: ProjectsSwipeStackProps) {
   const count = projects.length;
   const [mounted, setMounted] = useState(false);
   const prefersReduced = useReducedMotion() ?? false;
@@ -691,8 +702,8 @@ export function ProjectsSwipeStack({ projects, mode }: ProjectsSwipeStackProps) 
     );
   }
 
-  const stageHeightClass = STAGE_HEIGHT_CLASS[mode];
-  const widthClass = mode === 'full' ? 'max-w-[540px]' : 'max-w-[320px]';
+  const stageHeightClass = STAGE_HEIGHT_CLASS;
+  const widthClass = 'max-w-[540px]';
 
   return (
     <div
@@ -704,7 +715,10 @@ export function ProjectsSwipeStack({ projects, mode }: ProjectsSwipeStackProps) 
       <div className="sr-only" aria-live="polite" aria-atomic="true">
         {announcement}
       </div>
-      <div className={`relative mx-auto w-full ${widthClass} ${stageHeightClass} overflow-hidden`}>
+      <div
+        data-projects-swipe-stage="true"
+        className={`relative mx-auto w-full ${widthClass} ${stageHeightClass} overflow-hidden`}
+      >
         {projects.map((project, index) => (
           <SwipeCard
             key={project.name}
@@ -712,7 +726,6 @@ export function ProjectsSwipeStack({ projects, mode }: ProjectsSwipeStackProps) 
             index={index}
             count={count}
             frontIndex={frontIndex}
-            mode={mode}
             reducedMotion={reducedMotion}
             pendingStep={pendingStep}
             onSwipe={handleSwipe}
@@ -746,7 +759,7 @@ export function ProjectsSwipeStack({ projects, mode }: ProjectsSwipeStackProps) 
   );
 }
 
-/** The md+ full-mode stage export. */
+/** The Projects stack export — one contract at every width (REV-23b). */
 export function ProjectsStackStage({ projects }: { projects: ProjectEntry[] }) {
-  return <ProjectsSwipeStack projects={projects} mode="full" />;
+  return <ProjectsSwipeStack projects={projects} />;
 }

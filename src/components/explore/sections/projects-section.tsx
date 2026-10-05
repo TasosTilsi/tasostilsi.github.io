@@ -2,13 +2,15 @@
  * ProjectsSection — Projects panel body (phase-10 REV-18).
  *
  * The panel body opens with the three JSON-derived ProjectStatTiles, followed
- * by the swipe-driven stacked-card carousel. Both tiers now use the same
- * Tinder-style ring-buffer drag/keyboard choreography via ProjectsSwipeStack;
- * the md+ stage renders the full-depth composition, while the <md surface
- * renders the simplified compact composition. The TerminalPointer remains LAST.
+ * by the swipe-driven stacked-card carousel. ONE contract at every width
+ * (phase 13 REV-23b / D-02): the same Tinder-style ring-buffer drag/keyboard
+ * choreography renders unconditionally — the <md wrapper that delegated to a
+ * 320px-capped variant is retired, so the phone gets the full-depth
+ * composition (every depth card visible, centred, shadowed, draggable). The
+ * TerminalPointer remains LAST.
  *
- * ProjectsSection stays a server component: it imports the client stacks as
- * leaf islands and passes the plain top-6 slice as serializable props. The
+ * ProjectsSection stays a server component: it imports the client stack as a
+ * leaf island and passes the plain top-6 slice as serializable props. The
  * scroll-driven wrapper and 300vh sticky range are retired.
  */
 import type { PortfolioData } from '@/data/portfolio-main-data';
@@ -16,7 +18,6 @@ import { projectStats } from '../viz-data';
 import { TerminalPointer } from './terminal-pointer';
 import { ProjectStatTiles } from './project-stat-tiles';
 import { ProjectsStackStage } from './projects-stack-stage';
-import { ProjectsMobileStack } from './projects-mobile-stack';
 
 export function ProjectsSection({
   projects,
@@ -33,14 +34,8 @@ export function ProjectsSection({
       <div className="mb-3">
         <ProjectStatTiles stats={stats} />
       </div>
-      {/* md+ full-depth swipe stack. */}
-      <div className="hidden md:block">
-        <ProjectsStackStage projects={cards} />
-      </div>
-      {/* <md compact swipe stack. */}
-      <div className="md:hidden">
-        <ProjectsMobileStack projects={cards} />
-      </div>
+      {/* ONE swipe stack at every width (REV-23b) — no viewport branch. */}
+      <ProjectsStackStage projects={cards} />
       <TerminalPointer command="projects --all" />
     </div>
   );
