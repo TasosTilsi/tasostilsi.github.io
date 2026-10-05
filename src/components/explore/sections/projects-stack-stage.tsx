@@ -11,7 +11,10 @@
  * velocity threshold flies the card off in the swipe direction and loops it
  * to the back of the stack. Keyboard Prev/Next and Arrow keys trigger the
  * same fly-off/loop choreography. Reduced motion bypasses the fly-off and
- * swaps state instantly (opacity-only). The reduced-motion preference is
+ * swaps state instantly — the depth composition itself is NOT motion and is
+ * unchanged: an RM visitor sees the same revealed header bands, only without
+ * the animations and without the curated imperfection (RM amendment
+ * 2026-10-05, see projects-card-state.ts). The reduced-motion preference is
  * MOUNT-GATED: framer's useReducedMotion hook is read during render but its
  * value is consumed only after a mount-only effect flips a mounted flag, so
  * the first client render reproduces the server's non-RM geometry exactly
@@ -63,6 +66,7 @@ import { ArrowUpRight, ChevronDown, ChevronUp } from 'lucide-react';
 import {
   advanceFront,
   cardState,
+  DEPTH_LEVELS,
   firstSentence,
   projectTechnologies,
   projectYear,
@@ -70,6 +74,7 @@ import {
   ringDepth,
   ringStep,
   swipeAccepts,
+  VISIBLE_BAND_PX,
   type RingStep,
 } from '../projects-card-state';
 import type { PortfolioData } from '@/data/portfolio-main-data';
@@ -98,24 +103,28 @@ const EXIT_X = 500;
 const EXIT_ROTATION = 12;
 
 /**
- * Stage containment arithmetic (2026-10-02 defect fix, DEFECT 2).
+ * Stage containment arithmetic (2026-10-02 defect fix, DEFECT 2; re-derived
+ * 2026-10-05 on the reveal-ladder contract).
  *
  * The stage container carries a FIXED height that holds the FULL depth range:
  *
- *   base (<md)  420 + 250 + 20 = 690
- *   md+         560 + 250 + 20 = 830
+ *   base (<md)  520 + 380 = 900        (the band is 5 x 72 + 20 safe)
+ *   md+         560 + 380 = 940
  *
  * Phase 13 (REV-23b/D-02): ONE contract at every width. The former
- * width-variant split is retired — both tiers are the SAME two constants and
- * the same arithmetic, so the phone keeps the 690px footprint with the full
- * peek band and every depth card visible.
+ * width-variant split is retired — both tiers are the SAME derivation and the
+ * same arithmetic, so the phone keeps the full peek band and every depth card
+ * visible.
  *
- * = the front card's own box + the deepest behind-card peek band + a safe
- * margin. PEEK_BAND_PX covers the LEVELS table's depth-5 magnitudes (|yUp|
- * 190, |yLeave| 246) rounded up to 250px, so a behind-card at any depth peeks
- * ABOVE the front card but never OUTSIDE the stage — no negative-space escape
- * upward; the bottom-anchored card box means none downward either.
- * PEEK_SAFE_PX covers the curated ±1° rotation and ±4px translateX overhang.
+ * STAGE = front card box + PEEK_BAND_PX, where PEEK_BAND_PX is the reveal
+ * ladder's own arithmetic INCLUDING the safe margin: DEPTH_LEVELS visible bands
+ * of VISIBLE_BAND_PX plus PEEK_SAFE_PX (5 × 72 + 20 = 380). Because each card
+ * scales about its BOTTOM edge, the depth-5 card's top edge falls by exactly
+ * H·(1 − 0.80) = 0.2 × H, which the −472 md offset already carries: the topmost
+ * revealed band therefore lands on the 20px safe margin instead of being
+ * clipped, and the reserved box is filled by five 72px header bands — no dead
+ * space above the cards. PEEK_SAFE_PX also covers the curated ±1° rotation and
+ * ±4px translateX overhang.
  *
  * The card box is BOTTOM-ANCHORED inside the stage (left/right/bottom 0) so
  * the card's own height stays decoupled from the band the peeks travel
@@ -126,20 +135,23 @@ const EXIT_ROTATION = 12;
  * only the ≤4px outward side/bottom glow softens at the clip edge, which is
  * exactly the depth shading on the cards beneath the design needs.
  */
-const PEEK_BAND_PX = 250;
 const PEEK_SAFE_PX = 20;
+const PEEK_BAND_PX = DEPTH_LEVELS * VISIBLE_BAND_PX + PEEK_SAFE_PX;
 
 /**
  * The front card's own box — ONE class string, two tiers: base (<md, the
- * phone) 420px, md+ 560px (REV-23b).
+ * phone) 520px, md+ 560px (REV-23b). These are the CARD_HEIGHT_BASE /
+ * CARD_HEIGHT_MD heights the reveal ladder in projects-card-state.ts is
+ * derived against; the pair is written as literals because Tailwind's scanner
+ * cannot see an interpolated class name.
  */
-const CARD_HEIGHT_CLASS = 'h-[420px] md:h-[560px]';
+const CARD_HEIGHT_CLASS = 'h-[520px] md:h-[560px]';
 
 /**
  * The stage's fixed height = card + PEEK_BAND_PX + PEEK_SAFE_PX at each tier:
- * base (<md) 690px, md+ 830px (REV-23b).
+ * base (<md) 900px, md+ 940px (REV-23b, re-derived 2026-10-05).
  */
-const STAGE_HEIGHT_CLASS = 'h-[690px] md:h-[830px]';
+const STAGE_HEIGHT_CLASS = 'h-[900px] md:h-[940px]';
 
 /** Editorial-calm promotion transition when cards advance one depth level. */
 const PROMOTE_TRANSITION = { duration: 0.25, ease: [0.25, 1, 0.5, 1] as const };
@@ -578,7 +590,7 @@ function SwipeCard({
 
   return (
     <motion.div
-      className={`${CARD_SHELL} ${CARD_HEIGHT_CLASS} ${isFront ? 'overflow-visible' : 'pointer-events-none overflow-hidden'}`}
+      className={`${CARD_SHELL} ${CARD_HEIGHT_CLASS} origin-bottom ${isFront ? 'overflow-visible' : 'pointer-events-none overflow-hidden'}`}
       style={{
         position: 'absolute',
         left: 0,
