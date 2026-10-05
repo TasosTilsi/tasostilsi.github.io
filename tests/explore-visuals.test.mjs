@@ -1427,3 +1427,129 @@ test('traceability: phase-10 projects-stack surfaces cite REV-18/REV-20, never p
     'the EXPLORE-10 invariant test title must cite the phase-10 id (REV-18), not phase 11 REV-21',
   );
 });
+
+// ---------------------------------------------------------------------------
+// Phase 13 (REV-24) — the About avatar removal, and the data's survival
+// ---------------------------------------------------------------------------
+
+test('REV-24 avatar removal: the About panel renders no image and no initials chip', () => {
+  const aboutSrc = read('src/components/explore/sections/about-section.tsx');
+
+  // Each absence gets its own named message so a partial removal fails by name.
+  assert.equal(
+    (aboutSrc.match(/<img/g) || []).length,
+    0,
+    'no <img> element survives in the About panel (the removed avatar was its only one)',
+  );
+  assert.equal(
+    (aboutSrc.match(/Portrait of/g) || []).length,
+    0,
+    'no "Portrait of" alt text survives — the img block goes with its alt',
+  );
+  assert.equal(
+    (aboutSrc.match(/initials/gi) || []).length,
+    0,
+    'no "initials" chip substitutes for the image — the locked wording is "nothing goes in there"',
+  );
+  // Comments are load-bearing in this repo's greps: Task 3 renews ALL FIVE
+  // doc-comment sites that name the retired block, so zero is the post-removal
+  // truth and the prose matches the DOM.
+  assert.equal(
+    (aboutSrc.match(/avatar/gi) || []).length,
+    0,
+    'no "avatar" survives anywhere in the file — the element, its conditional and every doc-comment mention',
+  );
+  // Scope the consumption check to JSX EXPRESSIONS, never the bare field name:
+  // the file keeps exactly ONE prose sentence recording that
+  // about.profileImageUrl stays in the JSON and the .d.ts unconsumed, and the
+  // head-metadata consumers keep the field live repo-wide.
+  assert.ok(
+    !/\{about\.profileImageUrl/.test(aboutSrc),
+    'no JSX expression consumes about.profileImageUrl in the About panel',
+  );
+  assert.ok(
+    !aboutSrc.includes('src={about.profileImageUrl}'),
+    'no element binds the image field as its src',
+  );
+
+  // The reflow compensation — asserted BY SHAPE (two exact class strings), not
+  // by a `grep -c` floor: `mt-3 ` already matches 4 unrelated lines today (the
+  // doc-comment rhythm notes and the meta row), none of them the summary.
+  assert.ok(
+    aboutSrc.includes("'mt-3 text-xs leading-relaxed text-muted-foreground'"),
+    "REV-24 reflow: the summary's hasPositioning branch carries mt-3 (exact class string) — the avatar was the only separator above it",
+  );
+  assert.ok(
+    aboutSrc.includes("'mt-3 text-sm leading-relaxed text-foreground'"),
+    "REV-24 reflow: the summary's pre-phase-prominence branch carries the same mt-3 (exact class string)",
+  );
+
+  // The untouched neighbours.
+  assert.ok(aboutSrc.includes('min-h-[44px]'), 'ROW_CLASS keeps the 44px touch rail');
+  assert.ok(
+    (aboutSrc.match(/exp-nudge/g) || []).length >= 2,
+    'both exp-nudge hooks survive (the channel icons + the resume ArrowRight)',
+  );
+  assert.ok(
+    (aboutSrc.match(/group-focus-visible:underline/g) || []).length >= 2,
+    'both group-focus-visible:underline pairs survive (M5 keyboard parity)',
+  );
+  assert.equal(
+    (aboutSrc.match(/use client/g) || []).length,
+    0,
+    'the panel stays a server component — no client directive compensates the removal',
+  );
+  // The resume link is still the LAST interactive element: in source order it
+  // follows the whole contact-row loop, whose last href binding is `href={value}`.
+  const lastContactHref = aboutSrc.lastIndexOf('href={value}');
+  const resumeHref = aboutSrc.indexOf('href="/resume"');
+  assert.ok(lastContactHref > -1, 'the contact rows still bind their href from the data value');
+  assert.ok(resumeHref > -1, 'the Full resume link is still rendered');
+  assert.ok(
+    resumeHref > lastContactHref,
+    'the resume link stays LAST — source-ordered after every contact-row href',
+  );
+});
+
+test('REV-24/REV-25: the retired data fields survive unconsumed — nothing is deleted from the JSON', () => {
+  // WHY this is scoped, and not a repo-wide "gone" grep: about.profileImageUrl
+  // remains legitimately consumed as HEAD METADATA (not UI) at
+  // src/app/layout.tsx:42 (og:image), src/app/layout.tsx:77 (JSON-LD `image`)
+  // and src/app/(home)/layout.tsx:84 (og:image). Those consumers are out of
+  // this phase's scope and stay, so a repo-wide absence assertion would be a
+  // permanent false-red (UI-SPEC §3.3d).
+  assert.equal(
+    data.about.profileImageUrl,
+    'https://tinyurl.com/5cfm72u7',
+    'about.profileImageUrl stays byte-identical in the JSON — its last UI consumer goes, the field does not',
+  );
+  assert.equal(
+    data.meta.viewport,
+    'width=device-width, initial-scale=1, shrink-to-fit=no',
+    'meta.viewport stays byte-identical in the JSON (tests/portfolio-data-integrity.test.mjs:237-239 keeps pinning it) — only its render site retires',
+  );
+});
+
+test('REV-24 export: the built About panel carries no avatar image and no portrait alt', () => {
+  assert.ok(existsSync(exportHtmlPath), 'out/index.html missing — run `npm run build` first');
+  const html = readExport();
+  // The avatar's id is DERIVED from the data, never restated: the export
+  // legitimately carries the URL ~8x as head metadata (og:image, twitter:image,
+  // the JSON-LD `image`, plus their RSC flight-payload copies), so the check is
+  // scoped to the <img> ELEMENT. It is NOT a ban on the bare "tinyurl" substring
+  // either — the Credentials panel renders article links whose hrefs are
+  // tinyurl.com URLs straight from the JSON.
+  const avatarId = data.about.profileImageUrl.split('/').pop();
+  const imgTags = html.match(/<img\b[^>]*>/g) || [];
+  const avatarImgs = imgTags.filter((tag) => tag.includes(avatarId));
+  assert.equal(
+    avatarImgs.length,
+    0,
+    `no <img> carries the retired avatar source (id derived from the JSON: ${avatarId}) — found ${avatarImgs.length}`,
+  );
+  assert.equal(
+    (html.match(/Portrait of/g) || []).length,
+    0,
+    'the avatar alt text renders nowhere in the built export',
+  );
+});

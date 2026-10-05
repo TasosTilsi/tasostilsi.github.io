@@ -161,6 +161,32 @@ test('row 3 (P): landing does not inherit the CLI h-screen wrapper (UI-SPEC §2.
     'the landing layout pins the route-scoped document lock (html, body { height: 100%; overflow: hidden; }) — the WINDOW never scrolls',
   );
 
+  // Phase 13 (REV-25b) — the lock RECONCILIATION. The pinned regex above stays
+  // byte-unchanged: `[^}]*` spans the inserted line, so `height: 100%` must keep
+  // its position FIRST. The added dynamic height is load-bearing, not polish:
+  // body is `flex flex-col h-full` and the shell is `h-dvh`, so with a static
+  // height the shell is a flex-shrink:1 item that can never grow into the space
+  // a retracted URL bar frees — exactly the strip below the footer the user
+  // reported. Making document height = body height = shell height kills it.
+  // ORDER IS THE CONTRACT: reordering reddens this row AND the twin pin in
+  // tests/projects-stack.test.mjs (locate it by its message: "the landing layout
+  // pins html, body { height: 100%; overflow: hidden; } — kills the WINDOW
+  // scrollbar").
+  const pctIdx = landing.indexOf('height: 100%;');
+  const dvhIdx = landing.indexOf('height: 100dvh;');
+  const lockedOverflowIdx = landing.indexOf('overflow: hidden;');
+  assert.ok(pctIdx > -1, 'the landing lock keeps height: 100% (the static fallback)');
+  assert.ok(
+    dvhIdx > -1,
+    'REV-25b: the landing lock gains height: 100dvh — document/body height tracks the dynamic viewport exactly like the shell',
+  );
+  assert.ok(lockedOverflowIdx > -1, 'the landing lock keeps overflow: hidden (the rubber-band guard)');
+  assert.ok(pctIdx < dvhIdx, 'height: 100% stays FIRST — fallback + the pinned-regex source order');
+  assert.ok(
+    dvhIdx < lockedOverflowIdx,
+    'height: 100dvh sits BETWEEN the two pinned declarations — same selector block, so one rule still governs both elements',
+  );
+
   for (const [path, keeps, why] of [
     ['src/app/cli/layout.tsx', 'h-screen', 'the CLI keeps its own h-screen overflow-hidden shell'],
     ['src/app/resume/page.tsx', 'min-h-screen', 'resume scrolls as a document BY DESIGN'],
@@ -217,6 +243,42 @@ test('row 4 (P): before-paint theme script is route-scoped to the landing and NO
   assert.ok(rootLayout.includes('application/ld+json'), 'JSON-LD preserved');
   assert.ok(rootLayout.includes('"url": "https://tasostilsi.github.io/"'), 'Person schema URL preserved');
   assert.ok(rootLayout.includes('viewport'), 'the viewport export stays in the root layout');
+
+  // Phase 13 (REV-25a) — the typed export becomes the document's SINGLE viewport
+  // declaration. Each half gets its own named assertion so a partial edit fails
+  // BY NAME rather than through an aggregate.
+  assert.ok(
+    rootLayout.includes("viewportFit: 'cover'"),
+    "REV-25a: the typed viewport export declares viewportFit: 'cover' — env(safe-area-inset-*) resolves to 0px without it, so the meta and the CSS pack are inert apart",
+  );
+  assert.ok(
+    rootLayout.includes("width: 'device-width'"),
+    "REV-25a: the typed export re-declares width: 'device-width' (migrated off the retiring data line)",
+  );
+  assert.ok(
+    rootLayout.includes('initialScale: 1'),
+    'REV-25a: the typed export re-declares initialScale: 1 (migrated off the retiring data line)',
+  );
+  assert.ok(
+    !rootLayout.includes('maximumScale') && !rootLayout.includes('userScalable'),
+    'REV-25a: never maximumScale / userScalable — pinch-zoom and browser zoom stay available (locked constraint)',
+  );
+  assert.ok(
+    rootLayout.includes("themeColor: ["),
+    'REV-25a: the two-entry prefers-color-scheme themeColor array survives the migration',
+  );
+  // Assert the EXACT expression, never the bare word `viewport` — the word
+  // legitimately appears in the export name and in the retained assertion above.
+  assert.ok(
+    !rootLayout.includes('portfolioData.meta.viewport'),
+    'REV-25a: the data-rendered <meta name="viewport"> line retires from the root layout — exactly ONE viewport tag is emitted',
+  );
+  // Belt and braces: the retirement claim is about the DOCUMENT, not one file.
+  const landingLayout = read('src/app/(home)/layout.tsx');
+  assert.ok(
+    !landingLayout.includes('meta.viewport'),
+    'REV-25a: the landing layout renders no meta.viewport either — no second declaration path survives in any layout',
+  );
 });
 
 // ---------------------------------------------------------------------------
@@ -530,4 +592,173 @@ test('row 14 (P): zero new dependencies — 39 keys, no recharts (SPEC constrain
     'dependency count pinned at 39 (tests/explore-routing.test.mjs:198-203, tests/explore-sweep.test.mjs:261-266)',
   );
   assert.equal(pkg.dependencies.recharts, undefined, 'recharts must not return');
+});
+
+// ---------------------------------------------------------------------------
+// Row 15 — the mobile-native platform pack (REV-25b)
+// ---------------------------------------------------------------------------
+
+test('REV-25b: the platform pack is appended AFTER the reduced-motion guard and adds no second suppressor', () => {
+  const css = read('src/app/globals.css');
+
+  // (i) PLACEMENT — index-based, not visual. The "motion region" runs from
+  // @keyframes explore-panel-in to the FIRST reduced-motion query, and every
+  // opening-brace line inside it must carry .explore-shell
+  // (tests/explore-visuals.test.mjs:471-477). The pack needs a
+  // `@media (min-width: 640px)` selector line, which carries no .explore-shell
+  // → placed inside that span it reddens both motion-region rows. It must
+  // therefore be appended at the true file tail.
+  const guardIdx = css.indexOf('@media (prefers-reduced-motion: reduce)');
+  const packIdx = css.indexOf('-webkit-tap-highlight-color');
+  assert.ok(guardIdx > -1, 'the reduced-motion guard exists (the file tail today)');
+  assert.ok(
+    packIdx > -1,
+    'REV-25b: the platform pack exists — its first marker is the inherited tap-highlight reset',
+  );
+  assert.ok(
+    packIdx > guardIdx,
+    'REV-25b: the pack is appended AFTER the reduced-motion guard — before it, the pack\'s @media (min-width: 640px) line breaks the motion-region scoping row (tests/explore-visuals.test.mjs:471-477)',
+  );
+  assert.equal(
+    (css.match(/@media \(prefers-reduced-motion: reduce\)/g) || []).length,
+    1,
+    'REV-25b: exactly ONE reduced-motion query in the file (tests/credentials-panel.test.mjs:373) — the pack smuggles in no second suppressor',
+  );
+
+  // (ii) The pack's declarations — each named on its own.
+  assert.match(
+    css,
+    /html:has\(\.explore-shell\)\s*\{[^}]*?-webkit-tap-highlight-color:\s*transparent;/s,
+    'REV-25b: -webkit-tap-highlight-color: transparent on html:has(.explore-shell) — inherited, so one declaration kills the grey tap flash shell-wide including the portaled drawer',
+  );
+  assert.match(
+    css,
+    /html:has\(\.explore-shell\),\s*\nbody:has\(\.explore-shell\)\s*\{[^}]*?overscroll-behavior:\s*none;/s,
+    'REV-25b: overscroll-behavior: none under BOTH html:has(.explore-shell) and body:has(.explore-shell) — the html rule is the load-bearing one (overscroll-behavior is not inherited; it propagates to the viewport from the ROOT only)',
+  );
+  assert.match(
+    css,
+    /\.explore-shell button,\s*\n\.explore-shell \[role='button'\],\s*\n\.explore-shell a\s*\{[^}]*?touch-action:\s*manipulation;/s,
+    "REV-25b: touch-action: manipulation on the three control selectors — drops the legacy double-tap delay, pinch-zoom unaffected",
+  );
+  assert.match(
+    css,
+    /\.explore-shell \[data-projects-swipe-stage\]\s*\{[^}]*?touch-action:\s*pan-y;/s,
+    'REV-25b: touch-action: pan-y on the drag stage (the hook plan 02 added) — the drag owns horizontal while vertical page scroll survives',
+  );
+  assert.equal(
+    (css.match(/touch-action:\s*none/g) || []).length,
+    0,
+    'REV-25b: touch-action: none appears NOWHERE — it kills vertical scroll (the "carousel scrolls the wrong way" symptom)',
+  );
+
+  // (iii) The safe-area bands are PINNED TO THEIR SOURCES, derived — never
+  // restated as bare literals. Both component files stay byte-identical this
+  // phase (the untouched claim), so nothing else pairs the pack's bands with
+  // the bars they compensate; deriving them here makes the duplication
+  // self-checking: a bar-height change reddens instead of letting the notch
+  // padding silently miscalculate.
+  //
+  // The regexes run against each element's OWN className line. The header file
+  // carries BOTH h-[52px] and h-[44px] on an earlier doc-comment line, so a
+  // file-level first match would mask a real change to the bar itself — the
+  // exact failure this derivation exists to catch.
+  const headerSrc = read('src/components/explore/explore-header.tsx');
+  const footerSrc = read('src/components/explore/explore-status-bar.tsx');
+  const headerLine = headerSrc.split('\n').find((l) => l.includes('<header className='));
+  const footerLine = footerSrc.split('\n').find((l) => l.includes('<footer className='));
+  assert.ok(headerLine, 'the header element line exists — the top band\'s source');
+  assert.ok(footerLine, 'the footer element line exists — the bottom band\'s source');
+  const headerPx = Number(headerLine.match(/h-\[(\d+)px\]/)[1]);
+  const baseUnits = Number(footerLine.match(/\bh-(\d+)\b/)[1]);
+  const smUnits = Number(footerLine.match(/\bsm:h-(\d+)\b/)[1]);
+  const headerRem = headerPx * 0.25; // Tailwind's 0.25rem spacing scale, for reference only
+  const baseRem = baseUnits * 0.25;
+  const smRem = smUnits * 0.25;
+  assert.ok(
+    headerPx > 0 && baseUnits > 0 && smUnits > 0,
+    `the derived bands parse: header ${headerPx}px (${headerRem}rem), footer base ${baseRem}rem / sm ${smRem}rem`,
+  );
+  assert.ok(
+    css.includes(`height: calc(${headerPx}px + env(safe-area-inset-top, 0px));`),
+    `REV-25b: the header's content band is preserved — height: calc(${headerPx}px + env(safe-area-inset-top, 0px)), derived from the header element's h-[${headerPx}px]`,
+  );
+  assert.ok(
+    css.includes(`height: calc(${baseRem}rem + env(safe-area-inset-bottom, 0px));`),
+    `REV-25b: the footer's base band — height: calc(${baseRem}rem + env(safe-area-inset-bottom, 0px)), derived from the footer element's h-${baseUnits}`,
+  );
+  assert.ok(
+    css.includes(`height: calc(${smRem}rem + env(safe-area-inset-bottom, 0px));`),
+    `REV-25b: the footer's ≥640px override — height: calc(${smRem}rem + env(safe-area-inset-bottom, 0px)), derived from the footer element's sm:h-${smUnits}`,
+  );
+  assert.ok(
+    css.includes('padding-top: env(safe-area-inset-top, 0px);'),
+    'REV-25b: the header paints the top inset as padding — the notch strip is filled by the bar\'s own background',
+  );
+  assert.ok(
+    css.includes('padding-bottom: env(safe-area-inset-bottom, 0px);'),
+    'REV-25b: the footer paints the bottom inset as padding',
+  );
+  // The height compensation is REQUIRED, not decoration: Tailwind preflight sets
+  // box-sizing: border-box, so a bare height plus a 47px inset would leave ~0px
+  // for the 44px controls. One declaration per LINE is what these counts measure.
+  assert.equal(
+    (css.match(/env\(safe-area-inset-top, 0px\)/g) || []).length,
+    2,
+    'REV-25b: exactly TWO top-inset declaration lines (padding + height compensation)',
+  );
+  assert.equal(
+    (css.match(/env\(safe-area-inset-bottom, 0px\)/g) || []).length,
+    3,
+    'REV-25b: exactly THREE bottom-inset declaration lines (padding + base height + the ≥640px override)',
+  );
+  assert.match(
+    css,
+    /@media \(min-width: 640px\)\s*\{[\s\S]*?\.explore-shell > footer\s*\{[^}]*?height:\s*calc\([^)]*?env\(safe-area-inset-bottom, 0px\)\);/,
+    'REV-25b: the ≥640px footer-band override lives in its own media block (the root-font switch at 640px inclusive is what it tracks)',
+  );
+
+  // (iv) The pack never reaches out of the landing.
+  const packRegion = css.slice(packIdx);
+  assert.ok(
+    !/\.cli\b|resume/.test(packRegion),
+    'REV-25b: no rule in the pack targets a /cli- or /resume-only surface — the pack is route-scoped to the landing, and both sibling routes stay byte-unchanged',
+  );
+});
+
+// ---------------------------------------------------------------------------
+// Row 16 — the EMITTED viewport declaration (REV-25a's real falsifier)
+// ---------------------------------------------------------------------------
+
+test('REV-25a (E): the built landing declares exactly ONE viewport meta — the fit declared, the legacy directives gone', () => {
+  const html = readExport('out/index.html');
+
+  // NEVER a `grep -c` LINE count here: out/index.html carries the whole head on
+  // one line, so a line count reads 1 whether there is one viewport tag or two
+  // (it reads 1 on today's TWO-tag export — a vacuous row). Count OCCURRENCES.
+  assert.equal(
+    (html.match(/<meta name="viewport"/g) || []).length,
+    1,
+    'exactly ONE <meta name="viewport"> is emitted — the data-rendered `meta.viewport` line must retire; the phone otherwise runs on an undefined multi-tag tie-break',
+  );
+  assert.equal(
+    (html.match(/viewport-fit=cover/g) || []).length,
+    1,
+    'the single emitted viewport carries viewport-fit=cover — without it env(safe-area-inset-*) resolves to 0px and the CSS pack is inert',
+  );
+  assert.equal(
+    (html.match(/shrink-to-fit/g) || []).length,
+    0,
+    'shrink-to-fit is gone (a legacy iOS directive with no modern effect — its absence is the intent, not an accident)',
+  );
+  assert.equal(
+    (html.match(/user-scalable|maximum-scale/g) || []).length,
+    0,
+    'never user-scalable / maximum-scale — pinch-zoom and browser zoom stay available (locked constraint)',
+  );
+  assert.equal(
+    (html.match(/<meta name="theme-color"/g) || []).length,
+    2,
+    'the two prefers-color-scheme themeColor entries survive the migration byte-identical',
+  );
 });
