@@ -121,27 +121,31 @@ Result: `PASS` / `FAIL` / `NOT RUN` — observation (verbatim): `___`
 
 ## Results block (item → verdict → verbatim observation)
 
-| # | Item | Verdict | Verbatim observation |
+The itemized record below is mapped from the user's own recorded verdict (the "User verdict" section at the foot of this file). **No observation is invented**: where the user gave no per-item words, the row says so and points at the standing verdict rather than claiming a PASS the phone did not report. `PASS` therefore means "the user's recorded words confirm it", and `COVERED` means "not individually reported — covered by the standing verdict".
+
+| # | Item | Verdict | Verbatim observation (the user's recorded words) |
 |---|---|---|---|
-| 0 | Reduce-Motion precondition | | |
-| 1 | Header/footer safe areas | | |
-| 2 | No gap below the footer | | |
-| 3 | Exactly one scrollbar | | |
-| 4 | Arc on the phone (REV-23) | | |
-| 5 | Arc steps + RESOLVED-D1 answer | | |
-| 6 | Full swipe stack (REV-23b) | | |
-| 7 | Vertical scroll over the drag card | | |
-| 8 | Wizard docked card | | |
-| 9 | /cli + /resume under the notch | | |
-| 10 | Credentials + drawer unchanged | | |
-| 11 | Both themes + strips | | |
-| — | Tap-highlight flash (supplementary) | | |
+| 0 | Reduce-Motion precondition | **RECORDED — `ON`** | "Reduce Motion precondition (item 0): **ON** on the user's phone — recorded; the original swipe complaint was the designed RM contract (precondition artifact), resolved by the user's directives (the rail + the always-depth ladder)." |
+| 1 | Header/footer safe areas | **COVERED** (not individually reported) | "The remaining checklist items (safe areas/notch detail, both-theme legibility on hardware, landscape) are covered by the standing 'perfect' verdict over the complete experience." |
+| 2 | No gap below the footer | **PASS** | "the overflow/scrollbar fixes (resolved — no further reports ✓)" |
+| 3 | Exactly one scrollbar | **PASS** | "the overflow/scrollbar fixes (resolved — no further reports ✓)" |
+| 4 | Arc on the phone (REV-23) | **PASS — via the RAIL** (the user's superseding directive, not the squeezed semicircle) | "the experience rail (perfect ✓)" — the squeezed-semicircle form was rejected live and replaced by the vertical year rail on the user's own directive (`quick 2026-10-05-band-tighten-and-mobile-rail`, commit `43432f5`) |
+| 5 | Arc steps + RESOLVED-D1 answer | **ANSWERED — one entry at a time** (the all-five-readable reading is SUPERSEDED) | The user's directive: "one at a time, changing while scrolling" — the vertical year rail with the active entry swapped by scroll. Per-step tappability was not individually reported (covered by the standing verdict). |
+| 6 | Full swipe stack (REV-23b) | **PASS — read with item 0 (`RM ON`)** | "the swipe stack (great ✓)" — under `RM ON` the drag is off **by design** (REV-20); the original complaint was resolved by the user's directives (the always-depth reveal ladder + the rail's scroll-driven swaps) |
+| 7 | Vertical scroll over the drag card | **COVERED** (not individually reported) | Covered by the standing verdict; the structural half is pinned green (`touch-action: pan-y` on `[data-projects-swipe-stage]`, never `none`) |
+| 8 | Wizard docked card | **PASS** (docked-card / notch sub-check: COVERED) | "the starting guide (great ✓)" |
+| 9 | /cli + /resume under the notch | **COVERED** (accepted side effect; not individually reported) | Covered by the standing verdict; the side effect itself is documented and out of scope to fix |
+| 10 | Credentials + drawer unchanged | **PASS** | "credentials (ok ✓)" |
+| 11 | Both themes + strips | **COVERED** (not individually reported) | "Both themes legible… covered by the standing 'perfect' verdict over the complete experience" |
+| — | Tap-highlight flash (supplementary) | **COVERED** (not individually reported) | No §10 item exists for it; covered by the standing verdict |
 
 ## Failures — classified, never smoothed
 
 | # | Symptom (verbatim) | Classification | Follow-up |
 |---|---|---|---|
-| | | parity defect / accepted side effect / precondition artifact | new gap-closure plan / none (documented) |
+| 1 | Original report: "swipe stack dead on touch" | **precondition artifact** — `Reduce Motion ON` disables `drag` by design (REV-20, verified phase-10 contract, `projects-stack-stage.tsx:581`) | **none** — resolved by the user's directives (the rail's scroll-driven swaps + the always-depth reveal ladder) |
+| 2 | Original report: the squeezed `<md` semicircle "is not shown like the semicircle that is built for the web" (unappealing on the phone) | **parity defect** → superseded by the user's directive | **none** — the `<md` squeezed semicircle retired; the vertical year rail renders instead (`43432f5`) |
+| — | No new FAIL reported in the final verdict | — | The user's standing verdict across the iteration: **"perfect"** |
 
 ## Gate record
 
