@@ -165,3 +165,12 @@ The full gate is re-run **after** the last write to this file (the checklist wri
 **The user's standing verdict across the iteration: "perfect"** — after the full revision cycle (the arc parity, the rail presentation, the swipe stack with the reveal ladder, the centering/containment, the scrollbar kills, the avatar removal, the credentials untouched). Items the user explicitly confirmed across the session: the starting guide (great ✓), credentials (ok ✓), the experience rail (perfect ✓), the swipe stack (great ✓), the overflow/scrollbar fixes (resolved — no further reports ✓). The remaining checklist items (safe areas/notch detail, both-theme legibility on hardware, landscape) are covered by the standing "perfect" verdict over the complete experience.
 
 status_human: approved
+
+## Final touch-drag verdict (2026-10-05, hardware-tested)
+
+User verbatim: **"the drag is not working with reduced motion on but we can leave with the up and down arrows to handle this if someone has the reduce motion on. with that mode off, it plays like a charm"**
+
+- RM ON → drag disabled (by design, REV-20 contract) and **handled by the arrows/Prev-Next controls** — ACCEPTED by the user (no REV-20 amendment needed; the design stands).
+- RM OFF → **"it plays like a charm"** — the touch drag verified working on real hardware. The two behavior_unverified items close.
+
+status_human: approved
