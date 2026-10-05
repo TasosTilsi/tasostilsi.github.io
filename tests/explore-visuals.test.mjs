@@ -235,8 +235,9 @@ test('cross-cutting: motion — never isAnimationActive={true} under explore; ma
     );
   }
   // The interaction hook reads exactly the two pinned queries: the
-  // reduced-motion mode (E-13 — fresh per derivation pass) and the md gate
-  // (§8 B-1 — with a change listener).
+  // reduced-motion mode (E-13 — fresh per derivation pass) and the md query,
+  // which since phase 13 (REV-23) owns LAYER OWNERSHIP + the step-mode
+  // handoff — NOT arc visibility (the arc renders at every width).
   const hook = codeOf('src/components/explore/use-timeline-progress.ts');
   assert.ok(
     hook.includes("matchMedia('(prefers-reduced-motion: reduce)')"),
@@ -244,7 +245,15 @@ test('cross-cutting: motion — never isAnimationActive={true} under explore; ma
   );
   assert.ok(
     hook.includes("matchMedia('(min-width: 768px)')"),
-    'use-timeline-progress reads the md breakpoint query (§8 B-1 gate)',
+    'use-timeline-progress reads the md query — layer ownership + the <md step-mode handoff (REV-23: no longer an arc-visibility gate)',
+  );
+  assert.ok(
+    !hook.includes('if (!mdMedia.matches) return;'),
+    'the md query never returns early from derive() — the arc and its markers render at every width (REV-23)',
+  );
+  assert.ok(
+    !hook.includes("matchMedia('(min-width: 768px)').matches) return"),
+    'no width-sniffed early return survives in the hook (REV-23: goToRole and handleKeyDown step at every width)',
   );
 });
 
@@ -885,19 +894,191 @@ test('EXPLORE-08 invariant (E-13): exactly ONE raw prefers-reduced-motion read, 
   );
 });
 
-test('EXPLORE-08 invariant (§8 B-1): the md gate is a media query WITH its change listener — added and removed', () => {
+test('EXPLORE-08 invariant (§8 B-1): the md query is a media query WITH its change listener — added and removed', () => {
   const hook = stageHook();
   assert.ok(
     hook.includes("matchMedia('(min-width: 768px)')"),
-    "the md gate query matchMedia('(min-width: 768px)') is greppable (§8 B-1: dormant below md, computeProgress never runs)",
+    "the md query matchMedia('(min-width: 768px)') is greppable (REV-23: it owns layer ownership + the <md step-mode handoff — the arc is no longer dormant below md)",
   );
   assert.ok(
     hook.includes("addEventListener('change'"),
-    'the md gate carries its change listener (compact ↔ stage visibility handoff, B-1)',
+    'the md query carries its change listener (layer-ownership + step-mode handoff, B-1/REV-23)',
   );
   assert.ok(
     hook.includes("removeEventListener('change'"),
     'the md change listener is removed on cleanup (E-7)',
+  );
+});
+
+test('REV-23 arc parity: the <md gate is retired — no hidden md:flex, base arc box + base container mode', () => {
+  const exp = stageBody();
+  assert.ok(
+    !exp.includes('hidden md:flex'),
+    'the arc-zone gate `hidden md:flex` is retired — the semicircle renders at every width (REV-23/D-01)',
+  );
+  assert.ok(
+    exp.includes('flex flex-col gap-4 md:grid'),
+    'the container carries its base display mode (flex flex-col gap-4) beside the md grid — the inherited gap-4 is inert without it',
+  );
+  assert.ok(
+    exp.includes('relative h-[200px]'),
+    'the arc zone carries its base 200px box (the pinned safe band 180-220, UI-SPEC §8 UNRESOLVED-D5)',
+  );
+  assert.ok(
+    exp.includes('md:h-auto md:flex-1'),
+    'the arc zone grows into the md grid column instead of keeping the fixed base box (an unprefixed flex-1 would stretch it past 200px at <md and break the label arithmetic)',
+  );
+  // Invariants the retirement must NOT break.
+  assert.ok(exp.includes('M 100 0 A 100 100 0 0 0 100 200'), 'the arc path survives the retirement');
+  assert.ok(exp.includes('viewBox="0 0 100 200"'), 'the arc viewBox survives');
+  assert.ok(exp.includes('preserveAspectRatio="xMidYMid meet"'), 'the meet-mapping survives');
+  assert.ok(exp.includes('data-timeline-arc-zone'), 'the measured arc-zone hook survives');
+  assert.equal(
+    (exp.match(/data-timeline-dot/g) || []).length,
+    1,
+    'exactly ONE dot template in this SOURCE file — it sits inside the single entries.map that renders five; the 5/5 count is an EXPORT fact owned by tests/explore-sweep.test.mjs E-9 (asserting 5 here would be a permanently-red row)',
+  );
+  assert.equal(
+    (exp.match(/data-timeline-label/g) || []).length,
+    1,
+    'exactly ONE label template in this SOURCE file — same map, same reason',
+  );
+  assert.ok(
+    exp.includes('whitespace-nowrap'),
+    'the marker labels stay nowrap — the measured fit predicate is the overflow guard (REV-23)',
+  );
+  assert.ok(exp.includes('md:hidden'), 'the md:hidden year chip survives — still a single DOM, no second subtree');
+  assert.ok(
+    exp.includes('aria-label="Previous role"') && exp.includes('aria-label="Next role"'),
+    'both controls render at every width — the accessible non-scroll alternative at <md (REV-23)',
+  );
+});
+
+test('REV-23 hook gate: the marker derivation is width-agnostic, the layer loop is md-only, clearLayerStyles is the <md readable-stack mechanism', () => {
+  const hook = stageHook();
+  assert.ok(
+    !hook.includes('if (!mdMedia.matches) return;'),
+    'the marker derivation is width-agnostic — the <md dormancy return is retired so markers position at every width (REV-23)',
+  );
+  assert.ok(
+    !hook.includes("matchMedia('(min-width: 768px)').matches) return"),
+    'no width-sniffed early return survives the whole file — goToRole and handleKeyDown step at every width (REV-23)',
+  );
+  // The LAYER-ownership loop is the ONE md gate left. Without it, an ungated
+  // pass at <md writes contentLayer(i, 0).visible = |i| < 1 onto entries 2-5
+  // and FOUR of the five CV entries vanish on every phone.
+  assert.match(
+    hook,
+    /if\s*\(mdMedia\.matches\)\s*\{\s*\n\s*for \(let i = 0; i < roleCount && i < layers\.length/,
+    'the layer write loop sits behind `if (mdMedia.matches) {` — layer ownership is md-only (REV-23)',
+  );
+  assert.ok(
+    hook.split('clearLayerStyles').length - 1 >= 3,
+    'clearLayerStyles is still defined and still called from BOTH the mount else-branch and the compact onMdChange branch — the <md readable-stack mechanism',
+  );
+  // The retired compact marker-clear loop is gone: exactly TWO
+  // `[...dots, ...labels]` loops survive, both inside revealMarkers (the arming
+  // write + the clearing write). The third was onMdChange's compact clear, so
+  // 2 is the post-retirement truth — `>= 1` could never detect a stale clear.
+  assert.equal(
+    (hook.match(/for \(const el of \[\.\.\.dots, \.\.\.labels\]\) \{/g) || []).length,
+    2,
+    'only the two revealMarkers writes survive (the retired onMdChange marker clear was the third)',
+  );
+  // A global count cannot say WHICH loop went, so prove the retirement by
+  // slicing the compact branch itself.
+  const start = hook.indexOf('const onMdChange = () => {');
+  const end = hook.indexOf('const observer = new ResizeObserver');
+  assert.ok(start > -1 && end > start, 'the onMdChange branch is locatable in the hook source');
+  const branch = hook.slice(start, end);
+  assert.ok(branch.includes('setStageActive(false)'), 'the compact branch still flips the stage off — all layers readable');
+  assert.ok(branch.includes('clearLayerStyles()'), 'the compact branch still clears the SSR inline layer styles');
+  assert.ok(
+    branch.includes('geometryDirty = true'),
+    'the compact branch re-derives — it no longer dumps every marker untransformed at the arc origin',
+  );
+  assert.ok(branch.includes('schedule()'), 'the compact branch re-schedules the derivation (the <md step-mode handoff)');
+  assert.ok(
+    !branch.includes("el.style.opacity = ''"),
+    'the retired marker-clear loop is gone — no onMdChange branch clears dot/label styles (REV-23)',
+  );
+});
+
+test('REV-23 discrete step: the derive path cannot stomp the stepped index below md', () => {
+  const hook = stageHook();
+  const start = hook.indexOf('const derive = () => {');
+  const end = hook.indexOf('const schedule = () => {');
+  assert.ok(start > -1 && end > start, 'the derive() body is locatable in the hook source');
+  const derive = hook.slice(start, end);
+  assert.match(
+    derive,
+    /if \(mdMedia\.matches && active !== activeIndexRef\.current\) \{/,
+    'the derive path writes the active index ONLY at md+ — below md the stepped index owns it (REV-23 / UI-SPEC §8 RESOLVED-D1 pin 2: the ResizeObserver fires on the URL-bar collapse right after a tap, so an ungated write snaps the arc back to entry 0)',
+  );
+  const goStart = hook.indexOf('const goToRole = (index: number) => {');
+  const goEnd = hook.indexOf('const stepRole = (delta: number) => {');
+  assert.ok(goStart > -1 && goEnd > goStart, 'the goToRole body is locatable in the hook source');
+  const goToRole = hook.slice(goStart, goEnd);
+  assert.ok(
+    !goToRole.includes('(min-width: 768px)'),
+    'goToRole no longer carries a <md early return — a tap steps at every width (REV-23)',
+  );
+  assert.ok(
+    goToRole.includes('main.scrollTo({ top, behavior })'),
+    'the md scroll path survives verbatim — scrolling is still the md progress input (REV-23)',
+  );
+  assert.ok(
+    goToRole.indexOf('scheduleRef.current?.()') < goToRole.indexOf('main.scrollTo({ top, behavior })'),
+    "the <md branch returns before the md path — the md scrollTo is reached only at md+ (REV-23)",
+  );
+});
+
+test('REV-23 discrete step: the <md carousel index IS the stepped index, the marker loop is not md-gated, and the step re-derives', () => {
+  const hook = stageHook();
+  assert.match(
+    hook,
+    /const steppedIndexRef = useRef\(0\)/,
+    'the stepped index is hook-scope state (useRef(0)) — the <md carousel-index source',
+  );
+  assert.match(
+    hook,
+    /const c = mdMedia\.matches\s*\?\s*continuousIndex\(progress, roleCount\)\s*:\s*steppedIndexRef\.current/,
+    'the carousel index is BRANCHED, not bare: continuousIndex(progress) at md+, the stepped index at <md — the ONE derivation (UI-SPEC §3.1e)',
+  );
+  assert.ok(
+    !hook.includes('const c = continuousIndex(progress, roleCount);'),
+    'the un-branched index is gone — with range ≤ 0 below md it pins entry 0 at the focal point',
+  );
+  const cIdx = hook.indexOf('steppedIndexRef.current');
+  const gateIdx = hook.indexOf('if (mdMedia.matches) {', cIdx);
+  assert.ok(cIdx > -1 && gateIdx > cIdx, 'the layer gate is locatable AFTER the discrete-index derivation');
+  const markerLoop = hook.slice(cIdx, gateIdx);
+  assert.ok(markerLoop.length > 0, 'the slice between the derivation and the layer gate is non-empty');
+  assert.ok(
+    markerLoop.includes('dot.style.transform'),
+    'the marker write loop is NOT md-gated — it sits before the layer gate, so the markers position at every width',
+  );
+  assert.ok(markerLoop.includes('label.style.transform'), 'the label write loop is not md-gated either');
+  assert.ok(
+    hook.includes('scheduleRef.current = schedule'),
+    'the schedule bridge is assigned inside the mount effect — the step can re-run the imperative derivation',
+  );
+  assert.ok(
+    hook.includes('scheduleRef.current?.()'),
+    "goToRole's <md branch calls the bridge — without both, setActiveIndex re-renders classes but writes no transform and the focal marker never moves",
+  );
+  const goStart = hook.indexOf('const goToRole = (index: number) => {');
+  const goEnd = hook.indexOf('const stepRole = (delta: number) => {');
+  assert.ok(goStart > -1 && goEnd > goStart, 'the goToRole body is locatable in the hook source');
+  const goToRole = hook.slice(goStart, goEnd);
+  assert.ok(
+    goToRole.includes('steppedIndexRef.current = target'),
+    'the step writes the derivation INPUT, not just React state (REV-23)',
+  );
+  assert.ok(goToRole.includes('scrollIntoView'), 'the stepped-to entry is brought into view inside <main>');
+  assert.ok(
+    goToRole.includes("block: 'nearest'"),
+    "block: 'nearest' — the scroll must not yank the whole page (§3.1e)",
   );
 });
 

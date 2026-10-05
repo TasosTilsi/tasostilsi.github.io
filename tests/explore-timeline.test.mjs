@@ -26,6 +26,10 @@
  * a missing export fails the ENTIRE module load and would take every
  * retained phase-8 assertion down with it.
  *
+ * Phase 13 (REV-23) adds §14: the anchor-budget rows consume
+ * `geometry.labelAnchorBudget` through that SAME namespace handle — never a
+ * static import — and the boundary-sensitive predicate pair sits there too.
+ *
  * Runner: node --test tests/explore-timeline.test.mjs (no npm test script
  * exists — run directly).
  */
@@ -522,7 +526,101 @@ test('dateLineFits: 6px/char against innerWidth − 16 — the real 19-char Chub
 });
 
 // ---------------------------------------------------------------------------
-// 14. Edge hardening (Task 3) — E-1/E-2/E-4 edges and totality (UI-SPEC §12)
+// 14. REV-23 anchor budget — the px budget the date-line predicate consumes
+//     (phase 13). RED-first: `labelAnchorBudget` does not exist yet, so this
+//     row fails on the pre-phase-13 tree; it is consumed ONLY through the
+//     `geometry` namespace handle above (RED-locality, line 23).
+// ---------------------------------------------------------------------------
+
+/**
+ * CONVENTION — `labelAnchorBudget` returns the px budget a date line may
+ * occupy: the focal label anchor's x, `centerX − 0.88·R` (labels are placed
+ * by `markerPoint` at radius·0.88, the B-2 12-viewBox-unit inward inset, at
+ * the focal angle θ=180). On a height-limited box (radius = 100·s and
+ * centerX = W/2 + R/2) that is algebraically the same number as
+ * `W/2 − 0.38·R` — the budget the 19-char Chubb date line must fit inside.
+ * It takes the measured `ArcGeometry` and NOT a width because R is a
+ * function of both dimensions and is not recoverable from a width alone.
+ *
+ * The call site passes this budget and NOTHING ELSE: `dateLineFits` owns the
+ * 16px floor internally (asserted below), so re-subtracting it at the call
+ * site would double-count it.
+ *
+ * SUPERSEDES UI-SPEC §2.2's `1280 → shown` cell. The corrected ladder
+ * (§3.1d, 6px/char), per real duration:
+ *   • Chubb      (19ch → 114px) needs budget 130 — SHOWN from ~1250.
+ *     NOT 136: the 136 figure belongs to the 20-char Upstream duration
+ *     (120 + 16). Reading that cell back as Chubb's threshold is the
+ *     arithmetic trap this comment exists to prevent.
+ *   • Upstream   (20ch → 120px) needs 136 — SUPPRESSED at 1280 (budget
+ *     133.4), SHOWN at 1440 (budget 140).
+ *   • Netcompany (21ch → 126px) needs 142 — stays SUPPRESSED at 1440.
+ */
+test('REV-23 anchor budget: labelAnchorBudget is the px budget the date-line predicate consumes — 375 suppressed, 1440 shown, boundary-sensitive', () => {
+  // 375px reference box (UI-SPEC §2.1): the measured arc zone is 309×200 →
+  // viewBoxToPx yields s=1, offsetX=104.5, centerX=204.5, radius=100.
+  const narrow = geometry.viewBoxToPx({ width: 309, height: 200 });
+  approx(narrow.centerX, 204.5, 'premise: the 375px zone centers the viewBox circle at x=204.5');
+  approx(narrow.radius, 100, 'premise: the 375px radius is 100 (height-limited box)');
+  const narrowBudget = geometry.labelAnchorBudget(narrow);
+  assert.ok(
+    Math.abs(narrowBudget - 116.5) < 0.01,
+    `the 375px anchor budget is centerX − 0.88·R = W/2 − 0.38·R = 116.5 (got ${narrowBudget})`,
+  );
+
+  const chubb = data.experience.find((e) => e.company === 'Chubb').duration;
+  assert.equal(chubb.length, 19, 'premise: the Chubb duration is 19 chars → 114px');
+  assert.equal(
+    geometry.dateLineFits(chubb, narrowBudget),
+    false,
+    '375px verdict: 114 > 116.5 − 16 = 100.5 — the date line is SUPPRESSED',
+  );
+
+  // Wide-desktop end of the ladder: the UI-SPEC §2.2 1440px budget is 140 →
+  // 114 ≤ 124 — SHOWN. The desktop box (485.6×576 → R=288) is the 1280
+  // measurement: its budget 133.4 still shows Chubb (114 ≤ 117.4) and still
+  // suppresses the 20-char Upstream line (120 > 117.4).
+  assert.equal(geometry.dateLineFits(chubb, 140), true, '1440px verdict: 114 ≤ 124 — SHOWN');
+  const desktopBudget = geometry.labelAnchorBudget(
+    geometry.viewBoxToPx({ width: 485.6, height: 576 }),
+  );
+  assert.ok(
+    Math.abs(desktopBudget - 133.36) < 0.01,
+    `the desktop (1280) budget is 133.36 (got ${desktopBudget})`,
+  );
+  const upstream = data.experience.find((e) => e.company === 'Upstream Systems').duration;
+  assert.equal(upstream.length, 20, 'premise: the Upstream duration is 20 chars → 120px');
+  assert.equal(geometry.dateLineFits(chubb, desktopBudget), true, '1280: Chubb 114 ≤ 117.36 — SHOWN');
+  assert.equal(geometry.dateLineFits(upstream, desktopBudget), false, '1280: Upstream 120 > 117.36 — SUPPRESSED');
+
+  // BOUNDARY-SENSITIVE neighbours — the false-green killers (§3.1d). One half
+  // alone can be satisfied by an off-by-16, so BOTH are pinned: 18 chars =
+  // 108px just fits 130 − 16 = 114; 20 chars = 120px just fails it.
+  assert.equal(
+    geometry.dateLineFits('x'.repeat(18), 130),
+    true,
+    '108 ≤ 114 — a just-fits label must NOT be suppressed',
+  );
+  assert.equal(
+    geometry.dateLineFits('x'.repeat(20), 130),
+    false,
+    '120 > 114 — a just-fails label must be suppressed',
+  );
+
+  // Convention pin: `dateLineFits` keeps its signature and OWNS the 16px
+  // floor — exactly once, inside its own body.
+  assert.equal(geometry.dateLineFits('', 100), true, 'empty label → nothing to drop (retained totality row)');
+  const src = readFileSync(join(root, 'src/components/explore/timeline-geometry.ts'), 'utf8');
+  const body = src.slice(src.indexOf('export function dateLineFits'));
+  assert.equal(
+    (body.match(/-\s*16\b/g) || []).length,
+    1,
+    'dateLineFits owns the −16 floor exactly once — the call site never re-subtracts it',
+  );
+});
+
+// ---------------------------------------------------------------------------
+// 15. Edge hardening (Task 3) — E-1/E-2/E-4 edges and totality (UI-SPEC §12)
 // ---------------------------------------------------------------------------
 
 test('E-4 hyphen durations: the non-tech hyphen-U+002D strings parse a year via startYear yet stay excluded by the filter', () => {
