@@ -2,9 +2,9 @@
 gsd_state_version: 1
 milestone: v1.0
 milestone_name: "Explore Visual Landing"
-status: ui
+status: execute
 active_phase: 13
-next_action: ui-phase
+next_action: execute-phase
 next_phases: [13]
 progress:
   total_phases: 12
@@ -15,7 +15,7 @@ progress:
 current_phase: 13
 current_phase_name: mobile-parity-revision
 current_plan: 8
-last_updated: "2026-10-05T07:18:20.135Z"
+last_updated: "2026-10-05T08:00:42.607Z"
 state_head: null
 last_activity: 2026-10-05
 stopped_at: "Phase 12 shipped — PR #12"
@@ -100,6 +100,7 @@ _No active phase._
 - Milestone Explore Visual Landing: AUDIT.md written (status not-ready)
 - Phase 13: SPEC.md sealed (ambiguity UNAVAILABLE)
 - Phase 13: CONTEXT.md sealed — 7 decisions
+- Phase 13: planned — 4 plan(s) across 4 wave(s).
 
 ### Blockers / Concerns
 - Shipping decision (user, 2026-09-21): ship the milestone AS A WHOLE at milestone close — no per-phase PRs. phase-1 and phase-2 branches pushed to origin (backup only); gsd_ship deferred for both phases. phase-2 branch contains phase-1 commits (stacked).
