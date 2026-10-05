@@ -38,6 +38,12 @@ import {
   advanceFront,
   ringDepth,
   swipeAccepts,
+  levelsFor,
+  VISIBLE_BAND_PX,
+  LEAVE_EXTRA_PX,
+  DEPTH_LEVELS,
+  CARD_HEIGHT_MD,
+  CARD_HEIGHT_BASE,
   SWIPE_THRESHOLD,
   SWIPE_VELOCITY_THRESHOLD,
 } from '../src/components/explore/projects-card-state.ts';
@@ -284,6 +290,129 @@ test('projectVisualVariant: every returnable variant has a renderer in the stage
 });
 
 
+// ---------------------------------------------------------------------------
+// The reveal-ladder contract (2026-10-05; band amended 72 -> 44 the same day)
+//
+//   scale_l       = clamp(1 - 0.04 * l, 0.80, 1)      0.96/0.92/0.88/0.84/0.80
+//   translateY(l) = -(l * VISIBLE_BAND_PX + H_front * (1 - scale_l))
+//   yLeave(l)     =  translateY(l) - LEAVE_EXTRA_PX
+//
+// VISIBLE_BAND_PX is the user's density dial; the FORMULA above is the
+// contract. The tables below are the RECORDED derived rows (depth 0 is the
+// identity row). They are never copied into the module as literals: every row
+// is re-derived here from the formula, so a formula edit that keeps the
+// numbers — or a number edit that breaks the formula — fails this suite.
+// ---------------------------------------------------------------------------
+// 2026-10-05 amendment (user directive): VISIBLE_BAND_PX drops 72 -> 44. The
+// band is the user's DENSITY DIAL — the revealed header bands read too tall at
+// 72px — while the FORMULA is untouched: only the constant moves, so every row
+// below re-derives from it.
+const MD_LADDER = [
+  { yUp: 0, yLeave: 0, scale: 1.0, opacity: 1.0 },
+  { yUp: -66, yLeave: -122, scale: 0.96, opacity: 0.95 },
+  { yUp: -133, yLeave: -189, scale: 0.92, opacity: 0.85 },
+  { yUp: -199, yLeave: -255, scale: 0.88, opacity: 0.7 },
+  { yUp: -266, yLeave: -322, scale: 0.84, opacity: 0.5 },
+  { yUp: -332, yLeave: -388, scale: 0.8, opacity: 0.3 },
+];
+
+const BASE_LADDER = [
+  { yUp: 0, yLeave: 0, scale: 1.0, opacity: 1.0 },
+  { yUp: -65, yLeave: -121, scale: 0.96, opacity: 0.95 },
+  { yUp: -130, yLeave: -186, scale: 0.92, opacity: 0.85 },
+  { yUp: -194, yLeave: -250, scale: 0.88, opacity: 0.7 },
+  { yUp: -259, yLeave: -315, scale: 0.84, opacity: 0.5 },
+  { yUp: -324, yLeave: -380, scale: 0.8, opacity: 0.3 },
+];
+
+/** The formula, recomputed independently of the module. */
+const ladderOffset = (depth, cardHeight) =>
+  depth === 0
+    ? 0
+    : -Math.round(depth * VISIBLE_BAND_PX + cardHeight * (1 - Math.min(1, Math.max(0.8, 1 - 0.04 * depth))));
+
+test('reveal-ladder: the module derives the recorded md table (H = 560) from the pinned formula', () => {
+  assert.equal(
+    VISIBLE_BAND_PX,
+    44,
+    'one depth step reveals a 44px band of the behind-card top — the user-picked density dial (72 -> 44, 2026-10-05)',
+  );
+  assert.equal(DEPTH_LEVELS, 5, 'the top-6 stack puts five cards behind the foreground card');
+  assert.equal(LEAVE_EXTRA_PX, 56, 'the fly-off continues 56px past the rest offset');
+  assert.equal(CARD_HEIGHT_MD, 560);
+  assert.equal(CARD_HEIGHT_BASE, 520);
+
+  const rows = levelsFor(CARD_HEIGHT_MD);
+  assert.equal(rows.length, DEPTH_LEVELS + 1, 'one row per depth level plus the foreground identity row');
+  assert.deepEqual(rows, MD_LADDER, 'the md ladder is the recorded reveal-ladder table');
+  assert.deepEqual(rows, levelsFor(), 'the md tier is the module default (the runtime cardState table)');
+
+  for (let depth = 1; depth <= DEPTH_LEVELS; depth++) {
+    assert.equal(
+      rows[depth].yUp,
+      ladderOffset(depth, CARD_HEIGHT_MD),
+      `depth ${depth}: yUp is the formula -(l * 44 + H * (1 - scale_l)), not a hand-typed offset`,
+    );
+    assert.equal(
+      rows[depth].yLeave,
+      rows[depth].yUp - LEAVE_EXTRA_PX,
+      `depth ${depth}: yLeave continues LEAVE_EXTRA_PX (56px) past yUp`,
+    );
+  }
+  assert.deepEqual(
+    rows[0],
+    { yUp: 0, yLeave: 0, scale: 1.0, opacity: 1.0 },
+    'the foreground row is the identity row (no offset, no exit offset, full scale/opacity)',
+  );
+});
+
+test('reveal-ladder: the base tier (H = 520) derives from the same formula', () => {
+  const rows = levelsFor(CARD_HEIGHT_BASE);
+  assert.deepEqual(rows, BASE_LADDER, 'the base (<md) ladder is the same formula at the 520px card box');
+  for (let depth = 1; depth <= DEPTH_LEVELS; depth++) {
+    assert.equal(
+      rows[depth].yUp,
+      ladderOffset(depth, CARD_HEIGHT_BASE),
+      `depth ${depth}: the base tier is derived from H, never a second hand-typed table`,
+    );
+  }
+});
+
+test('reveal-ladder: the scale ladder is unchanged — 0.96/0.92/0.88/0.84/0.80, floored at 0.80', () => {
+  const rows = levelsFor(CARD_HEIGHT_MD);
+  assert.deepEqual(rows.map((r) => r.scale), [1.0, 0.96, 0.92, 0.88, 0.84, 0.8]);
+  for (const h of [CARD_HEIGHT_MD, CARD_HEIGHT_BASE]) {
+    for (let depth = 0; depth <= DEPTH_LEVELS; depth++) {
+      assert.equal(levelsFor(h)[depth].scale, Math.max(0.8, 1 - 0.04 * depth));
+    }
+  }
+});
+
+test('reveal-ladder: cardState consumes the md ladder row for every depth (runtime tie-in)', () => {
+  for (let front = 0; front < COUNT; front++) {
+    for (let i = 0; i < COUNT; i++) {
+      const depth = ringDepth(i, front, COUNT);
+      const s = cardState(i, front, COUNT, false);
+      assert.equal(
+        s.translateY,
+        MD_LADDER[depth].yUp,
+        `card ${i} front=${front}: depth ${depth} carries the reveal-ladder offset`,
+      );
+      assert.equal(s.scale, MD_LADDER[depth].scale, `card ${i} front=${front}: depth ${depth} scale`);
+      assert.equal(s.opacity, MD_LADDER[depth].opacity, `card ${i} front=${front}: depth ${depth} opacity`);
+    }
+  }
+});
+
+test('reveal-ladder: depth 6+ extends the same formula (the six-card ring never reaches it)', () => {
+  // An 8-card ring puts card 0 at depth 7 behind frontIndex 1. The extrapolation
+  // must keep the ladder's own arithmetic — not the retired -38px step.
+  const far = cardState(0, 1, 8, false);
+  assert.equal(far.translateY, ladderOffset(7, CARD_HEIGHT_MD), 'depth 7: the same formula, extended');
+  assert.ok(far.translateY < MD_LADDER[DEPTH_LEVELS].yUp, 'a deeper card sits strictly further up');
+  assert.ok(!far.visible, 'and is invisible past the opacity cutoff (unchanged)');
+});
+
 test('cardState: frontIndex 0 geometry — foreground card 0, behind cards 1..5', () => {
   const fg = cardState(0, 0, COUNT, false);
   assert.equal(fg.translateY, 0);
@@ -296,11 +425,11 @@ test('cardState: frontIndex 0 geometry — foreground card 0, behind cards 1..5'
   assert.equal(fg.visible, true);
 
   const expectations = {
-    1: { y: -38, scale: 0.96, opacity: 0.95, zIndex: 90, rotation: -0.5 },
-    2: { y: -76, scale: 0.92, opacity: 0.85, zIndex: 80, rotation: 0.5 },
-    3: { y: -114, scale: 0.88, opacity: 0.70, zIndex: 70, rotation: 1 },
-    4: { y: -152, scale: 0.84, opacity: 0.50, zIndex: 60, rotation: 0.75 },
-    5: { y: -190, scale: 0.80, opacity: 0.30, zIndex: 50, rotation: -0.75 },
+    1: { y: -66, scale: 0.96, opacity: 0.95, zIndex: 90, rotation: -0.5 },
+    2: { y: -133, scale: 0.92, opacity: 0.85, zIndex: 80, rotation: 0.5 },
+    3: { y: -199, scale: 0.88, opacity: 0.70, zIndex: 70, rotation: 1 },
+    4: { y: -266, scale: 0.84, opacity: 0.50, zIndex: 60, rotation: 0.75 },
+    5: { y: -332, scale: 0.80, opacity: 0.30, zIndex: 50, rotation: -0.75 },
   };
   for (let i = 1; i < COUNT; i++) {
     const s = cardState(i, 0, COUNT, false);
@@ -326,11 +455,11 @@ test('cardState: frontIndex 3 geometry — card 3 foreground, cyclic wrap keeps 
 
   // Cards behind card 3 in the ring are 4, 5, 0, 1, 2.
   const behind = [
-    { index: 4, depth: 1, y: -38, scale: 0.96, opacity: 0.95, zIndex: 90, rotation: 0.75 },
-    { index: 5, depth: 2, y: -76, scale: 0.92, opacity: 0.85, zIndex: 80, rotation: -0.75 },
-    { index: 0, depth: 3, y: -114, scale: 0.88, opacity: 0.70, zIndex: 70, rotation: -1 },
-    { index: 1, depth: 4, y: -152, scale: 0.84, opacity: 0.50, zIndex: 60, rotation: -0.5 },
-    { index: 2, depth: 5, y: -190, scale: 0.80, opacity: 0.30, zIndex: 50, rotation: 0.5 },
+    { index: 4, depth: 1, y: -66, scale: 0.96, opacity: 0.95, zIndex: 90, rotation: 0.75 },
+    { index: 5, depth: 2, y: -133, scale: 0.92, opacity: 0.85, zIndex: 80, rotation: -0.75 },
+    { index: 0, depth: 3, y: -199, scale: 0.88, opacity: 0.70, zIndex: 70, rotation: -1 },
+    { index: 1, depth: 4, y: -266, scale: 0.84, opacity: 0.50, zIndex: 60, rotation: -0.5 },
+    { index: 2, depth: 5, y: -332, scale: 0.80, opacity: 0.30, zIndex: 50, rotation: 0.5 },
   ];
   for (const exp of behind) {
     const s = cardState(exp.index, 3, COUNT, false);
@@ -385,18 +514,38 @@ test('cardState: reversibility — same frontIndex yields identical geometry', (
   }
 });
 
-test('cardState: reduced-motion branch pins translate/scale/rotation to 0, keeps opacity/zIndex', () => {
+test('cardState: reduced motion KEEPS the depth composition, drops only the curated imperfection', () => {
+  // RM amendment (2026-10-05): the reveal ladder is the stack's REST
+  // composition, not motion — it must never appear or disappear with the OS
+  // setting. Reduced motion now only (a) makes the transitions instant and
+  // (b) suppresses the curated imperfection (translateX/rotation).
   for (let front = 0; front < COUNT; front++) {
     for (let i = 0; i < COUNT; i++) {
       const rm = cardState(i, front, COUNT, true);
-      assert.equal(rm.translateY, 0, `card ${i} front=${front}: RM translateY pinned to 0`);
-      assert.equal(rm.translateX, 0, `card ${i} front=${front}: RM translateX pinned to 0`);
-      assert.equal(rm.scale, 1, `card ${i} front=${front}: RM scale pinned to 1`);
-      assert.equal(rm.rotation, 0, `card ${i} front=${front}: RM rotation pinned to 0`);
-      assert.ok(rm.opacity >= 0 && rm.opacity <= 1, `card ${i} front=${front}: RM opacity still in [0,1]`);
-      assert.ok(Number.isFinite(rm.zIndex), `card ${i} front=${front}: RM zIndex finite`);
+      const depth = ringDepth(i, front, COUNT);
+      assert.equal(
+        rm.translateY,
+        MD_LADDER[depth].yUp,
+        `card ${i} front=${front}: RM keeps the depth-${depth} reveal-ladder offset — the depth never appears/disappears with the OS setting`,
+      );
+      assert.equal(rm.scale, MD_LADDER[depth].scale, `card ${i} front=${front}: RM keeps the ladder scale`);
+      assert.equal(rm.opacity, MD_LADDER[depth].opacity, `card ${i} front=${front}: RM keeps the ladder opacity`);
+      assert.equal(rm.zIndex, 100 - depth * 10, `card ${i} front=${front}: RM keeps the z ladder`);
+      assert.equal(rm.visible, MD_LADDER[depth].opacity > 0.05, `card ${i} front=${front}: RM visibility follows the ladder`);
+      assert.equal(rm.activeAmount, depth === 0 ? 1 : 0, `card ${i} front=${front}: RM activeAmount`);
+      assert.equal(rm.translateX, 0, `card ${i} front=${front}: RM suppresses the curated x-jitter`);
+      assert.equal(rm.rotation, 0, `card ${i} front=${front}: RM suppresses the curated rotation`);
     }
   }
+
+  // The defect this amendment retires: the retired flat-deck branch zeroed
+  // translateY/scale for EVERY card, so a behind card's depth (and with it the
+  // whole stacked composition) vanished for an RM visitor.
+  const behind = cardState(2, 0, COUNT, true);
+  assert.notEqual(behind.translateY, 0, 'a behind card under RM is NOT flattened onto the foreground card');
+  assert.equal(behind.translateY, MD_LADDER[2].yUp, 'it carries its own ladder row');
+  assert.notEqual(behind.scale, 1, 'and its own ladder scale');
+  assert.equal(behind.visible, true, 'and still renders (ladder opacity 0.85 is above the cutoff)');
 });
 
 test('cardState: visibility drops below the 0.05 opacity cutoff', () => {
@@ -460,53 +609,114 @@ const PANELS_PATH = join(root, 'src/components/explore/explore-panels.tsx');
 const SHELL_PATH = join(root, 'src/components/explore/explore-shell.tsx');
 const stageSource = () => readFileSync(STACK_STAGE_PATH, 'utf8');
 
-/** Extract a Record<'full'|'compact', string> block's entries from the stage source. */
-function heightMap(source, constName) {
-  const block = source.match(new RegExp(`const ${constName}[\\s\\S]*?\\n\\};`));
-  assert.ok(block, `${constName}: height map present in the stage`);
-  const entries = Object.fromEntries(
-    [...block[0].matchAll(/(full|compact):\s*'([^']+)'/g)].map((m) => [m[1], m[2]]),
+/**
+ * Pull the single class-string height constant by name out of the stage source
+ * — e.g. 'h-[520px] md:h-[560px]'.
+ *
+ * REV-23b retires the mode-keyed Record: ONE constant now carries the base
+ * (<md, the phone) tier and the md: (desktop) tier on the same arithmetic, so
+ * there are no mode keys left to require and no `full`/`compact` pair to count.
+ */
+function heightClass(source, constName) {
+  const m = source.match(new RegExp(`const ${constName} = '([^']+)'`));
+  assert.ok(
+    m,
+    `${constName}: the single class-string height constant is present — the mode-keyed Record is retired (REV-23b)`,
   );
-  assert.deepEqual(Object.keys(entries).sort(), ['compact', 'full'], `${constName}: one entry per mode`);
-  return entries;
+  return m[1];
 }
 
 /** Every px height in a Tailwind height class string ('h-[520px] md:h-[560px]' -> [520, 560]). */
 const heightPx = (cls) => [...cls.matchAll(/(?:^|\s|:)h-\[(\d+)px\]/g)].map((m) => Number(m[1]));
 
-test('stage containment: the fixed stage height IS the arithmetic card + peek band + safe margin', () => {
+test('stage containment: the fixed stage height IS the arithmetic card + peek band (band carries the safe margin)', () => {
   const src = stageSource();
-  const constPx = (name) => {
-    const m = src.match(new RegExp(`const ${name} = (\\d+);`));
-    assert.ok(m, `${name}: constant present (the peek band / safe margin are named, not inlined)`);
+  const safe = (() => {
+    const m = src.match(/const PEEK_SAFE_PX = (\d+);/);
+    assert.ok(m, 'PEEK_SAFE_PX: constant present (the safe margin is named, not inlined)');
     return Number(m[1]);
-  };
-  const band = constPx('PEEK_BAND_PX');
-  const safe = constPx('PEEK_SAFE_PX');
-  assert.equal(
-    band,
-    250,
-    'the peek band covers the LEVELS table depth-5 magnitudes (|yUp| 190, |yLeave| 246) rounded up',
-  );
-  assert.equal(safe, 20, 'the safe margin covers the curated ±1° rotation and ±4px translateX overhang');
+  })();
+  assert.equal(safe, 20, 'the safe margin seats the deepest card top and covers the ≥4px outward glow');
 
-  const card = heightMap(src, 'CARD_HEIGHT_CLASS');
-  const stage = heightMap(src, 'STAGE_HEIGHT_CLASS');
-  for (const mode of ['full', 'compact']) {
-    const cardPx = heightPx(card[mode]);
-    const stagePx = heightPx(stage[mode]);
-    assert.ok(cardPx.length > 0 && cardPx.length === stagePx.length, `${mode}: one stage height per card height`);
-    stagePx.forEach((value, i) => {
-      assert.equal(
-        value,
-        cardPx[i] + band + safe,
-        `${mode}: stage ${value}px = card ${cardPx[i]}px + band ${band}px + safe ${safe}px`,
-      );
-    });
+  // 2026-10-05: the band is no longer a hand-typed constant. It IS the reveal
+  // ladder's own arithmetic — DEPTH_LEVELS visible bands plus the safe margin —
+  // so the reserved box and the revealed bands cannot drift apart again.
+  const band = DEPTH_LEVELS * VISIBLE_BAND_PX + safe;
+  assert.equal(band, 240, 'the peek band is 5 x 44 + 20 = 240px — five revealed header bands plus the safe margin');
+  assert.match(
+    src,
+    /const PEEK_BAND_PX = DEPTH_LEVELS \* VISIBLE_BAND_PX \+ PEEK_SAFE_PX;/,
+    'PEEK_BAND_PX derives from the reveal ladder (DEPTH_LEVELS x VISIBLE_BAND_PX + safe), never a hand-typed band',
+  );
+
+  // REV-23b: ONE class string per constant, two tiers each — base (<md, the
+  // phone) then md: (desktop). Both tiers hold the arithmetic, so the depth
+  // peeks and the 500px fly-off cannot extend the layout at either width.
+  const cardClass = heightClass(src, 'CARD_HEIGHT_CLASS');
+  const stageClass = heightClass(src, 'STAGE_HEIGHT_CLASS');
+  assert.match(
+    cardClass,
+    /^h-\[\d+px\] md:h-\[\d+px\]$/,
+    'the card box is exactly one unprefixed (base/<md) height followed by one md: height — a md:-only form or a re-added mode Record cannot pass (REV-23b)',
+  );
+  assert.match(
+    stageClass,
+    /^h-\[\d+px\] md:h-\[\d+px\]$/,
+    'the stage box is exactly one unprefixed (base/<md) height followed by one md: height (REV-23b)',
+  );
+
+  const cardPx = heightPx(cardClass);
+  const stagePx = heightPx(stageClass);
+  assert.ok(cardPx.length > 0 && cardPx.length === stagePx.length, 'one stage height per card height');
+  assert.deepEqual(
+    cardPx,
+    [CARD_HEIGHT_BASE, CARD_HEIGHT_MD],
+    'the card box pair is 520px base (the <md phone tier) / 560px from md — the two heights the reveal ladder is derived against',
+  );
+  assert.deepEqual(stagePx, [760, 800], 'the stage box pair is 760px base / 800px from md = card + 240px ladder band');
+  stagePx.forEach((value, i) => {
+    assert.equal(
+      value,
+      cardPx[i] + band,
+      `tier ${i}: stage ${value}px = card ${cardPx[i]}px + band ${band}px (the band already carries the ${safe}px safe margin — PEEK_BAND_PX is never added to a separate safe term)`,
+    );
+  });
+
+  // The containment identity the arithmetic buys: with the cards scaling about
+  // their bottom edge, the deepest top edge lands exactly on PEEK_SAFE_PX, so
+  // the topmost revealed band is never clipped and the band is never empty.
+  assert.equal(
+    stagePx[1] - CARD_HEIGHT_MD - DEPTH_LEVELS * VISIBLE_BAND_PX,
+    safe,
+    'md: the depth-5 top edge sits exactly PEEK_SAFE_PX (20px) below the stage top — no clipping, no dead space',
+  );
+  assert.match(
+    src,
+    /className=\{`\$\{CARD_SHELL\} \$\{CARD_HEIGHT_CLASS\} origin-bottom /,
+    'the card scales about its BOTTOM edge: the H_front x (1 - scale_l) compensation in the reveal ladder is the bottom-origin top-edge fall — with the CSS default centre origin every revealed band is ~(72 + 0.02H)px and the deepest top edge is clipped',
+  );
+});
+
+test('REV-23b: the mode plumbing is retired — no SwipeMode, no compact branch, no compact width cap', () => {
+  // One swipe-stack contract at every width (D-02). Each literal below is a
+  // SPECIFIC residual form of the retired mode plumbing — never the bare
+  // identifier, which would collide with unrelated prose.
+  const src = stageSource();
+  const retiredPlumbing = [
+    ['SwipeMode', 'the SwipeMode union and its Record<>/prop annotations are retired — one contract, no mode key'],
+    ['compactHidden', 'the compactHidden depth cap is retired — every depth card is visible on the phone (REV-23b)'],
+    ['compact', 'no compact branch or compact prose survives — one contract at every width (REV-23b)'],
+    ['max-w-[320px]', 'the compact 320px width cap is retired — the stage keeps max-w-[540px] at every width (REV-23b)'],
+    ['mode={', 'no mode prop is passed down the tree (REV-23b)'],
+    ['mode="', 'no mode argument is passed to ProjectsSwipeStack (REV-23b)'],
+    [', mode }', 'no mode field is destructured out of the props object (REV-23b)'],
+    ['mode,', 'no mode field survives in a card destructure or an effect dependency array (REV-23b)'],
+    ['[mode]', 'the mode-keyed height/width class lookups are retired (REV-23b)'],
+    ['mode ===', 'no mode comparison survives — the class strings are unconditional (REV-23b)'],
+  ];
+  for (const [literal, message] of retiredPlumbing) {
+    assert.ok(!src.includes(literal), `${literal} absent: ${message}`);
   }
-  // <md invariant: the compact stage owns the base (unprefixed) height.
-  assert.equal(heightPx(stage.compact).length, 1, 'compact carries exactly one (base, <md) stage height');
-  assert.ok(!/md:/.test(stage.compact), 'the compact stage height is unprefixed — 375px uses it as-is');
 });
 
 test('stage containment: overflow-hidden stage, bottom-anchored card box, zero negative-space escape', () => {
@@ -651,7 +861,7 @@ test('ringStep: the Next step sends the foreground card to the back (tracer)', (
   const departed = cardState(0, newFront, COUNT, false);
   assert.equal(departed.zIndex, 50, 'the departed card carries the LOWEST zIndex (50) — the back of the stack');
   assert.equal(departed.opacity, 0.30, 'the departed card carries the depth-5 opacity 0.30');
-  assert.equal(departed.translateY, -190, 'the departed card carries the depth-5 offset -190');
+  assert.equal(departed.translateY, -332, 'the departed card carries the depth-5 reveal-ladder offset -332');
   assert.equal(departed.scale, 0.80, 'the departed card carries the depth-5 scale 0.80');
   assert.equal(departed.visible, true, 'the departed card is still rendered — it peeks from the back');
 

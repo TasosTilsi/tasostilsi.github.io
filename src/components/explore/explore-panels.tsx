@@ -43,9 +43,20 @@
  * by NO file under src/ — the Experience stage's hand-rolled hook measures
  * `.explore-shell > main` instead (MAIN_SELECTOR, use-timeline-progress.ts:104).
  * ≤1 selected entry still renders natural height with no sticky (E-1/E-2).
- * Phase 11 appends the Credentials panel as the 5th child: the existing plain
- * 2-column split already places it beside the Projects stack at md+ (row 3)
- * and below it at <md — no ratio, no order-* utility (LAYOUT-01).
+ *
+ * Phase-13 REV-23c amendment (user directive 2026-10-05): the Experience range
+ * is no longer md-only. The phone gets its OWN scroll range on the same
+ * data-conditional wrapper — a base `h-[400vh]` (5 bands × 80vh, one band per
+ * merged entry) with the shell pinning from `sticky top-0 z-10`, because the
+ * <md presentation became "one entry at a time, changing while scrolling". The
+ * md half is byte-unchanged: the same span-2 wrapper at the 300vh extended
+ * height, the same `md:` sticky pin pair. The gate still guards the wrapper
+ * exactly as before, and the arithmetic is
+ * the same one the desktop has always used: wrapperHeight − stageHeight is the
+ * range, the scroll position through it is the progress, progress → the active
+ * index. Phase 11 appends the Credentials panel as the 5th child: the existing
+ * plain 2-column split already places it beside the Projects stack at md+
+ * (row 3) and below it at <md — no ratio, no order-* utility (LAYOUT-01).
  *
  * Responsive grid: 1 column base, 2 columns from md up, gutters widen
  * gap-4 → gap-5 at the lg tier ONLY (D-02, UI-SPEC §1.2 — no max-width
@@ -112,18 +123,20 @@ const SECTION_BODIES: Record<
 
 /**
  * Placement map factory (UI-SPEC §1.1/§4.1 — the phase-9 seam, amended by
- * phase-10 REV-18 and the 2026-10-02 centering fix): a Record keyed by
+ * phase-10 REV-18, the 2026-10-02 centering fix and REV-23c): a Record keyed by
  * ExploreSectionId whose values carry the ONLY placement classes of the phase.
  * Only Experience retains the sticky scroll-range wrapper + shell; Projects
  * returns to natural height with its swipe-driven stage as a centered block —
  * its shell carries the md-scoped `md:flex md:flex-col md:justify-center`
  * centering pair (DEFECT 1), which centers the panel body inside the
  * grid-stretched panel whose height stays content-driven (no fixed height, no
- * sticky range). About and Skills occupy one cell each in row 1. Every value
- * is md:-scoped (R-9). R-3: any wrapper stays a plain div with NO id — the
- * tour hole, the IO threshold and the drawer anchors measure the sticky
- * section by its stable id; the wrapper's data-editorial-wrapper attribute is
- * a stable hook nothing under src/ reads.
+ * sticky range). About and Skills occupy one cell each in row 1. Every
+ * OTHER value is md:-scoped (R-9); the Experience pair is the documented
+ * exception since REV-23c (its base tier owns the phone's own scroll range and
+ * sticky pin — see the REV-23c note in the module header). R-3: any wrapper
+ * stays a plain div with NO id — the tour hole, the IO threshold and the drawer
+ * anchors measure the sticky section by its stable id; the wrapper's
+ * data-editorial-wrapper attribute is a stable hook nothing under src/ reads.
  *
  * `gate` remains the W-3 data condition on the STICKY range: when false the
  * wrapper (and thus the sticky extension) is not rendered at all, so the
@@ -137,8 +150,8 @@ function buildPlacement(
   return {
     about: { wrapper: '', shell: '', gate: false },
     experience: {
-      wrapper: 'md:col-span-2 md:h-[300vh]',
-      shell: 'md:sticky md:top-0 md:z-10 md:h-[calc(100dvh-10rem)]',
+      wrapper: 'h-[400vh] md:col-span-2 md:h-[300vh]',
+      shell: 'sticky top-0 z-10 md:sticky md:top-0 md:z-10 md:h-[calc(100dvh-10rem)]',
       gate: experienceGate,
     },
     skills: { wrapper: '', shell: '', gate: false },

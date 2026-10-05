@@ -5,20 +5,20 @@ milestone_name: "Explore Visual Landing"
 status: idle
 active_phase: null
 next_action: null
-next_phases: [10]
+next_phases: [13]
 progress:
-  total_phases: 12
+  total_phases: 13
   completed_phases: 1
-  total_plans: 8
-  completed_plans: 41
+  total_plans: 4
+  completed_plans: 45
   percent: 8
-current_phase: 10
-current_phase_name: projects-stack-revision
-current_plan: 8
-last_updated: "2026-10-02T18:04:32.672Z"
+current_phase: 13
+current_phase_name: mobile-parity-revision
+current_plan: 4
+last_updated: "2026-10-05T10:57:32.658Z"
 state_head: null
-last_activity: 2026-10-02
-stopped_at: "Phase 12 shipped — PR #12"
+last_activity: 2026-10-05
+stopped_at: "Phase 13 shipped — PR #13"
 paused_at: null
 ---
 # GSD STATE
@@ -98,6 +98,20 @@ _No active phase._
 - Milestone Explore Visual Landing: AUDIT.md written (status not-ready)
 - Phase 12 shipped — PR #12 (https://github.com/TasosTilsi/tasostilsi.github.io/pull/12)
 - Milestone Explore Visual Landing: AUDIT.md written (status not-ready)
+- Phase 13: SPEC.md sealed (ambiguity UNAVAILABLE)
+- Phase 13: CONTEXT.md sealed — 7 decisions
+- Phase 13: planned — 4 plan(s) across 4 wave(s).
+- quick 2026-10-05-stack-reveal-ladder: Fix the swipe-stack depth geometry so behind-cards are VISIBLE as stacked header bands (the user's reference look) instead of near-invisible slivers, and so the stage's peek band stops reading as an awkward empty gap. Root cause (verified in code): cards are bottom-anchored (`bottom: 0`) AND per-level scaled — the visible peek of a depth-l card = |translateY| − H×(1−scale_l); the LEVELS table's offsets (−38/−76/−114/−152/−190) were designed without the scale-shrink compensation, so the visible peeks collapse to ~16/44/68/78px slivers (nearly invisible) and the reserved 250px band reads as dead empty space between the stat tiles and the cards.
+- quick 2026-10-05-band-tighten-and-mobile-rail: Two user-directed amendments to the just-executed phase-13 work (the phase's plans are complete, so these land as an amendment quick-task with pinned contracts):
+- DESKTOP (md+) stays byte-untouched: the semicircular arc + the sticky-range scroll drive + all-content behavior unchanged.
+- MOBILE (<md): the arc zone does NOT render the squeezed semicircle — instead a slim VERTICAL RAIL: a left rail (a thin vertical line + 5 year markers: 2023/2022/2021/2019/2012 — top = present) with the ACTIVE marker emphasized (accent dot + accent year, the others muted), and the RIGHT/BODY area shows EXACTLY ONE entry at a time — the active entry's full content (role: title > company > dates > location > bullets; education: degree > institution > dates > specialization).
+- The 'changing while scrolling' rhythm: <md gains a scroll-range wrapper (mirroring the desktop's sticky-range mechanism, sized ~5 bands — e.g. 5 × 80vh ≈ 400vh wrapper via the same data-conditional pattern, the stage sticky within it); the scroll position through the range maps to the active index in 5 bands (the phase-8 desktop derivation generalizes: progress → active idx via Math.round((n-1)·progress) — REUSE the existing derivation); the entry swap = Editorial-calm opacity/fade (200-280ms) — no spatial slides; the rail's active marker follows the active index.
+- The reduced-motion contract: instant swaps (opacity-only), no animation — the existing RM gate covers it.
+- Keyboard/buttons: Prev/Next still step (they scroll through the range to the target band — the same targetScrollTop formula with the <md wrapper's own geometry); arrows work <md (the D1 lift, already pinned); ends clamp.
+- The RESOLVED-D1 all-five-readable contract is SUPERSEDED on mobile by the user's one-at-a-time decision — record the amendment in the plan/doc (the <md path = one-at-a-time; the all-five rendering retires with the squeezed arc).
+- touch-action: pan-y stays on the stage area if the wrapper region should never block vertical scroll (the page scroll IS the input — nothing captures it; no wheel/touch handlers).
+- quick 2026-10-05-phase-13-artefact-reconciliation: Reconcile phase 13's locked artefacts with the DELIVERED, user-approved contract. The verifier found 4 truth-gaps all sharing one root cause: the executed code carries the user's FINAL directive (commit 43432f5: the mobile experience = a vertical year rail, one-at-a-time, scroll-driven swaps — chosen because the squeezed arc was unappealing; approved 'perfect') but REQUIREMENTS/CONTEXT/plan-01 still assert the superseded clauses. Nothing in src/ or tests/ changes — this is documentation reconciliation ONLY.
+- Phase 13 shipped — PR #13 (https://github.com/TasosTilsi/tasostilsi.github.io/pull/13)
 
 ### Blockers / Concerns
 - Shipping decision (user, 2026-09-21): ship the milestone AS A WHOLE at milestone close — no per-phase PRs. phase-1 and phase-2 branches pushed to origin (backup only); gsd_ship deferred for both phases. phase-2 branch contains phase-1 commits (stacked).

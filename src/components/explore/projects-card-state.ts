@@ -11,6 +11,8 @@
  * Contract:
  *   - cardState now takes a ring-buffer frontIndex instead of carouselProgress
  *   - UI-SPEC §3 card geometry table survives, driven by depth from the front
+ *     and derived from the REVEAL-LADDER formula below (2026-10-05), and it
+ *     renders identically at EVERY motion preference
  *   - Swipe acceptance is pinned to offset/velocity thresholds
  */
 
@@ -51,16 +53,88 @@ const TECH_LEXICON = [
 const IMPERFECTION_X = [-4, -2, 2, 4, 3, -3];
 const IMPERFECTION_ROTATION = [-1, -0.5, 0.5, 1, 0.75, -0.75];
 
-/** Pinned depth-level table (UI-SPEC §3.3). The yUp column is the canonical
- * offset for cards behind the foreground card in the ring buffer. */
-const LEVELS = [
-  { yUp: 0, yLeave: 0, scale: 1.0, opacity: 1.0 },
-  { yUp: -38, yLeave: -94, scale: 0.96, opacity: 0.95 },
-  { yUp: -76, yLeave: -132, scale: 0.92, opacity: 0.85 },
-  { yUp: -114, yLeave: -170, scale: 0.88, opacity: 0.7 },
-  { yUp: -152, yLeave: -208, scale: 0.84, opacity: 0.5 },
-  { yUp: -190, yLeave: -246, scale: 0.8, opacity: 0.3 },
-];
+/**
+ * ── The reveal-ladder contract (2026-10-05) ──────────────────────────────
+ *
+ * The stack's rest composition is a REVEAL LADDER: the foreground card plus
+ * five progressively shallower card tops behind it — the curated
+ * physical-stack look. ONE depth step reveals one more band of the
+ * behind-card's TOP edge (its header strip + border) above the top edge of the
+ * card in front of it:
+ *
+ *   scale_l       = clamp(1 - 0.04 * l, 0.80, 1)        0.96/0.92/0.88/0.84/0.80
+ *   translateY(l) = -( l * VISIBLE_BAND_PX + H_front * (1 - scale_l) )
+ *   yLeave(l)     = translateY(l) - LEAVE_EXTRA_PX
+ *
+ * WHY the `H_front * (1 - scale_l)` term — the defect this contract fixes:
+ * each card scales about its BOTTOM edge (the `origin-bottom` class in
+ * projects-stack-stage.tsx, the same edge the card box is anchored to), so a
+ * level-l card's top edge FALLS by `H_front * (1 - scale_l)`. The retired table
+ * (−38/−76/−114/−152/−190) was a bare offset step with no such compensation:
+ * each revealed band collapsed to just `step − H_front * 0.04` (≈16px on the
+ * 560px card — a near-invisible sliver) while the stage still reserved the
+ * uncompensated band, so the reserved 250px read as dead space above the cards.
+ * The compensation is what makes the reserved box and the revealed bands the
+ * same arithmetic (see projects-stack-stage.tsx: stage = card + band).
+ *
+ * VISIBLE_BAND_PX is the user's DENSITY DIAL, not a derived quantity: the
+ * reveal ladder is a composition choice, so only this constant moves when the
+ * user re-picks the band. It was 72 for the first hour of the ladder's life and
+ * 44 from the 2026-10-05 amendment ("the bands read too tall") — the FORMULA
+ * above is unchanged by that edit, and every row below is re-derived from it.
+ *
+ * The derived table (RECORDED here; every row is produced by levelsFor below,
+ * never hand-typed into the table). H_front = 560 (md):
+ *
+ *   l       1     2     3     4     5
+ *   yUp    -66  -133  -199  -266  -332
+ *   yLeave -122 -189  -255  -322  -388
+ *
+ * and H_front = 520 (base, <md):
+ *
+ *   yUp    -65  -130  -194  -259  -324
+ *   yLeave -121 -186  -250  -315  -380
+ *
+ * The depth-0 row is the identity row (yUp/yLeave 0, scale/opacity 1). Depth 6+
+ * (which the six-card ring never reaches) extends the same formula.
+ */
+
+/** One depth level of the reveal ladder (depth 0 = the foreground card). */
+export interface DepthLevel {
+  yUp: number;
+  yLeave: number;
+  scale: number;
+  opacity: number;
+}
+
+/**
+ * The band ONE depth step reveals of the behind-card's top, in px.
+ *
+ * This is the user's DENSITY DIAL (see the reveal-ladder contract above): 44px
+ * since the 2026-10-05 amendment (was 72px). Only the constant moves — the
+ * ladder formula and every other ladder input are untouched.
+ */
+export const VISIBLE_BAND_PX = 44;
+
+/** How much further than yUp the fly-off offset (yLeave) carries the card. */
+export const LEAVE_EXTRA_PX = 56;
+
+/** The number of levels behind the foreground card (the top-6 stack). */
+export const DEPTH_LEVELS = 5;
+
+/**
+ * The two front-card box heights the ladder is derived against, matching
+ * CARD_HEIGHT_CLASS in projects-stack-stage.tsx. The module's runtime table
+ * uses the md height: the stage tiers its card box in CSS alone (one DOM at
+ * every width), so cardState cannot read the live tier, and the md-derived
+ * table differs from the base-derived one by ≤4px at base — a sub-pixel-
+ * invisible drift, documented rather than plumbed through matchMedia.
+ */
+export const CARD_HEIGHT_MD = 560;
+export const CARD_HEIGHT_BASE = 520;
+
+/** The opacity ladder — unchanged: deeper card tops read as layered paper. */
+const OPACITY_LADDER = [1.0, 0.95, 0.85, 0.7, 0.5, 0.3];
 
 /** Swipe-decision pins. */
 export const SWIPE_THRESHOLD = 100;
@@ -77,6 +151,42 @@ const smoothstep = (t: number): number =>
 
 const lerp = (a: number, b: number, t: number): number =>
   a + (b - a) * clamp(t, 0, 1);
+
+/** scaleFor — the scale ladder as a formula, unchanged: 1 − 0.04·depth, floored
+ * at 0.80. Depth 1..5 → 0.96/0.92/0.88/0.84/0.80; depth ≥ 5 holds the floor. */
+function scaleFor(depth: number): number {
+  return clamp(1 - 0.04 * depth, 0.8, 1);
+}
+
+/** yUpFor — the reveal ladder's ONE offset site: the depth step plus the
+ * bottom-origin top-edge fall `H·(1 − scale)`. Total: depth ≤ 0 pins to 0. */
+function yUpFor(depth: number, cardHeight: number): number {
+  if (!(depth > 0)) return 0;
+  return -Math.round(depth * VISIBLE_BAND_PX + cardHeight * (1 - scaleFor(depth)));
+}
+
+/**
+ * levelsFor — the reveal ladder as a function of the front-card height: one
+ * DepthLevel row per depth 0..DEPTH_LEVELS. This is the module's ONE table
+ * derivation site; the runtime LEVELS table below is this call at the md card
+ * height, and the test suite pins this function for both tiers. Total: a
+ * non-finite or non-positive cardHeight falls back to the md box.
+ */
+export function levelsFor(cardHeight: number = CARD_HEIGHT_MD): DepthLevel[] {
+  const h = Number.isFinite(cardHeight) && cardHeight > 0 ? cardHeight : CARD_HEIGHT_MD;
+  return Array.from({ length: DEPTH_LEVELS + 1 }, (_, depth) => {
+    const yUp = yUpFor(depth, h);
+    return {
+      yUp,
+      yLeave: depth === 0 ? 0 : yUp - LEAVE_EXTRA_PX,
+      scale: scaleFor(depth),
+      opacity: OPACITY_LADDER[depth],
+    };
+  });
+}
+
+/** The runtime depth-level table (UI-SPEC §3.3), derived at the md card height. */
+const LEVELS = levelsFor(CARD_HEIGHT_MD);
 
 /**
  * firstSentence — the §4.2 card-description split. The sentence runs up to
@@ -328,13 +438,17 @@ export function ringDepth(cardIndex: number, frontIndex: number, count: number):
  *
  * Geometry is derived from the cyclic distance (depth) of the card from the
  * foreground. The front card has depth 0; the card immediately behind it has
- * depth 1, and so on around the ring. The pinned LEVELS table provides yUp,
- * scale and opacity by depth. Curated imperfection (translateX/rotation) is
- * seeded by `cardIndex % 6` and forced to 0 under reduced motion.
+ * depth 1, and so on around the ring. The pinned reveal-ladder table provides
+ * yUp, scale and opacity by depth. Curated imperfection (translateX/rotation)
+ * is seeded by `cardIndex % 6`.
  *
- * Reduced motion: translateY/translateX/scale/rotation are pinned to 0/1/0;
- * only opacity (via `1 - depth * 0.6`) and zIndex animate, giving a fast
- * state-swap fallback.
+ * Reduced motion (amended 2026-10-05): the depth composition is NOT motion — it
+ * is the stack's rest arrangement and renders identically at every motion
+ * preference, so an RM visitor never sees the stack flatten (or the behind
+ * cards disappear) with the OS setting. Under RM only the transitions go
+ * instant (the stage's RM branch) and the curated imperfection — translateX and
+ * rotation — is suppressed; translateY/scale/opacity/zIndex are the same
+ * values the non-RM path returns.
  *
  * Totality: non-finite inputs return a finite, hidden default. The function
  * never throws and never emits NaN.
@@ -365,28 +479,26 @@ export function cardState(
   const depth = ((safeIndex - safeFront) % safeCount + safeCount) % safeCount;
   const activeAmount = depth === 0 ? 1 : 0;
 
+  // The reveal ladder — motion-independent: it is the rest composition, so it
+  // is derived once, outside the reduced-motion branch (RM amendment above).
   let translateY: number;
   let scale: number;
   let opacity: number;
 
-  if (reducedMotion) {
-    translateY = 0;
-    scale = 1;
-    opacity = depth === 0 ? 1 : clamp(1 - depth * 0.6, 0, 1);
+  if (depth <= DEPTH_LEVELS) {
+    const lower = Math.floor(depth);
+    const upper = Math.ceil(depth);
+    const t = smoothstep(depth - lower);
+    translateY = lerp(LEVELS[lower].yUp, LEVELS[upper].yUp, t);
+    scale = lerp(LEVELS[lower].scale, LEVELS[upper].scale, t);
+    opacity = lerp(LEVELS[lower].opacity, LEVELS[upper].opacity, t);
   } else {
-    if (depth <= 5) {
-      const lower = Math.floor(depth);
-      const upper = Math.ceil(depth);
-      const t = smoothstep(depth - lower);
-      translateY = lerp(LEVELS[lower].yUp, LEVELS[upper].yUp, t);
-      scale = lerp(LEVELS[lower].scale, LEVELS[upper].scale, t);
-      opacity = lerp(LEVELS[lower].opacity, LEVELS[upper].opacity, t);
-    } else {
-      const excess = depth - 5;
-      translateY = LEVELS[5].yUp + excess * -38;
-      scale = clamp(1 - 0.04 * depth, 0.8, 1);
-      opacity = clamp(LEVELS[5].opacity - excess * 0.15, 0, 1);
-    }
+    // Depth 6+ — the six-card ring never reaches it. The same formula,
+    // extended: the scale ladder is already floored at 0.80 from depth 5.
+    const excess = depth - DEPTH_LEVELS;
+    translateY = yUpFor(depth, CARD_HEIGHT_MD);
+    scale = scaleFor(depth);
+    opacity = clamp(LEVELS[DEPTH_LEVELS].opacity - excess * 0.15, 0, 1);
   }
 
   const translateX = reducedMotion

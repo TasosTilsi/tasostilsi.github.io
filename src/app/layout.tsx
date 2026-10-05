@@ -56,7 +56,20 @@ export const metadata: Metadata = {
   },
 };
 
+// Phase 13 REV-25a — this typed export is now the document's ONLY viewport
+// declaration: the data-file `meta.viewport` line that used to render in <head>
+// retires with it, because two <meta name="viewport"> tags left the phone on an
+// undefined multi-tag tie-break. `width`/`initialScale` are declared EXPLICITLY
+// (Next's createDefaultViewport already merges them) for intent and determinism
+// against a future framework-default change — NOT to repair a regression.
+// `viewportFit: 'cover'` is load-bearing, not cosmetic: env(safe-area-inset-*)
+// resolves to 0px without it, which would leave the platform pack in
+// globals.css inert. `shrink-to-fit=no` is intentionally dropped — a legacy iOS
+// directive with no modern effect. Never disable zoom.
 export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
   themeColor: [ // Example theme colors, can be adjusted
     { media: '(prefers-color-scheme: light)', color: '#EEEEEE' }, // Light theme background
     { media: '(prefers-color-scheme: dark)', color: '#1A1A1A' },  // Dark theme background (example)
@@ -101,7 +114,6 @@ export default function RootLayout({
     <html lang="en" className="h-full" suppressHydrationWarning>
       <head>
         <meta charSet={portfolioData.meta.charset} />
-        <meta name="viewport" content={portfolioData.meta.viewport} />
         <link
           rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"

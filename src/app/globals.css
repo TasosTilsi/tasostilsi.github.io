@@ -692,3 +692,83 @@ body {
     scroll-behavior: auto !important;
   }
 }
+
+/* ---------------------------------------------------------------------------
+   Phase 13 REV-25b — the mobile-native platform pack (landing route only).
+   Appended at the very TAIL, deliberately AFTER the reduced-motion guard above:
+   the motion region runs from @keyframes explore-panel-in to that guard, and
+   every opening-brace line inside it must be scoped under .explore-shell
+   (tests/explore-visuals.test.mjs). The safe-area block below needs a
+   @media (min-width: 640px) selector line, which carries no .explore-shell —
+   placed earlier it would break that scoping row. This pack also adds ZERO
+   motion (no transition, no animation declaration) and no second suppressor.
+   Route-scoped with :has() on the ancestors, exactly like the precedent above
+   (body:has(.explore-shell) [data-state="open"]).
+   --------------------------------------------------------------------------- */
+
+/* Tapping a control must not flash the legacy grey highlight. The tap-highlight
+   colour IS inherited, so one declaration on html kills the flash shell-wide —
+   including the portaled drawer, whose content carries the .explore-shell class
+   itself, so inheritance reaches it regardless of the portal root. */
+html:has(.explore-shell) {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Kills pull-to-refresh and the rubber-band reveal that exposes the strip past
+   the footer. This property is NOT inherited and is propagated to the viewport
+   from the ROOT element only — so the html half below is the load-bearing one;
+   the body half is harmless documentation-in-CSS (body is not a scroll
+   container while the document lock is in force). Do not simplify the html
+   half away. */
+html:has(.explore-shell),
+body:has(.explore-shell) {
+  overscroll-behavior: none;
+}
+
+/* Drops the legacy double-tap delay on the interactive chrome. Pinch-zoom is
+   unaffected; a horizontal drag starting on an in-card link still reaches the
+   stage's gesture because touch-action INTERSECTS with the ancestors. */
+.explore-shell button,
+.explore-shell [role='button'],
+.explore-shell a {
+  touch-action: manipulation;
+}
+
+/* The swipe stage: the drag owns the horizontal axis, vertical page scroll
+   survives. ALWAYS pan-y, never none — `none` is the "carousel scrolls the
+   wrong way" symptom. The card's own inline pan-y is only present while drag is
+   truthy (front card, motion allowed), so this structural rule is what keeps
+   every other card scrolling correctly. */
+.explore-shell [data-projects-swipe-stage] {
+  touch-action: pan-y;
+}
+
+/* Safe areas. The content BAND keeps its existing height and the inset is added
+   to the box, so the notch / home-indicator strip is painted by the bar's own
+   background instead of squeezing the 44px controls: Tailwind preflight sets
+   box-sizing: border-box, so a bare height plus a 47px inset would leave ~0px
+   for them. The 0px fallback keeps non-cover browsers at exactly today's
+   geometry (the inset resolves to 0 and nothing moves).
+   The three band literals below duplicate the two bars' own heights —
+   explore-header.tsx h-[52px], explore-status-bar.tsx h-7 / sm:h-8 at Tailwind's
+   0.25rem spacing scale — and tests/route-swap.test.mjs DERIVES them from those
+   two component sources, so a bar-height change reddens there instead of
+   letting this padding silently miscalculate. */
+.explore-shell > header {
+  padding-top: env(safe-area-inset-top, 0px);
+  height: calc(52px + env(safe-area-inset-top, 0px));
+}
+
+.explore-shell > footer {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  height: calc(1.75rem + env(safe-area-inset-bottom, 0px));
+}
+
+/* The band override tracks the ≥640px regime. Both heights are rem-based, so
+   the band is preserved by construction at the 640px boundary, where the
+   root-font switch and the sm: bar height match together. */
+@media (min-width: 640px) {
+  .explore-shell > footer {
+    height: calc(2rem + env(safe-area-inset-bottom, 0px));
+  }
+}

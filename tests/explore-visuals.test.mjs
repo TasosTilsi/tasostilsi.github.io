@@ -182,11 +182,13 @@ const sectionBodies = [
 // EXPLORE-08 plan 02 (UI-SPEC §9/§14 seams 2+3): the timeline stage moves to
 // the client slice — the stage component + its interaction hook carry
 // "use client"; the server set shrinks to skills/projects + the tiles.
+// Phase 13 (REV-23b): the compact mobile-stack wrapper is deleted with the
+// parity contract, so it leaves this list — a surviving read of it would throw
+// ENOENT and take down unrelated rows with an INVALID red.
 const clientBodies = [
   'src/components/explore/sections/experience-section.tsx',
   'src/components/explore/use-timeline-progress.ts',
   'src/components/explore/sections/projects-stack-stage.tsx',
-  'src/components/explore/sections/projects-mobile-stack.tsx',
 ];
 const phaseTouchedComponents = [...serverSlices, ...sectionBodies, ...clientBodies];
 
@@ -235,8 +237,9 @@ test('cross-cutting: motion — never isAnimationActive={true} under explore; ma
     );
   }
   // The interaction hook reads exactly the two pinned queries: the
-  // reduced-motion mode (E-13 — fresh per derivation pass) and the md gate
-  // (§8 B-1 — with a change listener).
+  // reduced-motion mode (E-13 — fresh per derivation pass) and the md query,
+  // which since phase 13 (REV-23) owns LAYER OWNERSHIP + the step-mode
+  // handoff — NOT arc visibility (the arc renders at every width).
   const hook = codeOf('src/components/explore/use-timeline-progress.ts');
   assert.ok(
     hook.includes("matchMedia('(prefers-reduced-motion: reduce)')"),
@@ -244,7 +247,15 @@ test('cross-cutting: motion — never isAnimationActive={true} under explore; ma
   );
   assert.ok(
     hook.includes("matchMedia('(min-width: 768px)')"),
-    'use-timeline-progress reads the md breakpoint query (§8 B-1 gate)',
+    'use-timeline-progress reads the md query — layer ownership + the <md step-mode handoff (REV-23: no longer an arc-visibility gate)',
+  );
+  assert.ok(
+    !hook.includes('if (!mdMedia.matches) return;'),
+    'the md query never returns early from derive() — the arc and its markers render at every width (REV-23)',
+  );
+  assert.ok(
+    !hook.includes("matchMedia('(min-width: 768px)').matches) return"),
+    'no width-sniffed early return survives in the hook (REV-23: goToRole and handleKeyDown step at every width)',
   );
 });
 
@@ -283,14 +294,14 @@ test('cross-cutting: viz-data is the sole data-shaping module — chart machiner
 
 test('cross-cutting: zero stat literals — no standalone 14/9/2016/2026 drives a rendered value (EXPLORE-07/OQ-1/U-1)', () => {
   const stripAll = (p) => read(p).replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/[^\n]*/g, '');
-  // The stack stage files render deterministic monochrome SVG mock visuals
-  // (terminal / contract-analysis / glyph panels). Their numeric literals are
+  // The stack stage renders deterministic monochrome SVG mock visuals
+  // (terminal / contract-analysis / glyph panels). Its numeric literals are
   // coordinate/font-size values inside those generative compositions, never
-  // hardcoded portfolio data counts or years, so they sit outside this scan.
+  // hardcoded portfolio data counts or years, so it sits outside this scan.
+  // (Phase 13 REV-23b: the compact wrapper that shared this exemption is
+  // deleted, so only the one stack stage is excluded now.)
   const zeroLiteralTargets = phaseTouchedComponents.filter(
-    (p) =>
-      p !== 'src/components/explore/sections/projects-stack-stage.tsx' &&
-      p !== 'src/components/explore/sections/projects-mobile-stack.tsx',
+    (p) => p !== 'src/components/explore/sections/projects-stack-stage.tsx',
   );
   for (const p of zeroLiteralTargets) {
     const code = stripAll(p);
@@ -346,7 +357,7 @@ test('cross-cutting: REV-08 — both chart files deleted, builders absent, the a
   // The removal contract: no chart artefact remains on disk or in the two
   // section files, while the semicircular arc stage (the REV-07 showcase,
   // now realized per the phase-8 UI-SPEC) carries the pinned SVG geometry
-  // and the single-DOM compact year chip.
+  // and the single-DOM <md rail (REV-23c — the compact year chip is retired).
   for (const deleted of [
     'src/components/explore/sections/career-span-chart.tsx',
     'src/components/explore/sections/projects-calendar.tsx',
@@ -366,7 +377,7 @@ test('cross-cutting: REV-08 — both chart files deleted, builders absent, the a
   );
   assert.ok(
     exp.includes('md:hidden'),
-    'the md:hidden year chip survives in the single-DOM layers (§8 B-1 — compact form, no second subtree)',
+    'the md:hidden rail block survives in the single DOM (§8 B-1 — the <md rail is the arc\'s sibling presentation, not a second subtree)',
   );
   assert.ok(
     exp.includes('use client'),
@@ -885,19 +896,269 @@ test('EXPLORE-08 invariant (E-13): exactly ONE raw prefers-reduced-motion read, 
   );
 });
 
-test('EXPLORE-08 invariant (§8 B-1): the md gate is a media query WITH its change listener — added and removed', () => {
+test('EXPLORE-08 invariant (§8 B-1): the md query is a media query WITH its change listener — added and removed', () => {
   const hook = stageHook();
   assert.ok(
     hook.includes("matchMedia('(min-width: 768px)')"),
-    "the md gate query matchMedia('(min-width: 768px)') is greppable (§8 B-1: dormant below md, computeProgress never runs)",
+    "the md query matchMedia('(min-width: 768px)') is greppable (REV-23c: it owns the md-only marker + layer writes and the class handover — the index derivation is un-branched)",
   );
   assert.ok(
     hook.includes("addEventListener('change'"),
-    'the md gate carries its change listener (compact ↔ stage visibility handoff, B-1)',
+    'the md query carries its change listener (the write-ownership handover, B-1/REV-23c)',
   );
   assert.ok(
     hook.includes("removeEventListener('change'"),
     'the md change listener is removed on cleanup (E-7)',
+  );
+});
+
+test('REV-23c rail parity: the <md squeezed arc is retired — the rail column, the base grid, the md-only arc', () => {
+  const exp = stageBody();
+  assert.ok(
+    !exp.includes('hidden md:flex'),
+    'the phase-8 arc-hide gate `hidden md:flex` stays retired — the arc was never hidden below md again (REV-23c keeps ONE DOM, it just swaps the <md presentation)',
+  );
+  // REV-23c: the container is a GRID at every width — [56px rail | 1fr body] at
+  // <md, the 40/60 [2fr | 3fr] split from md. `flex flex-col` at base is the
+  // retired squeezed-arc form: it stacked the arc strip above a five-entry
+  // column, which is exactly the unappealing composition the user rejected.
+  assert.ok(
+    exp.includes('grid grid-cols-[56px_1fr] gap-4'),
+    'the container carries the base rail grid (56px rail column + body column) — the squeezed-arc `flex flex-col` strip is retired (REV-23c)',
+  );
+  assert.ok(
+    exp.includes('md:grid-cols-[2fr_3fr]'),
+    'the md+ 40/60 split is untouched — the desktop composition is byte-identical',
+  );
+  assert.ok(
+    exp.includes('relative h-[200px] md:h-auto'),
+    'the rail/arc zone carries its base 200px box (the pinned safe band 180-220, UI-SPEC §8 UNRESOLVED-D5)',
+  );
+  assert.ok(
+    exp.includes('md:h-auto md:flex-1'),
+    'the zone grows into the md grid column instead of keeping the fixed base box (an unprefixed flex-1 would stretch it past 200px at <md and break the label arithmetic)',
+  );
+  // The <md presentation IS the rail: a thin vertical line + five year markers,
+  // top = present, the active one accented.
+  assert.ok(
+    exp.includes('data-timeline-rail="true"') && exp.includes('data-timeline-rail-marker="true"'),
+    'the <md vertical year rail renders with its own hooks — the rail is the mobile counterpart of the arc, not a second arc',
+  );
+  assert.ok(
+    exp.includes('flex flex-col justify-between md:hidden'),
+    'the rail is a `md:hidden` flex column distributed top-to-bottom — index 0 (present) at the top, the oldest marker last',
+  );
+  assert.ok(
+    exp.includes('absolute inset-y-0 left-[3px] w-px bg-border'),
+    'the rail carries its thin vertical line, seated on the rail dots\' centre axis (6px dot -> 3px)',
+  );
+  // Invariants the <md swap must NOT break: the arc keeps its server-rendered
+  // geometry in the single DOM (md-only presentation, not a second subtree).
+  assert.ok(exp.includes('M 100 0 A 100 100 0 0 0 100 200'), 'the arc path survives the <md swap');
+  assert.ok(exp.includes('viewBox="0 0 100 200"'), 'the arc viewBox survives');
+  assert.ok(exp.includes('preserveAspectRatio="xMidYMid meet"'), 'the meet-mapping survives');
+  assert.ok(exp.includes('data-timeline-arc-zone'), 'the measured arc-zone hook survives');
+  assert.ok(
+    exp.includes('hidden md:block'),
+    'the arc SVG + its markers are md-only PRESENTATION (display:none below md) — present in the single DOM, never unrendered',
+  );
+  assert.equal(
+    (exp.match(/data-timeline-dot/g) || []).length,
+    1,
+    'exactly ONE dot template in this SOURCE file — it sits inside the single entries.map that renders five; the 5/5 count is an EXPORT fact owned by tests/explore-sweep.test.mjs E-9 (asserting 5 here would be a permanently-red row)',
+  );
+  assert.equal(
+    (exp.match(/data-timeline-label/g) || []).length,
+    1,
+    'exactly ONE label template in this SOURCE file — same map, same reason',
+  );
+  assert.ok(
+    exp.includes('whitespace-nowrap'),
+    'the marker labels stay nowrap — the measured fit predicate is the overflow guard (REV-23)',
+  );
+  assert.ok(exp.includes('md:hidden'), 'the md:hidden rail block survives — still a single DOM, no second subtree');
+  assert.ok(
+    exp.includes('aria-label="Previous role"') && exp.includes('aria-label="Next role"'),
+    'both controls render at every width — now in the rail column at <md (REV-23c: the rail is the phone counter, the buttons step the scroll range)',
+  );
+  assert.ok(
+    exp.includes('flex flex-col items-center justify-center gap-2 md:flex-row'),
+    'the control row is a column under the rail at <md and the unchanged row from md — the 44px targets keep their recipe',
+  );
+});
+
+test('REV-23c hook gate: the marker + layer writes are md-only, the active index is written at EVERY width, clearLayerStyles is the <md class handover', () => {
+  const hook = stageHook();
+  assert.ok(
+    !hook.includes('if (!mdMedia.matches) return;'),
+    'the mount effect no longer bails out below md — the <md scroll range is driven by the same channel (REV-23c)',
+  );
+  assert.ok(
+    !hook.includes("matchMedia('(min-width: 768px)').matches) return"),
+    'no width-sniffed early return survives the whole file — goToRole and handleKeyDown step at every width',
+  );
+  // The IMPERATIVE write channel (marker transforms + layer styles) is the md
+  // gate. The <md rail is a React-class composition and the one-at-a-time body
+  // is class-owned, so the per-frame channel must not touch them. Proven by
+  // slicing the part of derive() that runs BEFORE the md gate: it must contain
+  // NO element write at all.
+  const deriveStart = hook.indexOf('const derive = () => {');
+  const gateOpen = hook.indexOf('if (mdMedia.matches) {', deriveStart);
+  const gateClose = hook.indexOf('if (active !== activeIndexRef.current) {', deriveStart);
+  assert.ok(deriveStart > -1 && gateOpen > deriveStart && gateClose > gateOpen, 'the derive md gate is locatable');
+  const preGate = hook.slice(deriveStart, gateOpen);
+  for (const [write, why] of [
+    ['dot.style.transform', 'no marker write runs outside the md gate — the arc markers are md presentation only (REV-23c)'],
+    ['label.style.transform', 'no label write runs outside the md gate either'],
+    ['el.style.opacity', 'no layer write runs outside the md gate — below md the layer classes own opacity/visibility'],
+  ]) {
+    assert.ok(!preGate.includes(write), why);
+  }
+  const mdBlock = hook.slice(gateOpen, gateClose);
+  assert.ok(
+    mdBlock.includes('dot.style.transform') && mdBlock.includes('label.style.transform'),
+    'both marker write loops live INSIDE the md gate (REV-23c: the arc is md-only presentation)',
+  );
+  assert.match(
+    mdBlock,
+    /for \(let i = 0; i < roleCount && i < layers\.length/,
+    'the layer write loop lives INSIDE the same md gate (REV-23c supersedes the all-five-readable clear — at <md the classes render exactly one entry)',
+  );
+  assert.ok(
+    hook.split('clearLayerStyles').length - 1 >= 3,
+    'clearLayerStyles is still defined and still called from BOTH the mount else-branch and the compact onMdChange branch — the <md class handover (it strips the SSR inline styles so the layer classes take over)',
+  );
+  // The retired compact marker-clear loop is gone: exactly TWO
+  // `[...dots, ...labels]` loops survive, both inside revealMarkers (the arming
+  // write + the clearing write). The third was onMdChange's compact clear, so
+  // 2 is the post-retirement truth — `>= 1` could never detect a stale clear.
+  assert.equal(
+    (hook.match(/for \(const el of \[\.\.\.dots, \.\.\.labels\]\) \{/g) || []).length,
+    2,
+    'only the two revealMarkers writes survive (the retired onMdChange marker clear was the third)',
+  );
+  // A global count cannot say WHICH loop went, so prove the retirement by
+  // slicing the compact branch itself.
+  const start = hook.indexOf('const onMdChange = () => {');
+  const end = hook.indexOf('const observer = new ResizeObserver');
+  assert.ok(start > -1 && end > start, 'the onMdChange branch is locatable in the hook source');
+  const branch = hook.slice(start, end);
+  assert.ok(
+    branch.includes('setStageActive(false)'),
+    'the compact branch still flips the stage off — the <md body is class-owned, no aria-hidden bookkeeping',
+  );
+  assert.ok(branch.includes('clearLayerStyles()'), 'the compact branch still clears the SSR inline layer styles');
+  assert.ok(
+    branch.includes('geometryDirty = true'),
+    'the compact branch re-derives — it no longer dumps every marker untransformed at the arc origin',
+  );
+  assert.ok(branch.includes('schedule()'), 'the compact branch re-schedules the derivation (the <md handover)');
+  assert.ok(
+    !branch.includes("el.style.opacity = ''"),
+    'the retired marker-clear loop is gone — no onMdChange branch clears dot/label styles (REV-23)',
+  );
+});
+
+test('REV-23c scroll range: the derive path writes the active index at EVERY width (the <md scroll range)', () => {
+  const hook = stageHook();
+  const start = hook.indexOf('const derive = () => {');
+  const end = hook.indexOf('const schedule = () => {');
+  assert.ok(start > -1 && end > start, 'the derive() body is locatable in the hook source');
+  const derive = hook.slice(start, end);
+  assert.match(
+    derive,
+    /if \(active !== activeIndexRef\.current\) \{/,
+    'the active-index write is UNGATED — below md the scroll position through the wrapper range now owns it too (REV-23c; the retiree is the md-only gate of the RESOLVED-D1 step contract, which the rail + one-at-a-time body supersede)',
+  );
+  assert.ok(
+    !/if \(mdMedia\.matches && active !== activeIndexRef\.current\) \{/.test(derive),
+    'the md-only active-index gate is gone — a phone pass must move the rail and swap the entry',
+  );
+  assert.match(
+    hook,
+    /const onScroll = \(\) => \{\s*\n\s*schedule\(\);/,
+    'the scroll listener schedules at every width — the <md range is a scroll channel now, not a dormant one',
+  );
+  const goStart = hook.indexOf('const goToRole = (index: number) => {');
+  const goEnd = hook.indexOf('const stepRole = (delta: number) => {');
+  assert.ok(goStart > -1 && goEnd > goStart, 'the goToRole body is locatable in the hook source');
+  const goToRole = hook.slice(goStart, goEnd);
+  assert.ok(
+    !goToRole.includes('matches) return'),
+    'goToRole carries no width-sniffed return',
+  );
+  assert.ok(
+    goToRole.includes('scrollTargetForRole('),
+    "goToRole carries ONE target formula at every width — scrollTargetForRole with the measuring wrapper's own geometry (REV-23c)",
+  );
+  assert.ok(
+    goToRole.includes('main.scrollTo({ top, behavior })'),
+    'the scrollTo path survives verbatim — scrolling is the progress input at every width (D-02)',
+  );
+  assert.ok(
+    !goToRole.includes('scrollIntoView'),
+    'the <md scrollIntoView branch retires with the no-range contract — the step now moves the range itself',
+  );
+});
+
+test('REV-23c one derivation: the carousel index is UN-branched, the stepped-index ref is retired', () => {
+  const hook = stageHook();
+  assert.ok(
+    !hook.includes('steppedIndexRef'),
+    'the <md stepped-index ref retires with the no-range contract — the scroll position IS the <md input now (REV-23c)',
+  );
+  assert.ok(
+    !hook.includes('scheduleRef'),
+    'the <md re-derivation bridge retires too — the scroll channel owns every width, so no discrete step needs to re-run the pass by hand',
+  );
+  assert.match(
+    hook,
+    /const c = continuousIndex\(progress, roleCount\);/,
+    'the carousel index is UN-branched — ONE derivation at every width: progress -> c′ = (n−1)·progress -> active = round(c′) clamped (the phase-8 md derivation, generalized by giving <md a real range)',
+  );
+  assert.ok(
+    !/mdMedia\.matches\s*\?\s*continuousIndex/.test(hook),
+    'the retired md/<md index branch is gone — a branch here is what re-introduces the range ≤ 0 pin on entry 0',
+  );
+  const cIdx = hook.indexOf('const c = continuousIndex(progress, roleCount);');
+  const gateIdx = hook.indexOf('if (mdMedia.matches) {', cIdx);
+  assert.ok(cIdx > -1 && gateIdx > cIdx, 'the md write gate is locatable AFTER the index derivation');
+  const beforeGate = hook.slice(cIdx, gateIdx);
+  assert.ok(
+    beforeGate.includes('activeIndexFromContinuous(c, roleCount)'),
+    'the active index derives from c′ before the md write gate — that ordering is what lets a phone pass move the rail without touching the arc',
+  );
+  assert.ok(
+    hook.includes('const onScroll = () => {'),
+    'the ONE passive scroll listener is still the only input channel (D-02 — no wheel/touch handlers)',
+  );
+});
+
+test('REV-23c <md one-at-a-time: the layers are a base GRID overlay swapped by class, never a five-entry column', () => {
+  const exp = stageBody();
+  assert.ok(
+    exp.includes('grid grid-cols-1') && !exp.includes('space-y-5'),
+    'the entry stack is a single-cell base grid — the retired `space-y-5 md:space-y-0 md:grid` stacked all five entries down the phone and made "one at a time" impossible',
+  );
+  assert.ok(
+    (exp.match(/col-start-1 row-start-1/g) || []).length === 1,
+    'the layer carries its cell placement UNPREFIXED — one template for every width (md:col-start-1 md:row-start-1 would leave the base flow free to stack)',
+  );
+  assert.ok(
+    exp.includes('transition-[opacity,visibility] duration-200 ease-out md:transition-none'),
+    'the entry swap is an editorial-calm 200ms opacity/visibility crossfade at <md, and md:transition-none keeps the per-frame rAF writes transition-free (the §6 row-1 rule: a per-frame-written property must never carry a CSS transition)',
+  );
+  assert.ok(
+    exp.includes('const isLayerActive = index === activeIndex;'),
+    'exactly ONE layer is the active one — the layer class pair below keys on that single predicate',
+  );
+  assert.ok(
+    exp.includes("isLayerActive ? 'opacity-100 visible' : 'opacity-0 invisible'"),
+    'the active entry is opacity-100 + visible and every other entry is opacity-0 + invisible — `invisible` is what keeps the other four out of the a11y tree as well as off the screen',
+  );
+  assert.ok(
+    !exp.includes('flex items-center gap-2 md:hidden'),
+    'the per-layer md:hidden year chip is retired with the squeezed arc — the <md rail owns the years now (no duplicate marker row above each entry)',
   );
 });
 
@@ -958,10 +1219,26 @@ test('EXPLORE-10 invariant (REV-18): projects stack is swipe-driven, centered, l
   );
 
   const section = read('src/components/explore/sections/projects-section.tsx');
-  assert.ok(section.includes('ProjectsStackStage'), 'ProjectsSection imports the swipe-driven stack stage');
-  assert.ok(section.includes('ProjectsMobileStack'), 'ProjectsSection imports the compact mobile stack');
-  assert.ok(section.includes('hidden md:block'), 'md+ viewport hosts the stack stage');
-  assert.ok(section.includes('md:hidden'), 'mobile stack owns the <md surface');
+  // Renewal (phase 13 REV-23b/D-02): the per-viewport split is retired — ONE
+  // unconditional stack renders at every width. `<ProjectsStackStage` occurs
+  // exactly once (a `>= 1` check could not detect a surviving second branch)
+  // and the compact wrapper + both wrapper classes are gone.
+  assert.equal(
+    (section.match(/<ProjectsStackStage/g) || []).length,
+    1,
+    'exactly ONE <ProjectsStackStage render — the md+ branch is the only render left (REV-23b)',
+  );
+  assert.equal(
+    (section.match(/<Projects(?:StackStage|MobileStack)/g) || []).length,
+    1,
+    'exactly ONE stack render at every width — the two viewport branches collapse to one (REV-23b/D-02)',
+  );
+  assert.ok(!section.includes('ProjectsMobileStack'), 'the compact mobile wrapper retires with the parity contract (REV-23b)');
+  assert.ok(
+    !section.includes('hidden md:block') && !section.includes('md:hidden'),
+    'no per-viewport stack wrapper survives — the same stack renders at every width (REV-23b)',
+  );
+  assert.ok(/REV-23b/.test(section), 'the ProjectsSection doc comment cites the parity requirement (REV-23b)');
 
   const stack = read('src/components/explore/sections/projects-stack-stage.tsx');
   assert.ok(stack.includes("from 'framer-motion'"), 'the stack stage is the sanctioned framer-motion import site');
@@ -1044,11 +1321,36 @@ test('EXPLORE-10 invariant (REV-18): projects stack is swipe-driven, centered, l
     );
   }
 
+});
+
+test('REV-23b retirement: the compact mobile-stack wrapper is gone (gone-check)', () => {
+  // Retirement discipline (the house precedent is the deleted-editorial loop
+  // inside the EXPLORE-10 invariant above): a retired artefact gets a
+  // GONE-CHECK — `existsSync === false` — never a silent delete. The wrapper's
+  // only content was `mode="compact"`; the one-contract stack replaces it.
   const mobilePath = 'src/components/explore/sections/projects-mobile-stack.tsx';
-  assert.ok(existsSync(join(root, mobilePath)), 'mobile stack file exists');
-  const mobile = codeOf(mobilePath);
-  assert.ok(!mobile.includes('framer-motion'), 'mobile stack does not import framer-motion (reuses the sanctioned stage)');
-  assert.ok(mobile.includes('ProjectsSwipeStack'), 'mobile wrapper delegates to the shared swipe stack');
+  assert.equal(
+    existsSync(join(root, mobilePath)),
+    false,
+    'projects-mobile-stack.tsx retired with the parity contract (REV-23b)',
+  );
+});
+
+test('REV-23b swipe-stage contract: the stage carries the stable hook and no touch-action: none exists in the shell CSS', () => {
+  // The stage box gains the inert `data-projects-swipe-stage` attribute that
+  // the platform pack's `touch-action: pan-y` rule targets. That POSITIVE rule
+  // ships with the pack (plan 03, globals.css tail) — this row pins only the
+  // hook it will target and the form the pack must NEVER use.
+  const stack = read('src/components/explore/sections/projects-stack-stage.tsx');
+  assert.ok(
+    stack.includes('data-projects-swipe-stage'),
+    'the stage box carries the stable data-projects-swipe-stage hook — the selector target for touch-action: pan-y (REV-23b)',
+  );
+  const css = read('src/app/globals.css');
+  assert.ok(
+    !css.includes('touch-action: none'),
+    'touch-action: none is rejected on the swipe stage and its cards — it kills vertical page scroll, the "carousel scrolls the wrong way" symptom (REV-23b/mobile-native §9)',
+  );
 });
 
 test('EXPLORE-10 invariant (AP-3/AP-6): the stack mount-gates reduced motion and marks non-active cards by attribute only', () => {
@@ -1104,11 +1406,13 @@ test('traceability: phase-10 projects-stack surfaces cite REV-18/REV-20, never p
   // detecting a reintroduced mis-cite. This whole comment block lives AFTER
   // the marker, so it cannot inflate the corpus it describes.
   //
-  // Clause 1 — the four phase-10 SOURCE surfaces carry ZERO phase-11 REV-21.
+  // Clause 1 — the three surviving phase-10 SOURCE surfaces carry ZERO
+  // phase-11 REV-21. (Phase 13 REV-23b retires the compact wrapper, so the
+  // former fourth surface is gone from this list; its REV-18/REV-21 clause
+  // would have thrown ENOENT.)
   const cardStateFile = read('src/components/explore/projects-card-state.ts');
   const panelsFile = read('src/components/explore/explore-panels.tsx');
   const sectionFile = read('src/components/explore/sections/projects-section.tsx');
-  const mobileStackFile = read('src/components/explore/sections/projects-mobile-stack.tsx');
 
   assert.strictEqual(
     (cardStateFile.match(/REV-21/g) || []).length,
@@ -1125,11 +1429,6 @@ test('traceability: phase-10 projects-stack surfaces cite REV-18/REV-20, never p
     0,
     'src/components/explore/sections/projects-section.tsx still cites phase 11\'s REV-21 — this panel body is phase-10 REV-18 (AP-12)',
   );
-  assert.strictEqual(
-    (mobileStackFile.match(/REV-21/g) || []).length,
-    0,
-    'src/components/explore/sections/projects-mobile-stack.tsx still cites phase 11\'s REV-21 — the compact stack is phase-10 REV-18/REV-20 (AP-12)',
-  );
 
   // Clause 2 — and each of them names its own phase-10 requirement.
   assert.ok(
@@ -1144,9 +1443,11 @@ test('traceability: phase-10 projects-stack surfaces cite REV-18/REV-20, never p
     (sectionFile.match(/REV-18/g) || []).length >= 1,
     'src/components/explore/sections/projects-section.tsx cites no phase-10 requirement id — it must name REV-18',
   );
+  // Phase 13 ADDS its own citation beside the retained phase-10 one: the
+  // one-contract renewal never substitutes REV-23b for REV-18.
   assert.ok(
-    (mobileStackFile.match(/REV-18/g) || []).length >= 1,
-    'src/components/explore/sections/projects-mobile-stack.tsx cites no phase-10 requirement id — it must name REV-18',
+    (sectionFile.match(/REV-23b/g) || []).length >= 1,
+    'src/components/explore/sections/projects-section.tsx cites no phase-13 requirement id — the renewal must ADD REV-23b beside the retained REV-18 clause',
   );
 
   // Clause 3 — the pure-module suite carries its OWN phase-10 id.
@@ -1202,5 +1503,131 @@ test('traceability: phase-10 projects-stack surfaces cite REV-18/REV-20, never p
   assert.ok(
     ownFile.includes('EXPLORE-10 invariant (REV-18)'),
     'the EXPLORE-10 invariant test title must cite the phase-10 id (REV-18), not phase 11 REV-21',
+  );
+});
+
+// ---------------------------------------------------------------------------
+// Phase 13 (REV-24) — the About avatar removal, and the data's survival
+// ---------------------------------------------------------------------------
+
+test('REV-24 avatar removal: the About panel renders no image and no initials chip', () => {
+  const aboutSrc = read('src/components/explore/sections/about-section.tsx');
+
+  // Each absence gets its own named message so a partial removal fails by name.
+  assert.equal(
+    (aboutSrc.match(/<img/g) || []).length,
+    0,
+    'no <img> element survives in the About panel (the removed avatar was its only one)',
+  );
+  assert.equal(
+    (aboutSrc.match(/Portrait of/g) || []).length,
+    0,
+    'no "Portrait of" alt text survives — the img block goes with its alt',
+  );
+  assert.equal(
+    (aboutSrc.match(/initials/gi) || []).length,
+    0,
+    'no "initials" chip substitutes for the image — the locked wording is "nothing goes in there"',
+  );
+  // Comments are load-bearing in this repo's greps: Task 3 renews ALL FIVE
+  // doc-comment sites that name the retired block, so zero is the post-removal
+  // truth and the prose matches the DOM.
+  assert.equal(
+    (aboutSrc.match(/avatar/gi) || []).length,
+    0,
+    'no "avatar" survives anywhere in the file — the element, its conditional and every doc-comment mention',
+  );
+  // Scope the consumption check to JSX EXPRESSIONS, never the bare field name:
+  // the file keeps exactly ONE prose sentence recording that
+  // about.profileImageUrl stays in the JSON and the .d.ts unconsumed, and the
+  // head-metadata consumers keep the field live repo-wide.
+  assert.ok(
+    !/\{about\.profileImageUrl/.test(aboutSrc),
+    'no JSX expression consumes about.profileImageUrl in the About panel',
+  );
+  assert.ok(
+    !aboutSrc.includes('src={about.profileImageUrl}'),
+    'no element binds the image field as its src',
+  );
+
+  // The reflow compensation — asserted BY SHAPE (two exact class strings), not
+  // by a `grep -c` floor: `mt-3 ` already matches 4 unrelated lines today (the
+  // doc-comment rhythm notes and the meta row), none of them the summary.
+  assert.ok(
+    aboutSrc.includes("'mt-3 text-xs leading-relaxed text-muted-foreground'"),
+    "REV-24 reflow: the summary's hasPositioning branch carries mt-3 (exact class string) — the avatar was the only separator above it",
+  );
+  assert.ok(
+    aboutSrc.includes("'mt-3 text-sm leading-relaxed text-foreground'"),
+    "REV-24 reflow: the summary's pre-phase-prominence branch carries the same mt-3 (exact class string)",
+  );
+
+  // The untouched neighbours.
+  assert.ok(aboutSrc.includes('min-h-[44px]'), 'ROW_CLASS keeps the 44px touch rail');
+  assert.ok(
+    (aboutSrc.match(/exp-nudge/g) || []).length >= 2,
+    'both exp-nudge hooks survive (the channel icons + the resume ArrowRight)',
+  );
+  assert.ok(
+    (aboutSrc.match(/group-focus-visible:underline/g) || []).length >= 2,
+    'both group-focus-visible:underline pairs survive (M5 keyboard parity)',
+  );
+  assert.equal(
+    (aboutSrc.match(/use client/g) || []).length,
+    0,
+    'the panel stays a server component — no client directive compensates the removal',
+  );
+  // The resume link is still the LAST interactive element: in source order it
+  // follows the whole contact-row loop, whose last href binding is `href={value}`.
+  const lastContactHref = aboutSrc.lastIndexOf('href={value}');
+  const resumeHref = aboutSrc.indexOf('href="/resume"');
+  assert.ok(lastContactHref > -1, 'the contact rows still bind their href from the data value');
+  assert.ok(resumeHref > -1, 'the Full resume link is still rendered');
+  assert.ok(
+    resumeHref > lastContactHref,
+    'the resume link stays LAST — source-ordered after every contact-row href',
+  );
+});
+
+test('REV-24/REV-25: the retired data fields survive unconsumed — nothing is deleted from the JSON', () => {
+  // WHY this is scoped, and not a repo-wide "gone" grep: about.profileImageUrl
+  // remains legitimately consumed as HEAD METADATA (not UI) at
+  // src/app/layout.tsx:42 (og:image), src/app/layout.tsx:77 (JSON-LD `image`)
+  // and src/app/(home)/layout.tsx:84 (og:image). Those consumers are out of
+  // this phase's scope and stay, so a repo-wide absence assertion would be a
+  // permanent false-red (UI-SPEC §3.3d).
+  assert.equal(
+    data.about.profileImageUrl,
+    'https://tinyurl.com/5cfm72u7',
+    'about.profileImageUrl stays byte-identical in the JSON — its last UI consumer goes, the field does not',
+  );
+  assert.equal(
+    data.meta.viewport,
+    'width=device-width, initial-scale=1, shrink-to-fit=no',
+    'meta.viewport stays byte-identical in the JSON (tests/portfolio-data-integrity.test.mjs:237-239 keeps pinning it) — only its render site retires',
+  );
+});
+
+test('REV-24 export: the built About panel carries no avatar image and no portrait alt', () => {
+  assert.ok(existsSync(exportHtmlPath), 'out/index.html missing — run `npm run build` first');
+  const html = readExport();
+  // The avatar's id is DERIVED from the data, never restated: the export
+  // legitimately carries the URL ~8x as head metadata (og:image, twitter:image,
+  // the JSON-LD `image`, plus their RSC flight-payload copies), so the check is
+  // scoped to the <img> ELEMENT. It is NOT a ban on the bare "tinyurl" substring
+  // either — the Credentials panel renders article links whose hrefs are
+  // tinyurl.com URLs straight from the JSON.
+  const avatarId = data.about.profileImageUrl.split('/').pop();
+  const imgTags = html.match(/<img\b[^>]*>/g) || [];
+  const avatarImgs = imgTags.filter((tag) => tag.includes(avatarId));
+  assert.equal(
+    avatarImgs.length,
+    0,
+    `no <img> carries the retired avatar source (id derived from the JSON: ${avatarId}) — found ${avatarImgs.length}`,
+  );
+  assert.equal(
+    (html.match(/Portrait of/g) || []).length,
+    0,
+    'the avatar alt text renders nowhere in the built export',
   );
 });

@@ -6,22 +6,28 @@
  * never joined) → metrics row (NEW about.metrics, 2×2 mini-tiles mirroring
  * project-stat-tiles.tsx) → availability chip (NEW about.availability — a
  * verbatim transcription of the CLI welcome-banner line; the CLI file itself
- * is NOT edited) → avatar (about.profileImageUrl, plain <img> — tinyurl is
- * not in next.config remotePatterns and the static export runs unoptimized
- * images, so next/image adds nothing) → the full summary DEMOTED below the
- * lead (§2.6) with the meta row (Briefcase title + MapPin location) kept
- * attached below it → divider → the 9 contact channel rows → the Full resume
- * link LAST (the merged panel's last interactive element).
+ * is NOT edited) → the full summary DEMOTED below the lead (§2.6) with the
+ * meta row (Briefcase title + MapPin location) kept attached below it →
+ * divider → the 9 contact channel rows → the Full resume link LAST (the merged
+ * panel's last interactive element).
  *
  * Graceful-hide matrix (§2.8, all server-side, no invented copy): positioning
  * absent/empty → lead omitted AND the summary renders at its pre-phase
  * prominence (text-sm text-foreground — the pre-phase presentation survives
  * as the fallback, never as a parallel rendering); empty metrics → row
  * omitted (1–4 entries render what exists — the UI is total); absent/empty
- * availability → chip omitted; absent/empty profileImageUrl → avatar
- * omitted; a meta item or channel whose value is missing/empty renders no
- * row. Values render as stored (labels uppercased by CSS only — no numeric
- * parsing anywhere).
+ * availability → chip omitted; a meta item or channel whose value is
+ * missing/empty renders no row. Values render as stored (labels uppercased by
+ * CSS only — no numeric parsing anywhere).
+ *
+ * Phase 13 REV-24: the image block that used to separate the availability chip
+ * from the summary is REMOVED ENTIRELY — no element, no placeholder mark, no
+ * substitute ("nothing goes in there"). The summary carries the mt-3 that
+ * restores the rhythm the removed block was the only source of. Nothing is
+ * deleted from data: about.profileImageUrl stays in the JSON and the .d.ts,
+ * unconsumed by the UI, while its head-metadata consumers remain
+ * (src/app/layout.tsx — og:image and the JSON-LD image field;
+ * src/app/(home)/layout.tsx — og:image).
  *
  * Contacts tightening (§2.7): anatomy unchanged (CHANNELS chrome table,
  * shared ROW_CLASS const, email mailto / external noopener pair, values wrap
@@ -36,7 +42,7 @@
  * translateX), and both underlined labels carry group-focus-visible:underline
  * for M5 keyboard parity alongside the pre-existing hover underline (M4,
  * instant by design). No new focusables, tab order unchanged. The new §2.1
- * blocks (lead/metrics/chip/avatar) are static chrome — non-interactive,
+ * blocks (lead/metrics/chip) are static chrome — non-interactive,
  * hover-inert (§17.6 precedent); zero new globals.css declarations.
  *
  * Server component (UI-SPEC §2): no client directive, no hooks, no runtime
@@ -44,9 +50,8 @@
  * (D-07; the three new fields were typed same-commit and approved in the
  * phase-9 data round). No Medium brand icon exists in lucide-react 0.475.0,
  * so that channel uses the §8 substitute (imported under its channel alias).
- * DOM order = visual order = tab order: lead → metrics → chip → avatar →
- * summary → meta row (non-focusable) → 9 channel rows → Full resume link
- * last.
+ * DOM order = visual order = tab order: lead → metrics → chip → summary →
+ * meta row (non-focusable) → 9 channel rows → Full resume link last.
  */
 import Link from 'next/link';
 import {
@@ -137,24 +142,15 @@ export function AboutSection({ about }: { about: PortfolioData['about'] }) {
           </span>
         </div>
       )}
-      {/* §2.1 item 4 — the avatar: plain <img> (tinyurl not in remotePatterns;
-          static export runs unoptimized images). Absent/empty → no element. */}
-      {about.profileImageUrl && (
-        <img
-          src={about.profileImageUrl}
-          alt={`Portrait of ${about.name}`}
-          loading="lazy"
-          decoding="async"
-          className="mt-3 h-16 w-16 rounded-full object-cover md:h-20 md:w-20"
-        />
-      )}
       {/* §2.1 item 5 — the full summary, DEMOTED below the lead; reverts to
-          its pre-phase prominence when positioning is absent (§2.8 fallback). */}
+          its pre-phase prominence when positioning is absent (§2.8 fallback).
+          REV-24: mt-3 restores the rhythm the removed image block supplied —
+          it was the only separator above this paragraph. */}
       <p
         className={
           hasPositioning
-            ? 'text-xs leading-relaxed text-muted-foreground'
-            : 'text-sm leading-relaxed text-foreground'
+            ? 'mt-3 text-xs leading-relaxed text-muted-foreground'
+            : 'mt-3 text-sm leading-relaxed text-foreground'
         }
       >
         {about.description}

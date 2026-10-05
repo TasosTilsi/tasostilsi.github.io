@@ -50,20 +50,28 @@ test('career-span-chart.tsx deleted — experience-section imports no chart mach
   assert.ok(!src.includes('mb-5'), 'the chart mb-5 wrapper is gone');
 });
 
-test('experience-section: the stage group root with the arc zone as first body child — rail grammar GONE (§8 B-1, §1.2)', () => {
+test('experience-section: the stage group root with the rail/arc zone as first body child — the phase-7 rail grammar stays GONE, the <md rail returns as its own anatomy (§8 B-1, §1.2, REV-23c)', () => {
   const src = read(expPath);
   assert.ok(src.includes('role="group"'), 'the stage body root carries role="group" (§10)');
   assert.ok(src.includes('aria-label="Career timeline"'), 'the group is labelled "Career timeline" (§10)');
   const arcIdx = src.indexOf('data-timeline-arc-zone');
   const layerIdx = src.indexOf('data-timeline-layer');
-  assert.ok(arcIdx !== -1, 'the arc zone hook (data-timeline-arc-zone) is present');
+  assert.ok(arcIdx !== -1, 'the rail/arc zone hook (data-timeline-arc-zone) is present');
   assert.ok(layerIdx !== -1, 'the content layer hooks (data-timeline-layer) are present');
-  assert.ok(arcIdx < layerIdx, 'the arc zone is the first body child — content column after it (§1.2 40/60 split)');
-  // Gone-checks (replacement discipline): the phase-7 rail grammar is dead.
-  assert.ok(!src.includes('relative space-y-5 border-l'), 'phase-7 rail anatomy gone (border-l rail replaced by the arc)');
+  assert.ok(arcIdx < layerIdx, 'the rail/arc zone is the first body child — content column after it (§1.2 split)');
+  // Gone-checks (replacement discipline): the phase-7 rail grammar is dead, and
+  // it stays dead — REV-23c's <md rail is a DIFFERENT anatomy (scroll-driven,
+  // data-timeline-rail, one-at-a-time body), so re-adding the old grammar would
+  // still be a defect.
+  assert.ok(!src.includes('relative space-y-5 border-l'), 'phase-7 rail anatomy gone (border-l rail replaced by the arc, then by the arc + its <md rail)');
   assert.ok(!src.includes('-left-[4px]'), 'rail dot absolute-offset gone');
-  assert.ok(!src.includes('<ol'), 'the rail <ol> is gone — the single-DOM layer stack replaced it');
-  assert.ok(src.includes('bg-chart-2'), 'chart-2 STILL present — the active dot + md:hidden year chips (D-03)');
+  assert.ok(!src.includes('<ol'), 'the phase-7 rail <ol> is gone — REV-23c renders its rail from the SAME entries.map, not a second list component');
+  // ...while the REV-23c rail IS present, in the same single DOM.
+  assert.ok(
+    src.includes('data-timeline-rail="true"') && src.includes('data-timeline-rail-marker="true"'),
+    'the <md vertical year rail renders beside the arc — one entries.map, one DOM, two presentations (REV-23c)',
+  );
+  assert.ok(src.includes('bg-chart-2'), 'chart-2 STILL present — the active arc dot, the active rail dot + rail year, and the active control (D-03/REV-23c)');
 });
 
 test('experience-section: merged duration·location meta row (U-8) — tabular-nums, aria-hidden separator, verbatim order', () => {
@@ -136,15 +144,25 @@ test('project-stat-tiles: zero stat literals in code (EXPLORE-07 — doc comment
   }
 });
 
-test('projects-section: ProjectStatTiles composed BEFORE the stack stages with an mb-3 wrapper', () => {
+test('projects-section: ProjectStatTiles composed BEFORE the one stack render with an mb-3 wrapper', () => {
   const src = read(projPath);
   const tilesIdx = src.indexOf('<ProjectStatTiles');
   const stageIdx = src.indexOf('<ProjectsStackStage');
-  const mobileIdx = src.indexOf('<ProjectsMobileStack');
   assert.ok(tilesIdx !== -1, '<ProjectStatTiles present');
   assert.ok(stageIdx !== -1, '<ProjectsStackStage present');
-  assert.ok(mobileIdx !== -1, '<ProjectsMobileStack present');
-  assert.ok(tilesIdx < stageIdx && stageIdx < mobileIdx, 'tiles → stack stage → mobile stack order (§2.1)');
+  // Renewal (phase 13 REV-23b/D-02): the per-viewport split retires — one
+  // unconditional stack renders at every width, so there is no second branch
+  // and no compact wrapper for the order to place after the stage.
+  assert.equal(
+    (src.match(/<ProjectsStackStage/g) || []).length,
+    1,
+    'exactly ONE stack render — no surviving md+/<md viewport branch (REV-23b)',
+  );
+  assert.ok(
+    !src.includes('ProjectsMobileStack'),
+    'the compact mobile wrapper retires with the parity contract (REV-23b)',
+  );
+  assert.ok(tilesIdx < stageIdx, 'tiles → stack order (§2.1)');
   assert.ok(src.includes('mb-3'), 'tiles wrapper carries mb-3 (§1: 12px tiles→stack gap)');
 });
 
@@ -157,11 +175,13 @@ test('projects-section: tile values from projectStats(projects) (D-05/EXPLORE-07
 test('projects-section: top-6 slice unchanged and links still exposed in the stack surfaces (TerminalPointer intact)', () => {
   const sectionSrc = read(projPath);
   const stackSrc = read('src/components/explore/sections/projects-stack-stage.tsx');
-  const mobileSrc = read('src/components/explore/sections/projects-mobile-stack.tsx');
   assert.ok(sectionSrc.includes('projects.slice(0, 6)'), 'D-01 top-6 cap unchanged');
+  // Phase 13 (REV-23b): the stack stage is the ONLY stack surface left — the
+  // compact wrapper is deleted, so this stays a REAL assertion on a source
+  // that exists rather than a disjunction against a vanished file.
   assert.ok(
-    stackSrc.includes('target="_blank"') || mobileSrc.includes('target="_blank"'),
-    'active-card links remain reachable in the stack surfaces',
+    stackSrc.includes('target="_blank"'),
+    'active-card links remain reachable in the one stack surface (REV-23b)',
   );
   assert.ok(sectionSrc.includes('projects --all'), 'terminal pointer unchanged');
 });

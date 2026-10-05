@@ -120,6 +120,48 @@ test('sweep row EXPLORE@375 (P): every new placement/height utility is md-scoped
   }
 });
 
+// Phase 13 (REV-23c) — the <md presentation renewal. The rows above stay
+// exactly as they were for the md tier (`md:col-span-2 md:h-[300vh]` and the
+// `md:sticky` pin pair are untouched), but the <md half CHANGES: the squeezed
+// semicircle retires and the phone gains its own rail column + its OWN scroll
+// range (h-[400vh]), so the base tier is no longer "stack everything and let
+// the arc squeeze".
+test('sweep rows EXPLORE@375 (P): the rail column + the base scroll range — no squeezed arc, no stacked five-entry column', () => {
+  const src = read('src/components/explore/sections/experience-section.tsx');
+  assert.ok(
+    !src.includes('hidden md:flex'),
+    'no `hidden md:flex` — the arc is md-only PRESENTATION (display:none at base), never a hidden block that is also the <md form',
+  );
+  assert.ok(
+    src.includes('grid grid-cols-[56px_1fr] gap-4'),
+    'the container is a base two-column grid — 56px rail + body (REV-23c); the retired `flex flex-col gap-4` stacked the arc strip above a five-entry column, the composition the user rejected',
+  );
+  assert.ok(
+    src.includes('relative h-[200px] md:h-auto'),
+    'the rail/arc zone carries the base h-[200px] (UI-SPEC §1.2/§2.1) before the md: grid stretch',
+  );
+  assert.ok(
+    src.includes('data-timeline-rail="true"') && src.includes('flex flex-col justify-between md:hidden'),
+    'the <md vertical year rail renders (top = present) inside the zone, md:hidden',
+  );
+  assert.ok(
+    src.includes('aria-label="Previous role"') && src.includes('aria-label="Next role"'),
+    'both controls survive in the rail column — the phone keeps its 44px step targets',
+  );
+  // The <md scroll range is what makes "one at a time, changing while
+  // scrolling" possible: without a range, progress pins and the active index
+  // could never move. 400vh == 5 x 80vh, the 5-band arithmetic.
+  const panels = read('src/components/explore/explore-panels.tsx');
+  assert.ok(
+    panels.includes("wrapper: 'h-[400vh] md:col-span-2 md:h-[300vh]'"),
+    'the Experience wrapper carries BOTH ranges: h-[400vh] at base (5 x 80vh) and the md 300vh pair — the <md scroll range rides the same data-conditional wrapper (REV-23c)',
+  );
+  assert.ok(
+    panels.includes("shell: 'sticky top-0 z-10 md:sticky md:top-0 md:z-10 md:h-[calc(100dvh-10rem)]'"),
+    'the stage pins at every width — base `sticky top-0 z-10`, the md pair unchanged: the stage stays in view while the range scrolls under it',
+  );
+});
+
 test('sweep rows EXPLORE@* (P): sticky-breaker audit — no overflow utility on the panels grid (UI-SPEC §1.1)', () => {
   const src = read('src/components/explore/explore-panels.tsx');
   assert.ok(
@@ -422,7 +464,7 @@ test('sweep E-8 (E, phase EXPLORE-09): stage anatomy markers — group, controls
   assert.ok(html.includes('01 / 05'), 'the control-row counter renders 01 / 05 (§4 — entry 1 active at SSR over the 5 merged entries)');
   assert.ok(
     html.includes('d="M 100 0 A 100 100 0 0 0 100 200"'),
-    'the left-bulging C arc path renders via the fixed viewBox (§2.2 — server-rendered stroke, zero hydration shift)',
+    'the left-bulging C arc path renders via the fixed viewBox (§2.2 — server-rendered stroke, zero hydration shift; from REV-23c it is md-only presentation, hidden below md)',
   );
 });
 
@@ -440,11 +482,135 @@ test('sweep E-9 (E, phase EXPLORE-09): pre-JS markers render at inline opacity 0
   assert.equal(
     (html.match(/data-timeline-dot="true"[^>]*style="opacity:0"/g) || []).length,
     5,
-    'exactly 5 marker dots render at opacity:0 pre-measurement (§9)',
+    'exactly 5 marker dots render at opacity:0 pre-measurement (§9 — md-only presentation since REV-23c, still present in the single DOM)',
   );
   assert.equal(
     (html.match(/data-timeline-label="true"[^>]*style="opacity:0"/g) || []).length,
     5,
     'exactly 5 year labels render at opacity:0 pre-measurement (§9)',
+  );
+});
+
+// ---------------------------------------------------------------------------
+// Phase EXPLORE-13 plan 04 — Type-E export row for the mobile-parity contract
+// (REV-23 / REV-23b / REV-24 / REV-25). The sweep convention holds: `npm run
+// build` must precede the run — these rows read the built artifact. Every
+// expectation is data-derived (the data file, THROUGH the module-level parse
+// above) or source-derived (globals.css); zero copied literals.
+// ---------------------------------------------------------------------------
+
+test('sweep E-10 (E, phase 13): the built export carries the mobile-parity contract — one viewport meta, no avatar, the base arc box', () => {
+  assert.ok(existsSync(join(root, 'out/index.html')), 'out/index.html missing — run `npm run build` first');
+  assert.ok(
+    existsSync(join(root, 'src/data/portfolio-main-data.json')),
+    'the data file is the source of the two avatar expectations below',
+  );
+  const html = exportRaw();
+  const text = exportText(); // entity-decoded + React text-node separators dropped
+
+  // --- REV-25a: ONE viewport declaration, the fit declared, zoom never locked.
+  // Pre-phase the export emitted TWO tags (the data-file line plus Next's
+  // default) — the phone ran on a browser-defined tie-break. The `=== 1` IS the
+  // falsifier: red on two tags, green only after the typed-viewport migration.
+  assert.equal(
+    (html.match(/<meta name="viewport"/g) || []).length,
+    1,
+    'exactly ONE <meta name="viewport"> is emitted — the data-rendered `meta.viewport` line retired; the phone otherwise runs on an undefined multi-tag tie-break',
+  );
+  assert.ok(
+    html.includes('viewport-fit=cover'),
+    'the emitted viewport declares viewport-fit=cover — env(safe-area-inset-*) resolves to 0px without it, so the meta and the CSS pack activate together',
+  );
+  assert.ok(!html.includes('shrink-to-fit'), 'the legacy `shrink-to-fit=no` directive is gone with the retired data line');
+  assert.ok(
+    !/user-scalable|maximum-scale/.test(html),
+    'zoom is never disabled — no user-scalable / maximum-scale in the export',
+  );
+  // Tag-scoped, never the bare string: the RSC flight payload reserializes the
+  // resolved metadata, so the export carries FOUR `theme-color` occurrences but
+  // only TWO real `<meta name="theme-color">` tags. A bare-string `=== 2` could
+  // never go green.
+  assert.equal(
+    (html.match(/<meta name="theme-color"/g) || []).length,
+    2,
+    'both theme-color metas survive the viewport migration — the typed export`s themeColor array is not collateral damage',
+  );
+
+  // --- REV-24: the avatar is gone from the export, DERIVED from the data file.
+  const avatarUrl = portfolio.about.profileImageUrl;
+  const avatarAlt = 'Portrait of ' + portfolio.about.name;
+  assert.ok(
+    !html.includes('src="' + avatarUrl + '"'),
+    `no element carries the retired avatar source (derived from the JSON: ${avatarUrl})`,
+  );
+  assert.ok(
+    !html.includes(avatarAlt),
+    `the avatar's alt text is gone from BOTH the tag and its flight-payload copy ("${avatarAlt}")`,
+  );
+  // The bare URL is deliberately NOT banned: the export legitimately carries
+  // `5cfm72u7` as head metadata (og:image, twitter:image, the JSON-LD image,
+  // plus their flight copies) and the Credentials panel renders several
+  // tinyurl.com article hrefs — either bare ban is permanently red.
+
+  // --- REV-23c: the rail/arc zone is in the SSR markup, the arc is md-only
+  // PRESENTATION (Tailwind emits the arbitrary class verbatim), and the
+  // retired <md hide gate is nowhere in the export.
+  assert.ok(html.includes('h-[200px]'), 'the base rail/arc zone box (h-[200px]) renders in the export');
+  assert.ok(!html.includes('hidden md:flex'), 'the retired arc-zone hide gate appears nowhere in the export');
+  assert.equal(
+    (html.match(/data-timeline-rail-marker="true"/g) || []).length,
+    5,
+    'the five <md rail markers render in the export (REV-23c: the rail is server-rendered real years, not a client-only addition)',
+  );
+  assert.ok(
+    html.includes('left-[3px] w-px'),
+    'the rail line class ships in the export — the rail is presentational markup, no runtime measurement',
+  );
+  const railStart = html.indexOf('data-timeline-rail="true"');
+  assert.ok(railStart > -1, 'the rail block is locatable in the export');
+  const railHtml = html.slice(railStart, html.indexOf('<svg', railStart));
+  // Top = present: the rail markers carry the merged derivation's OWN order
+  // (year-descending, present-first) — derived here from the module, never a
+  // copied year list, so a second sort or a flipped rail fails.
+  const expectedYears = selectTimelineEntries(portfolio.experience, portfolio.education).map(
+    (t) => t.year,
+  );
+  let cursor = -1;
+  for (const year of expectedYears) {
+    const at = railHtml.indexOf('>' + year + '<', cursor + 1);
+    assert.ok(
+      at > cursor,
+      `rail year ${year} renders in present-first order (top = present) — the rail reuses the merged order, it never re-sorts`,
+    );
+    cursor = at;
+  }
+
+  // --- REV-23b + REV-25b: the touch contract is COMPLETE in the final tree.
+  // BOTH halves in one row because no other row can see them together: plan 02
+  // asserted only the ABSENCE of `touch-action: none` in the component, so a
+  // slipped wave order or a dropped plan 03 would delete the contract silently.
+  assert.ok(
+    html.includes('data-projects-swipe-stage'),
+    'the swipe stage hook survives into the export — client-component data attributes do render there (data-timeline-dot is the proven precedent)',
+  );
+  const css = read('src/app/globals.css');
+  const stageRuleStart = css.indexOf('[data-projects-swipe-stage]');
+  assert.ok(stageRuleStart > -1, 'globals.css targets the stage hook — the pack is the hook`s only consumer');
+  const stageRule = css.slice(stageRuleStart, css.indexOf('}', stageRuleStart));
+  assert.match(
+    stageRule,
+    /touch-action:\s*pan-y/,
+    'the stage rule carries `touch-action: pan-y` — the drag owns horizontal, vertical page scroll survives (never `none`)',
+  );
+
+  // --- The SSR layer invariants this phase must not disturb (they are why the
+  // layer gate is a RUNTIME gate, not an SSR one).
+  assert.ok(
+    (html.match(/visibility:hidden/g) || []).length >= 4,
+    'entries 2-5 still carry SSR visibility:hidden — the <md one-at-a-time swap is a runtime class handover, not an SSR change',
+  );
+  assert.ok(
+    text.includes('d="M 100 0 A 100 100 0 0 0 100 200"'),
+    'the left-bulging C arc path still renders via the fixed viewBox (sweep E-8`s invariant, re-pinned here at every width)',
   );
 });

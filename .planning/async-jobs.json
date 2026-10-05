@@ -378,5 +378,55 @@
     "started": "2026-10-02T17:45:09.522Z",
     "result": "SUMMARY written",
     "completed": "2026-10-02T17:48:44.071Z"
+  },
+  {
+    "id": "JOB-39",
+    "kind": "subagent",
+    "plan": "EXPLORE-13-mobile-parity-revision-01",
+    "phase": 13,
+    "status": "done",
+    "started": "2026-10-05T08:01:21.246Z",
+    "result": "SUMMARY written",
+    "completed": "2026-10-05T08:09:16.645Z"
+  },
+  {
+    "id": "JOB-40",
+    "kind": "subagent",
+    "plan": "EXPLORE-13-mobile-parity-revision-02",
+    "phase": 13,
+    "status": "done",
+    "started": "2026-10-05T08:09:18.697Z",
+    "result": "SUMMARY written",
+    "completed": "2026-10-05T08:13:32.432Z"
+  },
+  {
+    "id": "JOB-41",
+    "kind": "subagent",
+    "plan": "EXPLORE-13-mobile-parity-revision-03",
+    "phase": 13,
+    "status": "done",
+    "started": "2026-10-05T08:13:34.428Z",
+    "result": "SUMMARY written",
+    "completed": "2026-10-05T08:20:12.581Z"
+  },
+  {
+    "id": "JOB-42",
+    "kind": "subagent",
+    "plan": "EXPLORE-13-mobile-parity-revision-04",
+    "phase": 13,
+    "status": "failed",
+    "started": "2026-10-05T08:20:16.239Z",
+    "result": "completed",
+    "completed": "2026-10-05T08:22:30.315Z"
+  },
+  {
+    "id": "JOB-43",
+    "kind": "subagent",
+    "plan": "EXPLORE-13-mobile-parity-revision-04",
+    "phase": 13,
+    "status": "done",
+    "started": "2026-10-05T10:40:10.632Z",
+    "result": "SUMMARY written",
+    "completed": "2026-10-05T10:43:01.092Z"
   }
 ]
