@@ -736,15 +736,25 @@ test('REV-25a (E): the built landing declares exactly ONE viewport meta — the 
   // NEVER a `grep -c` LINE count here: out/index.html carries the whole head on
   // one line, so a line count reads 1 whether there is one viewport tag or two
   // (it reads 1 on today's TWO-tag export — a vacuous row). Count OCCURRENCES.
+  const viewportTags = html.match(/<meta name="viewport"[^>]*>/g) || [];
   assert.equal(
-    (html.match(/<meta name="viewport"/g) || []).length,
+    viewportTags.length,
     1,
-    'exactly ONE <meta name="viewport"> is emitted — the data-rendered `meta.viewport` line must retire; the phone otherwise runs on an undefined multi-tag tie-break',
+    'exactly ONE <meta name="viewport"> TAG is emitted — the data-rendered `meta.viewport` line must retire; the phone otherwise runs on an undefined multi-tag tie-break',
+  );
+  // The fit is asserted on the TAG, not on a `viewport-fit=cover` substring
+  // count: the static export also serializes the resolved metadata into the RSC
+  // flight payload, so that substring occurs TWICE in out/index.html (the head
+  // tag plus its flight copy). A `=== 1` substring count is therefore
+  // unsatisfiable by construction — the tag is the falsifier.
+  assert.ok(
+    viewportTags[0].includes('viewport-fit=cover'),
+    'the single emitted viewport TAG carries viewport-fit=cover — without it env(safe-area-inset-*) resolves to 0px and the CSS pack is inert',
   );
   assert.equal(
     (html.match(/viewport-fit=cover/g) || []).length,
-    1,
-    'the single emitted viewport carries viewport-fit=cover — without it env(safe-area-inset-*) resolves to 0px and the CSS pack is inert',
+    2,
+    'viewport-fit=cover appears exactly twice: the head tag + its RSC flight-payload copy (a bare substring count is not the contract; the tag is)',
   );
   assert.equal(
     (html.match(/shrink-to-fit/g) || []).length,
