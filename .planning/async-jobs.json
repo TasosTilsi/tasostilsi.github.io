@@ -418,5 +418,15 @@
     "started": "2026-10-05T08:20:16.239Z",
     "result": "completed",
     "completed": "2026-10-05T08:22:30.315Z"
+  },
+  {
+    "id": "JOB-43",
+    "kind": "subagent",
+    "plan": "EXPLORE-13-mobile-parity-revision-04",
+    "phase": 13,
+    "status": "done",
+    "started": "2026-10-05T10:40:10.632Z",
+    "result": "SUMMARY written",
+    "completed": "2026-10-05T10:43:01.092Z"
   }
 ]
