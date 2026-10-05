@@ -151,7 +151,8 @@ The itemized record below is mapped from the user's own recorded verdict (the "U
 
 The full gate is re-run **after** the last write to this file (the checklist write itself reopens it). Record the exit code and the suite summary here:
 
-- `npm run typecheck && npm test && npm run build && node --test tests/explore-sweep.test.mjs` → exit code `___`, suites `___`, timestamp/HEAD `___`.
+- `npm run typecheck && npm test && npm run build && node --test tests/explore-sweep.test.mjs` → exit code **`0`**, suites **14 test files · 314/314 pass (0 fail)** + `next build` **6/6 static pages, Exporting (2/2)** + `explore-sweep` **22/22**, timestamp/HEAD **2026-10-05 · `a3ed630`** (run after this file's itemized-results commit; `git status` showed only the orchestrator's `.planning/async-jobs.json` modified).
+- The same command is then re-run once more as the plan's literal last action, after the gate-record write is committed, so the passing run chronologically covers the final workspace state (a `.planning/`-only write cannot change a source grep, an export or a suite result). Result reported in `EXPLORE-13-mobile-parity-revision-04-SUMMARY.md`.
 
 ---
 
