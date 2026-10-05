@@ -1020,8 +1020,8 @@ test('REV-23 discrete step: the derive path cannot stomp the stepped index below
   assert.ok(goStart > -1 && goEnd > goStart, 'the goToRole body is locatable in the hook source');
   const goToRole = hook.slice(goStart, goEnd);
   assert.ok(
-    !goToRole.includes('(min-width: 768px)'),
-    'goToRole no longer carries a <md early return — a tap steps at every width (REV-23)',
+    !goToRole.includes('matches) return'),
+    'goToRole no longer carries a width-sniffed early return — a tap steps at every width (REV-23). The <md BRANCH is still the width test (the plan branches on it, it does not return on it); what retires is the return itself',
   );
   assert.ok(
     goToRole.includes('main.scrollTo({ top, behavior })'),
