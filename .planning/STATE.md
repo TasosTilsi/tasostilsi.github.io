@@ -2,22 +2,22 @@
 gsd_state_version: 1
 milestone: v1.0
 milestone_name: "Explore Visual Landing"
-status: idle
-active_phase: null
-next_action: null
-next_phases: [10]
+status: spec
+active_phase: 13
+next_action: discuss-phase
+next_phases: [13]
 progress:
   total_phases: 12
   completed_phases: 1
   total_plans: 8
   completed_plans: 41
   percent: 8
-current_phase: 10
-current_phase_name: projects-stack-revision
+current_phase: 13
+current_phase_name: mobile-parity-revision
 current_plan: 8
-last_updated: "2026-10-02T18:04:32.672Z"
+last_updated: "2026-10-05T07:17:51.270Z"
 state_head: null
-last_activity: 2026-10-02
+last_activity: 2026-10-05
 stopped_at: "Phase 12 shipped — PR #12"
 paused_at: null
 ---
@@ -98,6 +98,7 @@ _No active phase._
 - Milestone Explore Visual Landing: AUDIT.md written (status not-ready)
 - Phase 12 shipped — PR #12 (https://github.com/TasosTilsi/tasostilsi.github.io/pull/12)
 - Milestone Explore Visual Landing: AUDIT.md written (status not-ready)
+- Phase 13: SPEC.md sealed (ambiguity UNAVAILABLE)
 
 ### Blockers / Concerns
 - Shipping decision (user, 2026-09-21): ship the milestone AS A WHOLE at milestone close — no per-phase PRs. phase-1 and phase-2 branches pushed to origin (backup only); gsd_ship deferred for both phases. phase-2 branch contains phase-1 commits (stacked).
