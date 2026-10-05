@@ -21,7 +21,8 @@
  *   rel      = (wrapperRect.top − mainRect.top) − mainPaddingTop
  *   range    = wrapperHeight − stageHeight
  *   progress = computeProgress(rel, range)     — clamped, natural release
- *   c′       = continuousIndex(progress, roleCount)
+ *   c′       = md+ ? continuousIndex(progress, roleCount)
+ *                  : steppedIndexRef.current  (<md: the discrete step, REV-23)
  *   active   = activeIndexFromContinuous(c′, roleCount)
  *
  * Marker writes: θ = markerAngle(i, c′, n) (or reducedMotionAngle under
@@ -51,13 +52,16 @@
  *
  * Keyboard + controls (§5/§4): ONE keydown handler for the stage body
  * root (the role="group" div) — ArrowUp/ArrowDown step roles; Prev/Next
- * buttons share the same goToRole path. Stepping sets progress to the
+ * buttons share the same goToRole path. At md+ stepping sets progress to the
  * target role's POSITION via main.scrollTo(scrollTargetForRole(...)) with
  * the tour's reduced-motion behavior branch at the call site (RM-3) —
  * scrolling IS the progress input, so keyboard never bypasses the single
- * source of truth (D-02). rel is measured fresh at invocation. Arrows
- * outside the stage fall through to native main scrolling; preventDefault
- * ONLY on handled keys.
+ * source of truth (D-02). rel is measured fresh at invocation. Below md
+ * (REV-23) there is no scroll range to move in, so the step writes the
+ * stepped index (the <md derivation input), re-runs the imperative
+ * derivation through the schedule bridge and brings the entry into view
+ * with block:'nearest'. Arrows outside the stage fall through to native
+ * main scrolling; preventDefault ONLY on handled keys.
  *
  * Reduced motion (E-13): the mode is read FRESH per derivation pass and
  * per invocation via the ONE reduced-motion matchMedia read below — no
@@ -66,13 +70,21 @@
  * never during render) to gate the dot size-class swap (W-7). The sticky
  * range itself is RETAINED (RM-5 — scroll position is user input).
  *
- * md gate (§8 B-1): matchMedia('(min-width: 768px)') WITH a change
- * listener (added/removed on cleanup) — the derivation pass short-circuits
- * below md (computeProgress never runs, the NaN divide-by-zero path is
- * unreachable); entering the compact form clears the inline layer styles
- * ONCE (the SSR hidden styles never survive to a mobile user, all layers
- * readable) and re-entering md+ hands per-layer visibility back to the
- * hook.
+ * md gate (REV-23 / §8 B-1): matchMedia('(min-width: 768px)') WITH a change
+ * listener (added/removed on cleanup). Since phase 13 the query no longer
+ * gates the ARC — it owns LAYER OWNERSHIP and the step-mode handoff:
+ *  • the derivation runs at EVERY width (marker positions/emphasis are
+ *    written on phones too, so the semicircle is live below md);
+ *  • only the per-layer opacity/translateY/visibility writes are md-only
+ *    (below md all five entries stay readable — an ungated pass at
+ *    progress 0 would hide entries 2-5);
+ *  • only the per-pass `setActiveIndex` write is md-only (below md the
+ *    DISCRETE step owns the active index and a ResizeObserver pass must
+ *    never stomp it);
+ *  • entering the compact form clears the inline layer styles ONCE (the SSR
+ *    hidden styles never survive to a mobile user) and RE-DERIVES with
+ *    c′ = the stepped index; re-entering md+ hands per-layer visibility
+ *    back to the hook.
  *
  * Cleanup (E-7): scroll listener, md change listener, ResizeObserver,
  * pending rAF frame and the marker fade one-shot are ALL removed/cancelled
@@ -137,6 +149,19 @@ export function useTimelineProgress(roleCount: number): TimelineProgress {
   const activeIndexRef = useRef(0);
   const frameRef = useRef(0);
   const fadeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /**
+   * REV-23: the <md carousel-index source. Below md there is no scroll range,
+   * so the discrete step (Prev/Next/arrows) IS the derivation input — a ref,
+   * never render state, so the rAF pass never reads a stale closure.
+   */
+  const steppedIndexRef = useRef(0);
+  /**
+   * REV-23: the bridge to the mount effect's `schedule`. Marker transforms
+   * are written imperatively by the rAF pass and this effect's deps are
+   * [roleCount], so a `setActiveIndex` re-render swaps classes but writes no
+   * transform — goToRole's <md branch needs the imperative re-derivation.
+   */
+  const scheduleRef = useRef<(() => void) | null>(null);
 
   // The mount effect owns the whole scroll/rAF/observer machinery; roleCount
   // is stable for the life of the stage (the data file is static), so the
@@ -201,7 +226,6 @@ export function useTimelineProgress(roleCount: number): TimelineProgress {
     };
 
     const derive = () => {
-      if (!mdMedia.matches) return; // dormant below md (B-1 path b)
       const rm = prefersReducedMotion(); // E-13: fresh per pass
       // Batched reads FIRST — never interleaved with writes (§6/E-8).
       const wrapperRect = wrapper.getBoundingClientRect();
@@ -210,7 +234,14 @@ export function useTimelineProgress(roleCount: number): TimelineProgress {
       const rel = wrapperRect.top - mainRect.top - mainPaddingTop;
       const range = wrapper.offsetHeight - stage.offsetHeight;
       const progress = computeProgress(rel, range); // clamped — natural release
-      const c = continuousIndex(progress, roleCount);
+      // REV-23: the carousel index is BRANCHED. Below md there is no scroll
+      // range (computeProgress returns 0 for range ≤ 0) and where the <md
+      // wrapper/stage natural heights differ at all the mount pass clamps
+      // progress to 1 — both incidental values with no meaning on a phone,
+      // and either one parks the WRONG entry at the focal point. The stepped
+      // index is the intended <md input; continuousIndex/markerAngle stay the
+      // ONE derivation at both widths (UI-SPEC §3.1e).
+      const c = mdMedia.matches ? continuousIndex(progress, roleCount) : steppedIndexRef.current;
       const active = activeIndexFromContinuous(c, roleCount);
       let geometry = geometryRef.current;
       if (geometryDirty || !geometry) {
@@ -224,7 +255,8 @@ export function useTimelineProgress(roleCount: number): TimelineProgress {
         ...geometry,
         radius: geometry.radius * LABEL_RADIUS_RATIO,
       };
-      // ALL writes AFTER all reads.
+      // ALL writes AFTER all reads. REV-23: the marker writes are NOT
+      // md-gated — the arc positions its markers at every width (§3.1c).
       for (let i = 0; i < roleCount && i < dots.length; i += 1) {
         const theta = rm ? reducedMotionAngle(i, roleCount) : markerAngle(i, c, roleCount);
         const emphasis = rm
@@ -248,14 +280,24 @@ export function useTimelineProgress(roleCount: number): TimelineProgress {
           label.style.opacity = String(emphasis.opacity);
         }
       }
-      for (let i = 0; i < roleCount && i < layers.length; i += 1) {
-        const layer = contentLayer(i, c, rm); // RM-2: translateY ≡ 0 under reduce
-        const el = layers[i];
-        el.style.opacity = String(layer.opacity);
-        el.style.transform = `translateY(${layer.translateY}px)`;
-        el.style.visibility = layer.visible ? 'visible' : 'hidden';
+      // REV-23: layer ownership is md-only. With the <md dormancy return
+      // retired, an ungated pass at <md runs with progress pinned at 0 where
+      // contentLayer(i, 0).visible is |i| < 1 — it would write
+      // visibility:hidden onto entries 2-5 and four of the five CV entries
+      // would vanish on every phone.
+      if (mdMedia.matches) {
+        for (let i = 0; i < roleCount && i < layers.length; i += 1) {
+          const layer = contentLayer(i, c, rm); // RM-2: translateY ≡ 0 under reduce
+          const el = layers[i];
+          el.style.opacity = String(layer.opacity);
+          el.style.transform = `translateY(${layer.translateY}px)`;
+          el.style.visibility = layer.visible ? 'visible' : 'hidden';
+        }
       }
-      if (active !== activeIndexRef.current) {
+      // REV-23: same gate — below md the discrete step owns the active index,
+      // so a ResizeObserver pass (the URL-bar collapse right after a tap) must
+      // never stomp it back to entry 0.
+      if (mdMedia.matches && active !== activeIndexRef.current) {
         activeIndexRef.current = active;
         setActiveIndex(active); // the ONLY per-pass state write, on change (§6)
       }
@@ -268,6 +310,7 @@ export function useTimelineProgress(roleCount: number): TimelineProgress {
         derive();
       });
     };
+    scheduleRef.current = schedule; // REV-23: the <md step's re-derivation bridge
 
     const onScroll = () => {
       if (mdMedia.matches) schedule(); // dormant below md — no rAF loop (B-1)
@@ -281,11 +324,11 @@ export function useTimelineProgress(roleCount: number): TimelineProgress {
       } else {
         setStageActive(false); // all layers readable in the compact form
         clearLayerStyles();
-        for (const el of [...dots, ...labels]) {
-          el.style.opacity = '';
-          el.style.transform = '';
-          el.style.transition = '';
-        }
+        // REV-23: re-derive with c′ = the stepped index instead of dumping
+        // every marker untransformed at the arc origin (the retired clear
+        // loop's pile-up on any md→<md transition).
+        geometryDirty = true;
+        schedule();
       }
     };
 
@@ -302,12 +345,18 @@ export function useTimelineProgress(roleCount: number): TimelineProgress {
     } else {
       setStageActive(false); // corrected on mount (B-1: below md all layers readable)
       clearLayerStyles();
+      // REV-23/§3.1c: the THREE <md derive triggers are mount + ResizeObserver
+      // + the discrete step. Without this line the <md first paint would rest
+      // entirely on the observer's initial delivery — an implicit dependency.
+      geometryDirty = true;
+      schedule();
     }
 
     return () => {
       main.removeEventListener('scroll', onScroll);
       mdMedia.removeEventListener('change', onMdChange);
       observer.disconnect();
+      scheduleRef.current = null; // REV-23: drop the <md bridge with the effect
       if (frameRef.current !== 0) cancelAnimationFrame(frameRef.current);
       if (fadeTimerRef.current !== null) clearTimeout(fadeTimerRef.current);
     };
@@ -326,7 +375,25 @@ export function useTimelineProgress(roleCount: number): TimelineProgress {
     const wrapper = stage?.parentElement ?? null;
     const main = document.querySelector<HTMLElement>(MAIN_SELECTOR);
     if (!stage || !wrapper || !main) return;
-    if (!window.matchMedia('(min-width: 768px)').matches) return; // dormant below md
+    if (!window.matchMedia('(min-width: 768px)').matches) {
+      // REV-23 <md branch: below md there is no scroll range to move in, so
+      // the discrete step IS the derivation input. Write the stepped index,
+      // mirror it onto activeIndexRef (so the next stepRole(±1) composes from
+      // the step, not a stale 0), re-render the discrete classes, bring the
+      // entry into view — block:'nearest' only, so the page is not yanked —
+      // and re-run the imperative derivation through the bridge (marker
+      // transforms are written by the rAF pass; setActiveIndex alone writes
+      // none, so without this the focal marker never moves).
+      steppedIndexRef.current = target;
+      activeIndexRef.current = target;
+      setActiveIndex(target);
+      stage.querySelectorAll<HTMLElement>('[data-timeline-layer]')[target]?.scrollIntoView({
+        block: 'nearest',
+        behavior: prefersReducedMotion() ? 'auto' : 'smooth',
+      });
+      scheduleRef.current?.();
+      return;
+    }
     const wrapperRect = wrapper.getBoundingClientRect();
     const mainRect = main.getBoundingClientRect();
     const mainPaddingTop = parseFloat(getComputedStyle(main).paddingTop) || 0;
@@ -345,9 +412,8 @@ export function useTimelineProgress(roleCount: number): TimelineProgress {
 
   const handleKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
     if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
-    if (!window.matchMedia('(min-width: 768px)').matches) return; // arrows fall through below md
     event.preventDefault(); // ONLY on handled keys (§5)
-    stepRole(event.key === 'ArrowDown' ? 1 : -1);
+    stepRole(event.key === 'ArrowDown' ? 1 : -1); // REV-23: steps at every width
   };
 
   return { activeIndex, stageActive, reducedMotion, arcZoneWidth, stepRole, handleKeyDown };

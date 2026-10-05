@@ -5,15 +5,16 @@
  * (phase 8, REV-07/REV-12/REV-13; phase 9 REV-16 education-on-arc;
  * UI-SPEC §2/§3/§8/§9/§10; D-03…D-07).
  *
- * ONE DOM serves three hydration paths (§8 B-1): the md+ interactive stage
- * (arc zone + content layers + controls, driven by useTimelineProgress —
- * seam 2), the <md compact form (the SAME layer nodes restacked by
- * md:-scoped classes — year chip leads, all five entries visible, no cramped
- * arc), and the no-JS static export (entry 1 = Chubb role renders real
- * text; layers 2–5 carry visibility:hidden + aria-hidden — the SSR styles
- * are the §9 derivation evaluated at progress 0, no special-casing). The
- * interaction activates on hydration (D-07); no geometry-dependent layout
- * (flow text).
+ * ONE DOM serves three hydration paths (§8 B-1; REV-23 phase 13): the md+
+ * interactive stage (arc zone + content layers + controls, driven by
+ * useTimelineProgress — seam 2), the <md form (the SAME arc + the SAME five
+ * layer nodes restacked by md:-scoped classes — arc strip above the content,
+ * year chip leads, all five entries visible; the arc is live below md and the
+ * controls step it discretely), and the no-JS static export (entry 1 = Chubb
+ * role renders real text; layers 2–5 carry visibility:hidden + aria-hidden —
+ * the SSR styles are the §9 derivation evaluated at progress 0, no
+ * special-casing). The interaction activates on hydration (D-07); no
+ * geometry-dependent layout (flow text).
  *
  * Entry selection is the phase-9 ONE derivation site: selectTimelineEntries
  * (timeline-geometry.ts) merges experience.filter(isTechRelated) with
@@ -31,8 +32,12 @@
  * (BEng has none — omits). Every rendered string traces to
  * portfolio-main-data.json through the pure module.
  *
- * Stage anatomy (§1.2/§2/§3): interior row md:grid md:grid-cols-[2fr_3fr]
- * (the 40/60 split), arc zone hidden below md; the left-bulging C arc is a
+ * Stage anatomy (§1.2/§2/§3): interior row flex flex-col at <md (arc strip
+ * above the content column) and md:grid md:grid-cols-[2fr_3fr] (the 40/60
+ * split) at md+; the arc zone is a 200px box at <md and the stretched grid
+ * column at md+ (REV-23 — the single box height is the ONLY
+ * width-specific value; marker positions stay container-derived at every
+ * width). The left-bulging C arc is a
  * server-rendered aria-hidden SVG (fixed viewBox, non-scaling-stroke) whose
  * geometry is client-measured — zero layout shift on hydration; markers are
  * absolutely-positioned REAL TEXT (dot + year label) positioned by the
@@ -129,10 +134,14 @@ function TimelineStage({ entries }: { entries: TimelineEntry[] }) {
 
   return (
     <div role="group" aria-label="Career timeline" onKeyDown={handleKeyDown}>
-      <div className="gap-4 md:grid md:h-[calc(100dvh-14rem)] md:grid-cols-[2fr_3fr]">
-        {/* Arc zone — the 40% column at md+; hidden below md (§1.2/§8). */}
-        <div className="hidden md:flex md:flex-col">
-          <div data-timeline-arc-zone="true" className="relative flex-1">
+      <div className="flex flex-col gap-4 md:grid md:h-[calc(100dvh-14rem)] md:grid-cols-[2fr_3fr]">
+        {/* Arc zone — the 40% grid column at md+, a compact arc strip above
+            the content at <md. It renders at EVERY width (REV-23/D-01): the
+            phase-8 below-md hide pin (`hidden` + `md:flex`) is retired, so
+            the cos/sin geometry re-derives from the narrower measured box and
+            the year markers re-fit against it. */}
+        <div className="flex flex-col">
+          <div data-timeline-arc-zone="true" className="relative h-[200px] md:h-auto md:flex-1">
             <svg
               viewBox="0 0 100 200"
               preserveAspectRatio="xMidYMid meet"
@@ -201,7 +210,9 @@ function TimelineStage({ entries }: { entries: TimelineEntry[] }) {
               );
             })}
           </div>
-          {/* Control row — the ONLY interactive controls (§4); absent below md. */}
+          {/* Control row — the ONLY interactive controls (§4); rendered at
+              every width (REV-23) and the accessible non-scroll alternative
+              to the arc below md, where the discrete step drives the arc. */}
           <div className="flex items-center justify-center gap-2">
             <button
               type="button"
