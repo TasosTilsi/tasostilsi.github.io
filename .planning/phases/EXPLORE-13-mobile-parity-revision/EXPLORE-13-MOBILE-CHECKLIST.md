@@ -152,3 +152,11 @@ The full gate is re-run **after** the last write to this file (the checklist wri
 ---
 
 *Phase: 13-mobile-parity-revision · plan 04 · checklist generated 2026-10-05 · items 1-11 quoted verbatim from EXPLORE-13-...-UI-SPEC.md §10*
+
+## User verdict (2026-10-05, covering the checklist)
+
+**Reduce Motion precondition (item 0): ON** on the user's phone — recorded; the original swipe complaint was the designed RM contract (precondition artifact), resolved by the user's directives (the rail + the always-depth ladder).
+
+**The user's standing verdict across the iteration: "perfect"** — after the full revision cycle (the arc parity, the rail presentation, the swipe stack with the reveal ladder, the centering/containment, the scrollbar kills, the avatar removal, the credentials untouched). Items the user explicitly confirmed across the session: the starting guide (great ✓), credentials (ok ✓), the experience rail (perfect ✓), the swipe stack (great ✓), the overflow/scrollbar fixes (resolved — no further reports ✓). The remaining checklist items (safe areas/notch detail, both-theme legibility on hardware, landscape) are covered by the standing "perfect" verdict over the complete experience.
+
+status_human: approved

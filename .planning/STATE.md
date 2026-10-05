@@ -15,7 +15,7 @@ progress:
 current_phase: 13
 current_phase_name: mobile-parity-revision
 current_plan: 3
-last_updated: "2026-10-05T09:42:09.325Z"
+last_updated: "2026-10-05T10:28:38.533Z"
 state_head: null
 last_activity: 2026-10-05
 stopped_at: "Phase 12 shipped — PR #12"
@@ -102,18 +102,22 @@ _No active phase._
 - Phase 13: CONTEXT.md sealed — 7 decisions
 - Phase 13: planned — 4 plan(s) across 4 wave(s).
 - quick 2026-10-05-stack-reveal-ladder: Fix the swipe-stack depth geometry so behind-cards are VISIBLE as stacked header bands (the user's reference look) instead of near-invisible slivers, and so the stage's peek band stops reading as an awkward empty gap. Root cause (verified in code): cards are bottom-anchored (`bottom: 0`) AND per-level scaled — the visible peek of a depth-l card = |translateY| − H×(1−scale_l); the LEVELS table's offsets (−38/−76/−114/−152/−190) were designed without the scale-shrink compensation, so the visible peeks collapse to ~16/44/68/78px slivers (nearly invisible) and the reserved 250px band reads as dead empty space between the stat tiles and the cards.
+- quick 2026-10-05-band-tighten-and-mobile-rail: Two user-directed amendments to the just-executed phase-13 work (the phase's plans are complete, so these land as an amendment quick-task with pinned contracts):
 
-Files: src/components/explore/projects-card-state.ts (LEVELS + translateY derivation + doc comments), src/components/explore/sections/projects-stack-stage.tsx (stage height constants: PEEK_BAND_PX, the h-[790px]/md:h-[830px] classes → re-derived), tests/projects-stack.test.mjs + the geometry/level suites (renew the pinned numbers).
+PART 1 — tighten the card bands (user picked 44px): in src/components/explore/projects-card-state.ts change VISIBLE_BAND_PX from 72 to 44 (the formula contract unchanged: translateY(l) = −(l·44 + H·(1−scale_l)), yLeave = translateY − 56; scale/opacity/z ladders unchanged); in src/components/explore/sections/projects-stack-stage.tsx re-derive PEEK_BAND_PX = 5·44 + 20 = 240 and the stage heights h-[760px] base (520+240) / md:h-[800px] (560+240) (the formula: stage = card + band, band inclusive of safe). Renew the geometry test pins (the band constants, the yUp/yLeave rows, the stage-height rows) red-first; update the module docstrings (72 → 44 with the note the value is the user's density dial).
 
-Pinned new contract (the reveal-ladder formula — record it as the module contract):
-1. VISIBLE_BAND_PX = 72 — each depth level reveals one more 72px band of the behind-card's top (header + edge) above the front card's top edge. The composition at rest = the front card + 5 progressively shallower card tops behind it — the curated physical-stack look.
-2. translateY for depth l (1..5): translateY(l) = −( l × VISIBLE_BAND_PX + H_front × (1 − scale_l) ) where scale_l = 0.96/0.92/0.88/0.84/0.80 (the existing scale ladder UNCHANGED) and H_front comes from the card height (560 md / 520 base — pin the formula so the numbers derive, with the computed table recorded: md H=560 → yUp = −94/−189/−283/−378/−472; base H=520 → yUp = −92/−186/−280/−373/−468; the module derives these from H via the CARD_HEIGHT input, not hardcoded magic — the function gains/uses the card height param or a named constant pair).
-3. yLeave(l) = translateY(l) − 56 (the LEAVE_EXTRA relation preserved: −56 further). Exit choreography unchanged (the exit animates x/rotate/opacity; y stays).
-4. PEEK_BAND_PX = 5 × VISIBLE_BAND_PX + SAFE = 360 + 20 = 380 (was 250). Stage heights: h-[900px] base (520+360+20) / md:h-[940px] (560+360+20) / mobile compact: h-[900px] consistent with the card 520 — replace the 790/830/690 constants accordingly, deriving where possible from the formula (stage = card + band + safe).
-5. Depth-6+ (should not occur with 6 cards) extrapolation rule extends the same formula. Reduced motion: SAME static offsets (the depth composition is not motion — it renders at every motion preference; only transitions are instant under RM — this matches the RM amendment granted in spirit by the user's defect report: the depth must never appear/disappear with the OS setting).
-6. z-index ladder unchanged; opacity ladder unchanged (0.95/0.85/0.7/0.5/0.3 — the deeper card tops read as layered paper); curated imperfection unchanged.
-7. Renew the stale geometry pins: the LEVELS rows in tests/projects-stack.test.mjs (the yUp/yLeave/scale/opacity per-depth assertions + the frontIndex geometry assertions) and any band-height assertions (the 790/830 pins) — red first on the old numbers, then green on the reveal-ladder contract. Record the formula in the module docstring (the contract is the FORMULA, not just the numbers).
-8. Gate chronologically last: npm run typecheck && npm test && npm run build && node --test tests/*.mjs — all green. Commit atomically: "fix(explore): swipe stack depth becomes a visible header-band reveal ladder (behind-cards visible, band no longer dead space)". Do NOT push. Report the commit hash + the new geometry summary.
+PART 2 — the mobile experience presentation (user: the squeezed arc is unappealing; picked the vertical year rail + 'one at a time, changing while scrolling'): in src/components/explore/sections/experience-section.tsx (+ the hook: src/components/explore/use-timeline-progress.ts if needed):
+- DESKTOP (md+) stays byte-untouched: the semicircular arc + the sticky-range scroll drive + all-content behavior unchanged.
+- MOBILE (<md): the arc zone does NOT render the squeezed semicircle — instead a slim VERTICAL RAIL: a left rail (a thin vertical line + 5 year markers: 2023/2022/2021/2019/2012 — top = present) with the ACTIVE marker emphasized (accent dot + accent year, the others muted), and the RIGHT/BODY area shows EXACTLY ONE entry at a time — the active entry's full content (role: title > company > dates > location > bullets; education: degree > institution > dates > specialization).
+- The 'changing while scrolling' rhythm: <md gains a scroll-range wrapper (mirroring the desktop's sticky-range mechanism, sized ~5 bands — e.g. 5 × 80vh ≈ 400vh wrapper via the same data-conditional pattern, the stage sticky within it); the scroll position through the range maps to the active index in 5 bands (the phase-8 desktop derivation generalizes: progress → active idx via Math.round((n-1)·progress) — REUSE the existing derivation); the entry swap = Editorial-calm opacity/fade (200-280ms) — no spatial slides; the rail's active marker follows the active index.
+- The reduced-motion contract: instant swaps (opacity-only), no animation — the existing RM gate covers it.
+- Keyboard/buttons: Prev/Next still step (they scroll through the range to the target band — the same targetScrollTop formula with the <md wrapper's own geometry); arrows work <md (the D1 lift, already pinned); ends clamp.
+- The RESOLVED-D1 all-five-readable contract is SUPERSEDED on mobile by the user's one-at-a-time decision — record the amendment in the plan/doc (the <md path = one-at-a-time; the all-five rendering retires with the squeezed arc).
+- touch-action: pan-y stays on the stage area if the wrapper region should never block vertical scroll (the page scroll IS the input — nothing captures it; no wheel/touch handlers).
+
+Stale-test renewal: the suites pinning the <md experience (all-five-readable, RESOLVED-D1 rows, the arc-hidden-at-mobile rows in tests/explore-visuals*.test.mjs, explore-sweep.test.mjs mobile rows, the E15/E2 edge rows) renew red-first to the rail + one-at-a-time + scroll-range contract; the sweep's mobile rows re-derive.
+
+Gate chronologically last: npm run typecheck && npm test && npm run build && node --test tests/*.mjs — all green. Commit atomically: "fix(explore): 44px card bands shrink the stage; mobile experience becomes a one-at-a-time year rail with scroll-driven swaps (user directives)". Do NOT push. Report the commit hash + both changes' summaries.
 
 ### Blockers / Concerns
 - Shipping decision (user, 2026-09-21): ship the milestone AS A WHOLE at milestone close — no per-phase PRs. phase-1 and phase-2 branches pushed to origin (backup only); gsd_ship deferred for both phases. phase-2 branch contains phase-1 commits (stacked).
