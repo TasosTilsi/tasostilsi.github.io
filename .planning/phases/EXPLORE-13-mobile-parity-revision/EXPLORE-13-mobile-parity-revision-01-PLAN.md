@@ -16,9 +16,9 @@ user_setup:
   - "The test phone's Reduce-Motion state: Settings → Accessibility → Motion → Reduce Motion (10 seconds). This is the OQ-1 precondition — it is asked BEFORE wave 1 (see <pre_execute_precondition>), no code change follows on either answer, and plan 04 Task 2 records the value in the checklist. Asking it later would leave waves 1-3 executing with a blocking question unanswered."
 must_haves:
   truths:
-    - "A 375px viewport renders the semicircular arc above the content column — the arc stroke, all five year markers positioned on the curve, and the Prev/Next controls; no `hidden` gate hides any of it."
-    - "All five timeline entries stay readable on a phone: no content layer is hidden below md (the SSR `visibility:hidden` props are cleared at runtime and the layer-ownership loop never runs at <md), and no layer carries aria-hidden at <md."
-    - "The Prev/Next controls step the arc at <md: the stepped index IS the <md derivation input, so the focal marker moves to the stepped-to entry (not merely the counter and the emphasis classes), that entry is brought into view, and the stepped index survives a ResizeObserver pass (the URL-bar collapse) without snapping back to entry 0."
+    - "A 375px viewport renders the semicircular arc above the content column — the arc stroke, all five year markers positioned on the curve, and the Prev/Next controls; no `hidden` gate hides any of it. [SUPERSEDED by user directive 43432f5 — the delivered contract is the year-rail/one-at-a-time <md presentation; see ROADMAP REV-23 as revised]"
+    - "All five timeline entries stay readable on a phone: no content layer is hidden below md (the SSR `visibility:hidden` props are cleared at runtime and the layer-ownership loop never runs at <md), and no layer carries aria-hidden at <md. [SUPERSEDED by user directive 43432f5 — the delivered contract is the year-rail/one-at-a-time <md presentation; see ROADMAP REV-23 as revised]"
+    - "The Prev/Next controls step the arc at <md: the stepped index IS the <md derivation input, so the focal marker moves to the stepped-to entry (not merely the counter and the emphasis classes), that entry is brought into view, and the stepped index survives a ResizeObserver pass (the URL-bar collapse) without snapping back to entry 0. [SUPERSEDED by user directive 43432f5 — the delivered contract is the year-rail/one-at-a-time <md presentation; see ROADMAP REV-23 as revised]"
     - "No arc label — year or date line — paints outside the arc zone at any width, so <main> (implicitly a horizontal scroll container, since `overflow-y-auto` alone makes the other axis compute to auto) never gains a horizontal scrollbar."
     - "Only one value in the arc path is width-specific — the zone's box height. Marker positions stay container-derived (cos/sin over the measured box) at every width."
   artifacts:
@@ -49,7 +49,7 @@ must_haves:
       pattern: "stepRole|handleKeyDown"
     - from: "src/components/explore/sections/experience-section.tsx"
       to: "src/components/explore/use-timeline-progress.ts"
-      via: "a Prev/Next tap runs goToRole's <md branch, which writes steppedIndexRef AND re-schedules derive(), so the marker loop repositions the focal marker on the stepped-to entry — the button-to-marker wiring is the whole point of the <md step"
+      via: "a Prev/Next tap runs goToRole's <md branch, which writes steppedIndexRef AND re-schedules derive(), so the marker loop repositions the focal marker on the stepped-to entry — the button-to-marker wiring is the whole point of the <md step [RETIRED — the replacement link (stepRole → goToRole → scrollTargetForRole → main.scrollTo → derive) is wired and verified; the declared ref retires deliberately, pinned absent by tests/explore-visuals.test.mjs:1107-1111]"
       pattern: "steppedIndexRef"
 ---
 

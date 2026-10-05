@@ -203,4 +203,15 @@ None. This plan writes **no** production code: the diff is test assertions plus 
 | The final gate is green over the final tree | `exit=0` · typecheck 0 · **314/314** across 14 files · build 6/6 + Exporting (2/2) · `explore-sweep` 22/22 |
 | The nyquist obligation is recorded, not implicit | its own named section, naming `gsd_validate_phase 13` after `gsd_verify 13` and before `gsd_ship 13` |
 
+## Reconciliation — the locked artefacts vs the delivered contract (post-verification)
+
+`gsd_verify 13` returned `gaps_found` (41/48) on four truths that all share one cause: the executed code carries the user's FINAL directive — commit `43432f5` (quick `2026-10-05-band-tighten-and-mobile-rail`), approved `9fd3a87` — while three locked artefacts still asserted the superseded clauses. This section records the reconciliation. **No source or test file changed** (`git diff --name-only HEAD~1 HEAD -- src tests` → empty for this commit).
+
+- **User-directed supersession.** The `<md` Experience presentation is **not** the squeezed semicircular arc: it is a vertical year rail with one-at-a-time, scroll-driven entry swaps; the desktop `md+` presentation keeps the pinned arc. The user judged the squeezed arc unappealing on the phone and directed the rail — "the experience rail (perfect ✓)". This supersedes CONTEXT D-01's "the arc renders at EVERY width" and RESOLVED-D1's all-five-readable reading; it does **not** retire the gesture contract (plan 02) nor any REV-24/REV-25 clause, all of which verified green.
+- **Where recorded.** `.planning/REQUIREMENTS.md` REV-23 rewritten to the delivered contract (marked as user-superseded); `EXPLORE-13-mobile-parity-revision-CONTEXT.md` D-01 carries an appended `SUPERSEDED in execution` line; `EXPLORE-13-mobile-parity-revision-01-PLAN.md` truths 1-3 carry in-place `[SUPERSEDED …]` annotations (original text kept for history) and key link L4 is marked `[RETIRED …]`. The verifier's four truth-gaps (RT-1, P01-1, P01-2, P01-3) are closed by that rewriting — the code was never the divergence.
+- **INFO — plan-01 export-list inaccuracy (one line):** plan-01 frontmatter declares `exports: ["TimelineStage"]` for `experience-section.tsx`, but `TimelineStage` is module-private (`:150`) and the exported surface is `ExperienceSection` — the capability is wired via `explore-panels.tsx`, only the frontmatter export list is inaccurate.
+- **INFO — plan-03 export-list inaccuracy (one line):** plan-03 declares `exports: ["documentScrollLock"]` for `src/app/(home)/layout.tsx`, but `documentScrollLock` is a module-private `const` (`:64`) injected at `:121` and present in `out/index.html` — wired, only the declared export list is inaccurate.
+
+Neither INFO row is a failure; both are recorded rather than silently smoothed (verifier AP-4). The remaining verifier items are **not** artefact problems and stay open elsewhere: H1/AP-3 (touch drag unobserved on hardware while Reduce Motion is ON) and AP-1 (REV-23's sweep falsifier is vacuous) carry to the milestone audit as outstanding UAT/quality items.
+
 *Phase: 13-mobile-parity-revision · plan 04 (wave 4) · executed 2026-10-05*

@@ -13,6 +13,7 @@
 ## Decisions
 ### Full parity (REV-23)
 - **D-01:** The arc renders at EVERY width: the arc zone's `hidden md:flex` retires — at <md the zone renders above/beside the content in a compact stacked layout (arc top, content below, or a slim horizontal arc strip — the geometry is container-derived so the narrow container scales the radius/labels automatically); the year-marker fit predicate + label nowrap re-derive at the narrow width; the active role stays at the focal point; no horizontal scroll.
+  - **SUPERSEDED in execution (user directive 43432f5, approved 9fd3a87): the <md presentation is NO arc — a vertical year rail with one-at-a-time scroll-driven entries; desktop md+ = the arc as pinned. Delivered and verified.**
 - **D-02:** The swipe stack = ONE contract at every width: the simplified projects-mobile-stack wrapper retires; <md renders the same ProjectsSwipeStack with the same drag/behind-cards/centering/shadows, inside the same peek-band-height arithmetic (the container-derived heights: 690px-equivalent applies BUT the full peek + cards show — the phase-10 W-11 two-visible-cards/±28px pin retires with the wrapper).
 - **D-03:** The wizard stays untouched (it tested great on the phone); the drawer/wizard/counter flows unchanged.
 ### Avatar removal (REV-24)
