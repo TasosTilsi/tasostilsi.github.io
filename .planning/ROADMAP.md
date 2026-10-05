@@ -1,6 +1,6 @@
 # Roadmap — Explore Visual Landing (v1.0)
 
-12 phase(s) | requirements mapped per phase
+13 phase(s) | requirements mapped per phase
 
 | # | Phase | Goal | Requirements |
 |---|-------|------|--------------|
@@ -33,3 +33,4 @@
 | 10 | projects-stack-revision | pending |  |
 | 11 | credentials-panel-revision | pending |  |
 | 12 | route-swap-promotion | [x] Complete | 2026-10-02 |
+| 13 | mobile-parity-revision | Full mobile parity (real-hardware-tested): the <md simplifications retired — the arc and the full swipe stack render on phones — the avatar removed, and the mobile-native platform pack applied (proper viewport meta with viewport-fit=cover, dvh/svh, overscroll/tap-highlight/safe-areas) — killing the gap-after-footer, the extra scrollbars, and the touch failures. | REV-23 … REV-25 |
