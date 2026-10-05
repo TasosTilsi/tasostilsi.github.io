@@ -1,27 +1,40 @@
 "use client";
 
 /**
- * ExperienceSection — the full-width semicircular career-timeline stage
- * (phase 8, REV-07/REV-12/REV-13; phase 9 REV-16 education-on-arc;
+ * ExperienceSection — the career-timeline stage (phase 8, REV-07/REV-12/REV-13;
+ * phase 9 REV-16 education-on-arc; phase 13 REV-23/REV-23c;
  * UI-SPEC §2/§3/§8/§9/§10; D-03…D-07).
  *
- * ONE DOM serves three hydration paths (§8 B-1; REV-23 phase 13): the md+
- * interactive stage (arc zone + content layers + controls, driven by
- * useTimelineProgress — seam 2), the <md form (the SAME arc + the SAME five
- * layer nodes restacked by md:-scoped classes — arc strip above the content,
- * year chip leads, all five entries visible; the arc is live below md and the
- * controls step it discretely), and the no-JS static export (entry 1 = Chubb
- * role renders real text; layers 2–5 carry visibility:hidden + aria-hidden —
- * the SSR styles are the §9 derivation evaluated at progress 0, no
- * special-casing). The interaction activates on hydration (D-07); no
- * geometry-dependent layout (flow text).
+ * ONE DOM serves three hydration paths (§8 B-1; REV-23c): the md+ interactive
+ * stage (the semicircular arc + content layers + controls, driven by
+ * useTimelineProgress — seam 2), the <md form (the SAME five layer nodes, plus
+ * a md:hidden VERTICAL YEAR RAIL in the same zone box — the rail is a thin
+ * vertical line with one marker per entry, top = present, the active one
+ * accented; the body shows exactly ONE entry at a time, swapped by class as
+ * the wrapper's scroll range advances the active index), and the no-JS static
+ * export (entry 1 = Chubb role renders real text; layers 2–5 carry
+ * visibility:hidden + aria-hidden — the SSR styles are the §9 derivation
+ * evaluated at progress 0, no special-casing). The interaction activates on
+ * hydration (D-07); no geometry-dependent layout (flow text).
+ *
+ * REV-23c supersedes the phase-13 D-01 mobile contract at <md. D-01 rendered the
+ * squeezed semicircle below md and stacked all five entries; the user rejected
+ * that composition ("the squeezed arc is unappealing") and picked the vertical
+ * year rail + "one at a time, changing while scrolling". So the <md tier now
+ * renders the rail instead of the arc (the arc SVG and its dot/label markers are
+ * md-only PRESENTATION — display:none below md, still one DOM) and the layers
+ * became a single-cell overlay showing the active entry only. The md+ tier is
+ * byte-unchanged: same arc, same sticky 300vh range, same all-content grid
+ * stack. The RESOLVED-D1 "all five readable below md" pin is retired with the
+ * squeezed arc; the retired per-layer md:hidden year chip retires with it too
+ * (the rail owns the years on a phone).
  *
  * Entry selection is the phase-9 ONE derivation site: selectTimelineEntries
  * (timeline-geometry.ts) merges experience.filter(isTechRelated) with
  * education.filter(featured) sorted year-DESCENDING — present-first (user
  * directive: the experience is shown from the present to the past; Chubb
- * 2023 is the arc's focal point at rest) (D-03/REV-16 — the phase-6
- * isTechRelated filter still governs the role side; no slice).
+ * 2023 is the arc's focal point at rest, and the rail's TOP marker) (D-03/REV-16
+ * — the phase-6 isTechRelated filter still governs the role side; no slice).
  * Zero selected entries render nothing at all (E-1). Content templates are
  * type-aware (§3.3): roles render title > company > duration·location meta
  * (both strings AS STORED, R-7/U-8 — dash style never normalized) > the
@@ -32,12 +45,13 @@
  * (BEng has none — omits). Every rendered string traces to
  * portfolio-main-data.json through the pure module.
  *
- * Stage anatomy (§1.2/§2/§3): interior row flex flex-col at <md (arc strip
- * above the content column) and md:grid md:grid-cols-[2fr_3fr] (the 40/60
- * split) at md+; the arc zone is a 200px box at <md and the stretched grid
- * column at md+ (REV-23 — the single box height is the ONLY
- * width-specific value; marker positions stay container-derived at every
- * width). The left-bulging C arc is a
+ * Stage anatomy (§1.2/§2/§3; REV-23c): the stage body is a TWO-COLUMN GRID at
+ * every width — grid-cols-[56px_1fr] at <md (rail column + body) and
+ * md:grid-cols-[2fr_3fr] (the 40/60 split) at md+, with the single 100dvh-based
+ * height cap md-scoped. The zone box is a 200px box at <md and the stretched
+ * grid column at md+ (the single box height is the ONLY width-specific value;
+ * marker positions stay container-derived at every width, and below md nothing
+ * measures at all). The left-bulging C arc is a
  * server-rendered aria-hidden SVG (fixed viewBox, non-scaling-stroke) whose
  * geometry is client-measured — zero layout shift on hydration; markers are
  * absolutely-positioned REAL TEXT (dot + year label) positioned by the
@@ -48,8 +62,11 @@
  * border-chart-2 bg-transparent — never fills, never swaps size class; the
  * type difference IS the visual distinction, emphasis rides the existing
  * ladder + label treatment) with a plain year label — no date-line suffix.
- * Marker keys are type-aware (education entries have no company — the
- * primary keys the type: entry.company for roles, entry.institution for
+ * The <md rail reuses that anatomy one size down (filled accent dot vs muted
+ * dot, hollow for education; the active year in the accent colour) with a
+ * CONSTANT dot size, since emphasis on the rail is colour and nothing may
+ * move (W-7). Marker keys are type-aware (education entries have no company —
+ * the primary keys the type: entry.company for roles, entry.institution for
  * education, plus index). Markers carry NO hover/press/cursor affordance
  * and no current-state marker attribute — emphasis is visual, state is
  * announced by the sr-only aria-live region on DISCRETE activeIndex changes
@@ -57,20 +74,33 @@
  *
  * Interaction (§4/§5): exactly TWO interactive controls — the Prev/Next
  * buttons (44px targets, the tour's GHOST_INTERACTION focus recipe
- * verbatim, disabled at the clamped ends over 5 stops); the
- * ArrowUp/ArrowDown handler rides the group root. The active ROLE marker's
+ * verbatim, disabled at the clamped ends over 5 stops), a row from md and a
+ * column under the rail at <md; the
+ * ArrowUp/ArrowDown handler rides the group root. Both paths scroll the
+ * wrapper's own range at every width (REV-23c), so scrolling IS the state and
+ * the buttons never bypass it. The active ROLE marker's
  * date line renders the duration AS STORED behind the W-4 measurable
  * predicate (dateLineFits over the measured ANCHOR BUDGET — the label's
  * focal anchor, derived by the pure labelAnchorBudget; computed, not
  * eyeballed; the §1.4 md-width estimate stands in before the first
  * measurement). Education markers render the year only (§3.2) — the
- * date-line suffix never applies to them.
+ * date-line suffix never applies to them, and neither applies to the rail
+ * (years only).
  *
- * Discrete class swaps (active marker color, dot fill) ride React state on
+ * The <md entry swap (§6 row 1, REV-23c): the layers share ONE grid cell and
+ * are swapped by CLASS — the active layer is opacity-100 + visible, the rest
+ * opacity-0 + invisible — over a 200ms editorial-calm opacity/visibility
+ * crossfade (the 200–280ms floor the motion region pins), md:transition-none
+ * so the per-frame rAF writes at md+ stay transition-free. Under reduced motion
+ * the shell's global guard (transition:none !important) makes the swap
+ * instant — the existing RM gate covers it, no second suppressor (R-6).
+ *
+ * Discrete class swaps (active marker color, dot fill, rail accent) ride React
+ * state on
  * activeIndex change with transition-colors 200ms ease-out (the phase-7
  * vocabulary) — transition-COLORS, deliberately not the plan's shorthand
  * transition-[color,opacity]: opacity and transform are written per-frame
- * by the hook's rAF channel, and a per-frame-written property must never
+ * by the hook's rAF channel at md+, and a per-frame-written property must never
  * carry a CSS transition (UI-SPEC §6 row 1 — a transition would fight the
  * writes and lag the scroll); the color-only set still smooths the discrete
  * swap. The dot SIZE-class swap is gated on the hook's post-mount
@@ -141,19 +171,70 @@ function TimelineStage({ entries }: { entries: TimelineEntry[] }) {
 
   return (
     <div role="group" aria-label="Career timeline" onKeyDown={handleKeyDown}>
-      <div className="flex flex-col gap-4 md:grid md:h-[calc(100dvh-14rem)] md:grid-cols-[2fr_3fr]">
-        {/* Arc zone — the 40% grid column at md+, a compact arc strip above
-            the content at <md. It renders at EVERY width (REV-23/D-01): the
-            phase-8 below-md hide pin (`hidden` + `md:flex`) is retired, so
-            the cos/sin geometry re-derives from the narrower measured box and
-            the year markers re-fit against it. */}
+      <div className="grid grid-cols-[56px_1fr] gap-4 md:h-[calc(100dvh-14rem)] md:grid-cols-[2fr_3fr]">
+        {/* Rail / arc column — the left column at every width. At md+ it is
+            the 40% grid column holding the measured semicircular arc. Below
+            md the SAME box holds the vertical year rail (REV-23c): the
+            squeezed semicircle the user rejected does not render at all. */}
         <div className="flex flex-col">
           <div data-timeline-arc-zone="true" className="relative h-[200px] md:h-auto md:flex-1">
+            {/* <md: the vertical year rail — a thin vertical line + one marker
+                per entry, distributed top (present / index 0) to bottom (the
+                oldest). The ACTIVE marker is accented (accent dot + accent
+                year), the rest are muted; the markers carry no interaction, no
+                current-state attribute and no hover affordance (§2.4/§4) —
+                the sr-only live region announces the change. Presentation
+                only: the marker colours ride React state on activeIndex
+                changes, and the shell's global reduced-motion guard kills the
+                colour transition (RM-4, the single suppressor). */}
+            <div
+              data-timeline-rail="true"
+              className="absolute inset-0 flex flex-col justify-between md:hidden"
+            >
+              <span aria-hidden="true" className="absolute inset-y-0 left-[3px] w-px bg-border" />
+              {entries.map((t, index) => {
+                const isActive = index === activeIndex;
+                const isEducation = t.type === 'education';
+                // W-2 carried to the rail: the education dot is the CONSTANT
+                // hollow dot (the type difference IS the visual distinction);
+                // a role dot is filled, accent when active. The rail dot is a
+                // constant SIZE — the emphasis is colour, so nothing moves
+                // (W-7: a size change is spatial movement).
+                const dotClass = isEducation
+                  ? 'h-1.5 w-1.5 rounded-full border border-chart-2 bg-transparent'
+                  : `h-1.5 w-1.5 rounded-full transition-colors duration-200 ease-out ${
+                      isActive ? 'bg-chart-2' : 'bg-muted-foreground/40'
+                    }`;
+                return (
+                  <span
+                    key={`rail-${entryPrimary(t)}-${index}`}
+                    data-timeline-rail-marker="true"
+                    className="relative flex items-center gap-2"
+                  >
+                    <span aria-hidden="true" className={dotClass} />
+                    {t.year !== null && (
+                      <span
+                        className={`font-mono tabular-nums transition-colors duration-200 ease-out ${
+                          isActive
+                            ? 'text-sm font-medium text-chart-2'
+                            : 'text-xs text-muted-foreground'
+                        }`}
+                      >
+                        {t.year}
+                      </span>
+                    )}
+                  </span>
+                );
+              })}
+            </div>
+            {/* md+: the semicircular arc — md-only PRESENTATION (the SVG and
+                both marker templates are display:none below md) so the single
+                DOM keeps the server-rendered arc without squeezing it. */}
             <svg
               viewBox="0 0 100 200"
               preserveAspectRatio="xMidYMid meet"
               aria-hidden="true"
-              className="absolute inset-0 h-full w-full"
+              className="absolute inset-0 hidden h-full w-full md:block"
             >
               <path
                 d="M 100 0 A 100 100 0 0 0 100 200"
@@ -182,7 +263,7 @@ function TimelineStage({ entries }: { entries: TimelineEntry[] }) {
                   data-timeline-dot="true"
                   aria-hidden="true"
                   style={{ opacity: 0 }}
-                  className={`absolute left-0 top-0 ${dotClass}`}
+                  className={`absolute left-0 top-0 hidden md:block ${dotClass}`}
                 />
               );
             })}
@@ -197,7 +278,7 @@ function TimelineStage({ entries }: { entries: TimelineEntry[] }) {
                   key={`label-${entryPrimary(t)}-${index}`}
                   data-timeline-label="true"
                   style={{ opacity: 0 }}
-                  className={`absolute left-0 top-0 whitespace-nowrap font-mono tabular-nums transition-colors duration-200 ease-out ${
+                  className={`absolute left-0 top-0 hidden whitespace-nowrap font-mono tabular-nums transition-colors duration-200 ease-out md:block ${
                     isActive
                       ? 'text-sm font-medium text-foreground'
                       : 'text-xs text-muted-foreground'
@@ -218,9 +299,10 @@ function TimelineStage({ entries }: { entries: TimelineEntry[] }) {
             })}
           </div>
           {/* Control row — the ONLY interactive controls (§4); rendered at
-              every width (REV-23) and the accessible non-scroll alternative
-              to the arc below md, where the discrete step drives the arc. */}
-          <div className="flex items-center justify-center gap-2">
+              every width. A column under the rail at <md (the rail is the
+              phone's counter) and the unchanged row from md; the arrows step
+              the scroll range at every width (REV-23c). */}
+          <div className="flex flex-col items-center justify-center gap-2 md:flex-row">
             <button
               type="button"
               onClick={() => stepRole(-1)}
@@ -247,9 +329,10 @@ function TimelineStage({ entries }: { entries: TimelineEntry[] }) {
             </button>
           </div>
         </div>
-        {/* Content column — the §3 grid stack, vertically centered at md+. */}
+        {/* Content column — the §3 grid stack, vertically centered at md+;
+            a single-cell overlay at <md (REV-23c: one entry at a time). */}
         <div className="flex flex-col justify-center">
-          <div className="space-y-5 md:space-y-0 md:grid">
+          <div className="grid grid-cols-1">
             {entries.map((t, index) => {
               const entry = t.entry;
               const isEducation = t.type === 'education';
@@ -261,8 +344,16 @@ function TimelineStage({ entries }: { entries: TimelineEntry[] }) {
               // §9: SSR = the derivation evaluated at progress 0 — layer 0
               // visible real text, layers 1–4 visibility:hidden. The style
               // prop stays CONSTANT after hydration (React never re-writes
-              // it), so the hook's rAF writes own the live values.
+              // it), so the hook's rAF writes own the md values while below md
+              // the classes below own them (the mount pass clears the inline
+              // styles once — clearLayerStyles).
               const ssr = contentLayer(index, 0, false);
+              // REV-23c: ONE entry at a time. The layers share a single grid
+              // cell, so the swap is a crossfade in place — no spatial slide
+              // (the retired translateY ladder is md-only, killed at <md by the
+              // inline-style clear) and no five-entry column. `invisible` keeps
+              // the four inactive entries out of the a11y tree too.
+              const isLayerActive = index === activeIndex;
               return (
                 <div
                   key={`${t.type}-${entryPrimary(t)}-${entry.duration}-${index}`}
@@ -273,25 +364,10 @@ function TimelineStage({ entries }: { entries: TimelineEntry[] }) {
                     transform: `translateY(${ssr.translateY}px)`,
                     visibility: ssr.visible ? 'visible' : 'hidden',
                   }}
-                  className="md:col-start-1 md:row-start-1"
+                  className={`col-start-1 row-start-1 transition-[opacity,visibility] duration-200 ease-out md:transition-none ${
+                    isLayerActive ? 'opacity-100 visible' : 'opacity-0 invisible'
+                  }`}
                 >
-                  {/* md:hidden year chip — the compact form's marker row (§8);
-                  education chips carry the hollow dot too (§3.3). */}
-                  <div className="flex items-center gap-2 md:hidden">
-                    {isEducation ? (
-                      <span
-                        aria-hidden="true"
-                        className="h-2 w-2 rounded-full border border-chart-2 bg-transparent"
-                      />
-                    ) : (
-                      <span aria-hidden="true" className="h-2 w-2 rounded-full bg-chart-2" />
-                    )}
-                    {t.year !== null && (
-                      <span className="font-mono text-xs tabular-nums text-muted-foreground">
-                        {t.year}
-                      </span>
-                    )}
-                  </div>
                   <h3 className="text-base font-medium text-foreground">
                     {isRole ? entry.title : entry.degree}
                   </h3>

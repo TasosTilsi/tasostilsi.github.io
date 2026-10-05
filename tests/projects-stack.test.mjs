@@ -291,33 +291,38 @@ test('projectVisualVariant: every returnable variant has a renderer in the stage
 
 
 // ---------------------------------------------------------------------------
-// The reveal-ladder contract (2026-10-05)
+// The reveal-ladder contract (2026-10-05; band amended 72 -> 44 the same day)
 //
 //   scale_l       = clamp(1 - 0.04 * l, 0.80, 1)      0.96/0.92/0.88/0.84/0.80
 //   translateY(l) = -(l * VISIBLE_BAND_PX + H_front * (1 - scale_l))
 //   yLeave(l)     =  translateY(l) - LEAVE_EXTRA_PX
 //
-// The tables below are the RECORDED derived rows (depth 0 is the identity row).
-// They are never copied into the module as literals: every row is re-derived
-// here from the formula, so a formula edit that keeps the numbers — or a
-// number edit that breaks the formula — fails this suite.
+// VISIBLE_BAND_PX is the user's density dial; the FORMULA above is the
+// contract. The tables below are the RECORDED derived rows (depth 0 is the
+// identity row). They are never copied into the module as literals: every row
+// is re-derived here from the formula, so a formula edit that keeps the
+// numbers — or a number edit that breaks the formula — fails this suite.
 // ---------------------------------------------------------------------------
+// 2026-10-05 amendment (user directive): VISIBLE_BAND_PX drops 72 -> 44. The
+// band is the user's DENSITY DIAL — the revealed header bands read too tall at
+// 72px — while the FORMULA is untouched: only the constant moves, so every row
+// below re-derives from it.
 const MD_LADDER = [
   { yUp: 0, yLeave: 0, scale: 1.0, opacity: 1.0 },
-  { yUp: -94, yLeave: -150, scale: 0.96, opacity: 0.95 },
-  { yUp: -189, yLeave: -245, scale: 0.92, opacity: 0.85 },
-  { yUp: -283, yLeave: -339, scale: 0.88, opacity: 0.7 },
-  { yUp: -378, yLeave: -434, scale: 0.84, opacity: 0.5 },
-  { yUp: -472, yLeave: -528, scale: 0.8, opacity: 0.3 },
+  { yUp: -66, yLeave: -122, scale: 0.96, opacity: 0.95 },
+  { yUp: -133, yLeave: -189, scale: 0.92, opacity: 0.85 },
+  { yUp: -199, yLeave: -255, scale: 0.88, opacity: 0.7 },
+  { yUp: -266, yLeave: -322, scale: 0.84, opacity: 0.5 },
+  { yUp: -332, yLeave: -388, scale: 0.8, opacity: 0.3 },
 ];
 
 const BASE_LADDER = [
   { yUp: 0, yLeave: 0, scale: 1.0, opacity: 1.0 },
-  { yUp: -93, yLeave: -149, scale: 0.96, opacity: 0.95 },
-  { yUp: -186, yLeave: -242, scale: 0.92, opacity: 0.85 },
-  { yUp: -278, yLeave: -334, scale: 0.88, opacity: 0.7 },
-  { yUp: -371, yLeave: -427, scale: 0.84, opacity: 0.5 },
-  { yUp: -464, yLeave: -520, scale: 0.8, opacity: 0.3 },
+  { yUp: -65, yLeave: -121, scale: 0.96, opacity: 0.95 },
+  { yUp: -130, yLeave: -186, scale: 0.92, opacity: 0.85 },
+  { yUp: -194, yLeave: -250, scale: 0.88, opacity: 0.7 },
+  { yUp: -259, yLeave: -315, scale: 0.84, opacity: 0.5 },
+  { yUp: -324, yLeave: -380, scale: 0.8, opacity: 0.3 },
 ];
 
 /** The formula, recomputed independently of the module. */
@@ -327,7 +332,11 @@ const ladderOffset = (depth, cardHeight) =>
     : -Math.round(depth * VISIBLE_BAND_PX + cardHeight * (1 - Math.min(1, Math.max(0.8, 1 - 0.04 * depth))));
 
 test('reveal-ladder: the module derives the recorded md table (H = 560) from the pinned formula', () => {
-  assert.equal(VISIBLE_BAND_PX, 72, 'one depth step reveals a 72px band of the behind-card top');
+  assert.equal(
+    VISIBLE_BAND_PX,
+    44,
+    'one depth step reveals a 44px band of the behind-card top — the user-picked density dial (72 -> 44, 2026-10-05)',
+  );
   assert.equal(DEPTH_LEVELS, 5, 'the top-6 stack puts five cards behind the foreground card');
   assert.equal(LEAVE_EXTRA_PX, 56, 'the fly-off continues 56px past the rest offset');
   assert.equal(CARD_HEIGHT_MD, 560);
@@ -342,7 +351,7 @@ test('reveal-ladder: the module derives the recorded md table (H = 560) from the
     assert.equal(
       rows[depth].yUp,
       ladderOffset(depth, CARD_HEIGHT_MD),
-      `depth ${depth}: yUp is the formula -(l * 72 + H * (1 - scale_l)), not a hand-typed offset`,
+      `depth ${depth}: yUp is the formula -(l * 44 + H * (1 - scale_l)), not a hand-typed offset`,
     );
     assert.equal(
       rows[depth].yLeave,
@@ -416,11 +425,11 @@ test('cardState: frontIndex 0 geometry — foreground card 0, behind cards 1..5'
   assert.equal(fg.visible, true);
 
   const expectations = {
-    1: { y: -94, scale: 0.96, opacity: 0.95, zIndex: 90, rotation: -0.5 },
-    2: { y: -189, scale: 0.92, opacity: 0.85, zIndex: 80, rotation: 0.5 },
-    3: { y: -283, scale: 0.88, opacity: 0.70, zIndex: 70, rotation: 1 },
-    4: { y: -378, scale: 0.84, opacity: 0.50, zIndex: 60, rotation: 0.75 },
-    5: { y: -472, scale: 0.80, opacity: 0.30, zIndex: 50, rotation: -0.75 },
+    1: { y: -66, scale: 0.96, opacity: 0.95, zIndex: 90, rotation: -0.5 },
+    2: { y: -133, scale: 0.92, opacity: 0.85, zIndex: 80, rotation: 0.5 },
+    3: { y: -199, scale: 0.88, opacity: 0.70, zIndex: 70, rotation: 1 },
+    4: { y: -266, scale: 0.84, opacity: 0.50, zIndex: 60, rotation: 0.75 },
+    5: { y: -332, scale: 0.80, opacity: 0.30, zIndex: 50, rotation: -0.75 },
   };
   for (let i = 1; i < COUNT; i++) {
     const s = cardState(i, 0, COUNT, false);
@@ -446,11 +455,11 @@ test('cardState: frontIndex 3 geometry — card 3 foreground, cyclic wrap keeps 
 
   // Cards behind card 3 in the ring are 4, 5, 0, 1, 2.
   const behind = [
-    { index: 4, depth: 1, y: -94, scale: 0.96, opacity: 0.95, zIndex: 90, rotation: 0.75 },
-    { index: 5, depth: 2, y: -189, scale: 0.92, opacity: 0.85, zIndex: 80, rotation: -0.75 },
-    { index: 0, depth: 3, y: -283, scale: 0.88, opacity: 0.70, zIndex: 70, rotation: -1 },
-    { index: 1, depth: 4, y: -378, scale: 0.84, opacity: 0.50, zIndex: 60, rotation: -0.5 },
-    { index: 2, depth: 5, y: -472, scale: 0.80, opacity: 0.30, zIndex: 50, rotation: 0.5 },
+    { index: 4, depth: 1, y: -66, scale: 0.96, opacity: 0.95, zIndex: 90, rotation: 0.75 },
+    { index: 5, depth: 2, y: -133, scale: 0.92, opacity: 0.85, zIndex: 80, rotation: -0.75 },
+    { index: 0, depth: 3, y: -199, scale: 0.88, opacity: 0.70, zIndex: 70, rotation: -1 },
+    { index: 1, depth: 4, y: -266, scale: 0.84, opacity: 0.50, zIndex: 60, rotation: -0.5 },
+    { index: 2, depth: 5, y: -332, scale: 0.80, opacity: 0.30, zIndex: 50, rotation: 0.5 },
   ];
   for (const exp of behind) {
     const s = cardState(exp.index, 3, COUNT, false);
@@ -633,7 +642,7 @@ test('stage containment: the fixed stage height IS the arithmetic card + peek ba
   // ladder's own arithmetic — DEPTH_LEVELS visible bands plus the safe margin —
   // so the reserved box and the revealed bands cannot drift apart again.
   const band = DEPTH_LEVELS * VISIBLE_BAND_PX + safe;
-  assert.equal(band, 380, 'the peek band is 5 x 72 + 20 = 380px — five revealed header bands plus the safe margin');
+  assert.equal(band, 240, 'the peek band is 5 x 44 + 20 = 240px — five revealed header bands plus the safe margin');
   assert.match(
     src,
     /const PEEK_BAND_PX = DEPTH_LEVELS \* VISIBLE_BAND_PX \+ PEEK_SAFE_PX;/,
@@ -664,7 +673,7 @@ test('stage containment: the fixed stage height IS the arithmetic card + peek ba
     [CARD_HEIGHT_BASE, CARD_HEIGHT_MD],
     'the card box pair is 520px base (the <md phone tier) / 560px from md — the two heights the reveal ladder is derived against',
   );
-  assert.deepEqual(stagePx, [900, 940], 'the stage box pair is 900px base / 940px from md = card + 380px ladder band');
+  assert.deepEqual(stagePx, [760, 800], 'the stage box pair is 760px base / 800px from md = card + 240px ladder band');
   stagePx.forEach((value, i) => {
     assert.equal(
       value,
@@ -852,7 +861,7 @@ test('ringStep: the Next step sends the foreground card to the back (tracer)', (
   const departed = cardState(0, newFront, COUNT, false);
   assert.equal(departed.zIndex, 50, 'the departed card carries the LOWEST zIndex (50) — the back of the stack');
   assert.equal(departed.opacity, 0.30, 'the departed card carries the depth-5 opacity 0.30');
-  assert.equal(departed.translateY, -472, 'the departed card carries the depth-5 reveal-ladder offset -472');
+  assert.equal(departed.translateY, -332, 'the departed card carries the depth-5 reveal-ladder offset -332');
   assert.equal(departed.scale, 0.80, 'the departed card carries the depth-5 scale 0.80');
   assert.equal(departed.visible, true, 'the departed card is still rendered — it peeks from the back');
 

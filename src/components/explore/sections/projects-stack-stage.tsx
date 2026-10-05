@@ -30,8 +30,8 @@
  * cards beneath.
  *
  * Containment (2026-10-02 defect fix, DEFECT 2): the stage container carries a
- * FIXED height that holds the full depth range (card + peek band + safe
- * margin, see PEEK_BAND_PX) and clips with `overflow-hidden`, so the
+ * FIXED height that holds the full depth range (card + peek band, see
+ * PEEK_BAND_PX) and clips with `overflow-hidden`, so the
  * behind-card peeks and the 500px swipe fly-off can never extend the layout —
  * no negative-space escape upward or downward and no scroll height added to
  * the document. The card box is BOTTOM-ANCHORED inside the stage, which
@@ -104,12 +104,12 @@ const EXIT_ROTATION = 12;
 
 /**
  * Stage containment arithmetic (2026-10-02 defect fix, DEFECT 2; re-derived
- * 2026-10-05 on the reveal-ladder contract).
+ * 2026-10-05 on the reveal-ladder contract, band 72 -> 44).
  *
  * The stage container carries a FIXED height that holds the FULL depth range:
  *
- *   base (<md)  520 + 380 = 900        (the band is 5 x 72 + 20 safe)
- *   md+         560 + 380 = 940
+ *   base (<md)  520 + 240 = 760        (the band is 5 x 44 + 20 safe)
+ *   md+         560 + 240 = 800
  *
  * Phase 13 (REV-23b/D-02): ONE contract at every width. The former
  * width-variant split is retired — both tiers are the SAME derivation and the
@@ -118,11 +118,12 @@ const EXIT_ROTATION = 12;
  *
  * STAGE = front card box + PEEK_BAND_PX, where PEEK_BAND_PX is the reveal
  * ladder's own arithmetic INCLUDING the safe margin: DEPTH_LEVELS visible bands
- * of VISIBLE_BAND_PX plus PEEK_SAFE_PX (5 × 72 + 20 = 380). Because each card
- * scales about its BOTTOM edge, the depth-5 card's top edge falls by exactly
- * H·(1 − 0.80) = 0.2 × H, which the −472 md offset already carries: the topmost
+ * of VISIBLE_BAND_PX plus PEEK_SAFE_PX (5 × 44 + 20 = 240 — the band follows the
+ * user's density dial in projects-card-state.ts). Because each card scales
+ * about its BOTTOM edge, the depth-5 card's top edge falls by exactly
+ * H·(1 − 0.80) = 0.2 × H, which the −332 md offset already carries: the topmost
  * revealed band therefore lands on the 20px safe margin instead of being
- * clipped, and the reserved box is filled by five 72px header bands — no dead
+ * clipped, and the reserved box is filled by five 44px header bands — no dead
  * space above the cards. PEEK_SAFE_PX also covers the curated ±1° rotation and
  * ±4px translateX overhang.
  *
@@ -148,10 +149,11 @@ const PEEK_BAND_PX = DEPTH_LEVELS * VISIBLE_BAND_PX + PEEK_SAFE_PX;
 const CARD_HEIGHT_CLASS = 'h-[520px] md:h-[560px]';
 
 /**
- * The stage's fixed height = card + PEEK_BAND_PX + PEEK_SAFE_PX at each tier:
- * base (<md) 900px, md+ 940px (REV-23b, re-derived 2026-10-05).
+ * The stage's fixed height = card + PEEK_BAND_PX at each tier, the band already
+ * carrying the safe margin: base (<md) 760px (520 + 240), md+ 800px
+ * (560 + 240) — re-derived 2026-10-05 on the 44px band.
  */
-const STAGE_HEIGHT_CLASS = 'h-[900px] md:h-[940px]';
+const STAGE_HEIGHT_CLASS = 'h-[760px] md:h-[800px]';
 
 /** Editorial-calm promotion transition when cards advance one depth level. */
 const PROMOTE_TRANSITION = { duration: 0.25, ease: [0.25, 1, 0.5, 1] as const };

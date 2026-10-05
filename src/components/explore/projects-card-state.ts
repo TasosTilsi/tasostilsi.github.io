@@ -75,19 +75,25 @@ const IMPERFECTION_ROTATION = [-1, -0.5, 0.5, 1, 0.75, -0.75];
  * 560px card — a near-invisible sliver) while the stage still reserved the
  * uncompensated band, so the reserved 250px read as dead space above the cards.
  * The compensation is what makes the reserved box and the revealed bands the
- * same arithmetic (see projects-stack-stage.tsx: stage = card + band + safe).
+ * same arithmetic (see projects-stack-stage.tsx: stage = card + band).
+ *
+ * VISIBLE_BAND_PX is the user's DENSITY DIAL, not a derived quantity: the
+ * reveal ladder is a composition choice, so only this constant moves when the
+ * user re-picks the band. It was 72 for the first hour of the ladder's life and
+ * 44 from the 2026-10-05 amendment ("the bands read too tall") — the FORMULA
+ * above is unchanged by that edit, and every row below is re-derived from it.
  *
  * The derived table (RECORDED here; every row is produced by levelsFor below,
  * never hand-typed into the table). H_front = 560 (md):
  *
  *   l       1     2     3     4     5
- *   yUp    -94  -189  -283  -378  -472
- *   yLeave -150 -245  -339  -434  -528
+ *   yUp    -66  -133  -199  -266  -332
+ *   yLeave -122 -189  -255  -322  -388
  *
  * and H_front = 520 (base, <md):
  *
- *   yUp    -93  -186  -278  -371  -464
- *   yLeave -149 -242  -334  -427  -520
+ *   yUp    -65  -130  -194  -259  -324
+ *   yLeave -121 -186  -250  -315  -380
  *
  * The depth-0 row is the identity row (yUp/yLeave 0, scale/opacity 1). Depth 6+
  * (which the six-card ring never reaches) extends the same formula.
@@ -101,8 +107,14 @@ export interface DepthLevel {
   opacity: number;
 }
 
-/** The band ONE depth step reveals of the behind-card's top, in px. */
-export const VISIBLE_BAND_PX = 72;
+/**
+ * The band ONE depth step reveals of the behind-card's top, in px.
+ *
+ * This is the user's DENSITY DIAL (see the reveal-ladder contract above): 44px
+ * since the 2026-10-05 amendment (was 72px). Only the constant moves — the
+ * ladder formula and every other ladder input are untouched.
+ */
+export const VISIBLE_BAND_PX = 44;
 
 /** How much further than yUp the fly-off offset (yLeave) carries the card. */
 export const LEAVE_EXTRA_PX = 56;
