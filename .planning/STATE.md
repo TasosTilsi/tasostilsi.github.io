@@ -2,12 +2,12 @@
 gsd_state_version: 1
 milestone: v1.0
 milestone_name: "Explore Visual Landing"
-status: ship
-active_phase: 13
-next_action: ship-phase
+status: idle
+active_phase: null
+next_action: null
 next_phases: [13]
 progress:
-  total_phases: 12
+  total_phases: 13
   completed_phases: 1
   total_plans: 4
   completed_plans: 45
@@ -15,10 +15,10 @@ progress:
 current_phase: 13
 current_phase_name: mobile-parity-revision
 current_plan: 4
-last_updated: "2026-10-05T10:57:12.038Z"
+last_updated: "2026-10-05T10:57:32.658Z"
 state_head: null
 last_activity: 2026-10-05
-stopped_at: "Phase 12 shipped — PR #12"
+stopped_at: "Phase 13 shipped — PR #13"
 paused_at: null
 ---
 # GSD STATE
@@ -111,6 +111,7 @@ _No active phase._
 - The RESOLVED-D1 all-five-readable contract is SUPERSEDED on mobile by the user's one-at-a-time decision — record the amendment in the plan/doc (the <md path = one-at-a-time; the all-five rendering retires with the squeezed arc).
 - touch-action: pan-y stays on the stage area if the wrapper region should never block vertical scroll (the page scroll IS the input — nothing captures it; no wheel/touch handlers).
 - quick 2026-10-05-phase-13-artefact-reconciliation: Reconcile phase 13's locked artefacts with the DELIVERED, user-approved contract. The verifier found 4 truth-gaps all sharing one root cause: the executed code carries the user's FINAL directive (commit 43432f5: the mobile experience = a vertical year rail, one-at-a-time, scroll-driven swaps — chosen because the squeezed arc was unappealing; approved 'perfect') but REQUIREMENTS/CONTEXT/plan-01 still assert the superseded clauses. Nothing in src/ or tests/ changes — this is documentation reconciliation ONLY.
+- Phase 13 shipped — PR #13 (https://github.com/TasosTilsi/tasostilsi.github.io/pull/13)
 
 ### Blockers / Concerns
 - Shipping decision (user, 2026-09-21): ship the milestone AS A WHOLE at milestone close — no per-phase PRs. phase-1 and phase-2 branches pushed to origin (backup only); gsd_ship deferred for both phases. phase-2 branch contains phase-1 commits (stacked).
