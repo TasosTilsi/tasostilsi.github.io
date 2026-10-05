@@ -124,3 +124,7 @@ _No active phase._
 - Last session: n/a
 - Stopped at: n/a
 - Resume file: None
+
+### Milestone Close (2026-10-05)
+
+**COMPLETE.** Explore Visual Landing v1.0 closed via two merged milestone PRs: #12 (phases 1-12) and #13 (phase 13). Final audit: **32/32 requirements delivered, 13/13 verifications passed** (verifications 12/12 at the pre-ship audit + phase 13's own). The "unshipped phases 1-12" note in the audit is bookkeeping only — the whole-milestone PR carries all phases' work (the user's ship-as-whole plan); per-phase STATE ship marks were never the mechanism. LIVE: https://tasostilsi.github.io/ (the visual landing) · /cli (the terminal) · /resume (the docx resume) — plus the mobile-native pack (viewport-fit=cover, safe areas, touch contract) verified on the user's real phone. Suite at close: 314/314 across 14 files.
