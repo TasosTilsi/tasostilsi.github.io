@@ -60,9 +60,11 @@
  * verbatim, disabled at the clamped ends over 5 stops); the
  * ArrowUp/ArrowDown handler rides the group root. The active ROLE marker's
  * date line renders the duration AS STORED behind the W-4 measurable
- * predicate (dateLineFits over the measured arc-zone width — computed, not
+ * predicate (dateLineFits over the measured ANCHOR BUDGET — the label's
+ * focal anchor, derived by the pure labelAnchorBudget; computed, not
  * eyeballed; the §1.4 md-width estimate stands in before the first
- * measurement); education markers render the year only.
+ * measurement). Education markers render the year only (§3.2) — the
+ * date-line suffix never applies to them.
  *
  * Discrete class swaps (active marker color, dot fill) ride React state on
  * activeIndex change with transition-colors 200ms ease-out (the phase-7
@@ -121,16 +123,21 @@ function TimelineStage({ entries }: { entries: TimelineEntry[] }) {
     activeIndex,
     stageActive,
     reducedMotion,
-    arcZoneWidth,
+    anchorBudget,
     stepRole,
     handleKeyDown,
   } = useTimelineProgress(entryCount);
   const active = entries[activeIndex];
-  // W-4: the ACTIVE ROLE marker's date line renders only when the measured
-  // arc zone can hold it (6px/char at the 10px date size — the pure
-  // predicate). Education markers render the year only (§3.2) — the
-  // date-line suffix never applies to them.
-  const dateFits = dateLineFits(active.entry.duration, arcZoneWidth ?? 250);
+  // W-4/REV-23: the ACTIVE ROLE marker's date line renders only when the
+  // measured arc zone can hold it (6px/char at the 10px date size — the pure
+  // predicate). The input is the measured ANCHOR BUDGET (the label's
+  // right-aligned focal anchor, centerX − 0.88·R), never the raw zone width:
+  // the old zone-width call admitted a 19-char date line at 375px that then
+  // painted outside the arc zone, and <main> turned that overflow into a
+  // horizontal scrollbar. The predicate owns its own 16px floor — this call
+  // site must not re-subtract it. 250 is the §1.4 md-width estimate for the
+  // pre-measurement frame, expressed in the budget's units.
+  const dateFits = dateLineFits(active.entry.duration, anchorBudget ?? 250);
 
   return (
     <div role="group" aria-label="Career timeline" onKeyDown={handleKeyDown}>

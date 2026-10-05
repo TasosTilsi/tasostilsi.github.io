@@ -102,6 +102,8 @@ import {
   computeProgress,
   contentLayer,
   continuousIndex,
+  LABEL_RADIUS_RATIO,
+  labelAnchorBudget,
   markerAngle,
   markerEmphasis,
   markerPoint,
@@ -121,8 +123,6 @@ const prefersReducedMotion = (): boolean =>
   window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 /** §9 marker first-paint fade (instant under the guard, RM-4). */
 const MARKER_FADE_MS = 150;
-/** §2.2 label anchor inset: 12 viewBox units inward of the 100-unit arc. */
-const LABEL_RADIUS_RATIO = 0.88;
 
 export interface TimelineProgress {
   /** Discrete active role index — re-renders ONLY on change (§6). */
@@ -133,6 +133,13 @@ export interface TimelineProgress {
   reducedMotion: boolean;
   /** Measured arc-zone width for the W-4 date-line predicate (null pre-measurement). */
   arcZoneWidth: number | null;
+  /**
+   * REV-23: the measured px budget the date line may occupy — the focal
+   * label anchor `centerX − 0.88·R` (pure `labelAnchorBudget`), i.e. one
+   * derivation beside the predicate it feeds. Null pre-measurement; the
+   * call site falls back to the §1.4 md-width estimate.
+   */
+  anchorBudget: number | null;
   /** §4: step to a clamped role via main.scrollTo (the buttons' path). */
   stepRole: (delta: number) => void;
   /** §5: the stage body root's keydown handler (ArrowUp/ArrowDown only). */
@@ -144,6 +151,7 @@ export function useTimelineProgress(roleCount: number): TimelineProgress {
   const [stageActive, setStageActive] = useState(true);
   const [reducedMotion, setReducedMotion] = useState(false);
   const [arcZoneWidth, setArcZoneWidth] = useState<number | null>(null);
+  const [anchorBudget, setAnchorBudget] = useState<number | null>(null);
 
   const geometryRef = useRef<ArcGeometry | null>(null);
   const activeIndexRef = useRef(0);
@@ -202,8 +210,13 @@ export function useTimelineProgress(roleCount: number): TimelineProgress {
     const measureGeometry = (): ArcGeometry | null => {
       const rect = arcZone.getBoundingClientRect();
       if (rect.width <= 0 || rect.height <= 0) return null;
+      const geometry = viewBoxToPx({ width: rect.width, height: rect.height });
       setArcZoneWidth(rect.width); // W-4 re-evaluation on geometry change (§6)
-      return viewBoxToPx({ width: rect.width, height: rect.height });
+      // REV-23: the label predicate's budget, derived at the measurement site
+      // where the geometry is already in hand — on EVERY measurement, so a
+      // URL-bar collapse never leaves a stale budget behind.
+      setAnchorBudget(labelAnchorBudget(geometry));
+      return geometry;
     };
 
     const revealMarkers = () => {
@@ -416,5 +429,13 @@ export function useTimelineProgress(roleCount: number): TimelineProgress {
     stepRole(event.key === 'ArrowDown' ? 1 : -1); // REV-23: steps at every width
   };
 
-  return { activeIndex, stageActive, reducedMotion, arcZoneWidth, stepRole, handleKeyDown };
+  return {
+    activeIndex,
+    stageActive,
+    reducedMotion,
+    arcZoneWidth,
+    anchorBudget,
+    stepRole,
+    handleKeyDown,
+  };
 }

@@ -320,3 +320,31 @@ export function dateLineFits(duration: string, innerWidthPx: number): boolean {
   if (!duration) return true;
   return duration.length * 6 <= innerWidthPx - 16;
 }
+
+/**
+ * §2.2 label anchor inset: 12 viewBox units inward of the 100-unit arc — the
+ * label ring at radius·0.88. Single-sourced here (REV-23) because the anchor
+ * budget below AND the hook's label geometry both derive from it; never
+ * re-type 0.88 (or its 0.38 complement) at any site.
+ */
+export const LABEL_RADIUS_RATIO = 0.88;
+
+/**
+ * REV-23 anchor budget — the px width the active marker's date line may
+ * occupy: the focal label anchor's x, `centerX − 0.88·R` (`markerPoint` at
+ * radius·0.88 at the focal angle θ=180). On a height-limited box
+ * (radius = 100·s and centerX = W/2 + R/2) that is the same number as
+ * `W/2 − 0.38·R`.
+ *
+ * It takes the measured `ArcGeometry` and NOT a width, because R is a
+ * function of BOTH dimensions and is not recoverable from a width alone.
+ * Consumed by `dateLineFits` at the experience stage's call site: the date
+ * line is right-aligned at that anchor, so anything wider than the anchor
+ * paints outside the arc zone — and `<main>` (overflow-y-auto alone makes
+ * the other axis compute to auto) turns that into a horizontal scrollbar.
+ * The predicate keeps owning its own 16px floor; callers must not
+ * re-subtract it.
+ */
+export function labelAnchorBudget(geometry: ArcGeometry): number {
+  return geometry.centerX - LABEL_RADIUS_RATIO * geometry.radius;
+}
