@@ -48,11 +48,24 @@ try {
  * /cli (which keeps its own h-screen overflow-hidden shell) or /resume
  * (which scrolls as a document BY DESIGN). Never lift this into
  * src/app/layout.tsx — that would freeze both sibling routes.
+ *
+ * Phase 13 REV-25b — the HEIGHT RECONCILIATION. The lock gains a dynamic
+ * height between its two pinned declarations. `body` is `flex flex-col h-full`
+ * (src/app/layout.tsx) and the shell is `h-dvh`: with a STATIC height on
+ * html/body the shell is a `flex-shrink: 1` item that can never grow into the
+ * space a retracting URL bar frees — exactly the strip below the footer the
+ * user reported. Making document height, body height and shell height the same
+ * dynamic number kills it. The static `height: 100%` stays FIRST as the
+ * fallback and the `overflow: hidden` guard stays LAST: that order is pinned by
+ * tests/route-swap.test.mjs and by the "kills the WINDOW scrollbar" row in
+ * tests/projects-stack.test.mjs, both of which still match because their
+ * `[^}]*` spans the inserted line.
  */
 const documentScrollLock = `
 html,
 body {
   height: 100%;
+  height: 100dvh;
   overflow: hidden;
 }
 `;
