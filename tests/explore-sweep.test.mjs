@@ -120,6 +120,35 @@ test('sweep row EXPLORE@375 (P): every new placement/height utility is md-scoped
   }
 });
 
+// Phase 13 (REV-23) — the <md parity renewal. The rows above stay exactly as
+// they were: `explore-panels.tsx` is deliberately untouched this phase (the
+// 300vh sticky range stays md-only, UI-SPEC §1.2/§11), so the `md:`-prefix row
+// at :100 keeps its bite. What the phase DOES change at 375px is the arc zone:
+// the phase-8 `hidden md:flex` pin retires and the zone carries a base height.
+test('sweep rows EXPLORE@375 (P): the arc zone renders at the base width — no hidden gate, base 200px box, base flex column', () => {
+  const src = read('src/components/explore/sections/experience-section.tsx');
+  assert.ok(
+    !src.includes('hidden md:flex'),
+    'no `hidden md:flex` — the phase-8 below-md hide pin on the arc zone is RETIRED (REV-23/D-01); the semicircle renders at every width',
+  );
+  assert.ok(
+    src.includes('relative h-[200px] md:h-auto'),
+    'the arc zone box carries the base h-[200px] (UI-SPEC §1.2/§2.1) before the md: grid stretch — the cos/sin geometry derives from this narrower measured box',
+  );
+  assert.ok(
+    src.includes('flex flex-col gap-4 md:grid'),
+    'the container keeps a base display mode (flex flex-col gap-4) before md:grid — without it `gap-4` is inert and the arc strip would butt against the content stack',
+  );
+  assert.ok(
+    src.includes('aria-label="Previous role"') && src.includes('aria-label="Next role"'),
+    'both arc controls live INSIDE the retired gate, so retiring it is what puts them on the phone (the "buttons missing" complaint, REV-23 §3.1e)',
+  );
+  assert.ok(
+    src.includes('flex items-center gap-2 md:hidden'),
+    'the compact-form year chip (`md:hidden`) survives — each of the five entries stays readable in the <md stacked layout',
+  );
+});
+
 test('sweep rows EXPLORE@* (P): sticky-breaker audit — no overflow utility on the panels grid (UI-SPEC §1.1)', () => {
   const src = read('src/components/explore/explore-panels.tsx');
   assert.ok(
@@ -446,5 +475,101 @@ test('sweep E-9 (E, phase EXPLORE-09): pre-JS markers render at inline opacity 0
     (html.match(/data-timeline-label="true"[^>]*style="opacity:0"/g) || []).length,
     5,
     'exactly 5 year labels render at opacity:0 pre-measurement (§9)',
+  );
+});
+
+// ---------------------------------------------------------------------------
+// Phase EXPLORE-13 plan 04 — Type-E export row for the mobile-parity contract
+// (REV-23 / REV-23b / REV-24 / REV-25). The sweep convention holds: `npm run
+// build` must precede the run — these rows read the built artifact. Every
+// expectation is data-derived (the data file, THROUGH the module-level parse
+// above) or source-derived (globals.css); zero copied literals.
+// ---------------------------------------------------------------------------
+
+test('sweep E-10 (E, phase 13): the built export carries the mobile-parity contract — one viewport meta, no avatar, the base arc box', () => {
+  assert.ok(existsSync(join(root, 'out/index.html')), 'out/index.html missing — run `npm run build` first');
+  assert.ok(
+    existsSync(join(root, 'src/data/portfolio-main-data.json')),
+    'the data file is the source of the two avatar expectations below',
+  );
+  const html = exportRaw();
+  const text = exportText(); // entity-decoded + React text-node separators dropped
+
+  // --- REV-25a: ONE viewport declaration, the fit declared, zoom never locked.
+  // Pre-phase the export emitted TWO tags (the data-file line plus Next's
+  // default) — the phone ran on a browser-defined tie-break. The `=== 1` IS the
+  // falsifier: red on two tags, green only after the typed-viewport migration.
+  assert.equal(
+    (html.match(/<meta name="viewport"/g) || []).length,
+    1,
+    'exactly ONE <meta name="viewport"> is emitted — the data-rendered `meta.viewport` line retired; the phone otherwise runs on an undefined multi-tag tie-break',
+  );
+  assert.ok(
+    html.includes('viewport-fit=cover'),
+    'the emitted viewport declares viewport-fit=cover — env(safe-area-inset-*) resolves to 0px without it, so the meta and the CSS pack activate together',
+  );
+  assert.ok(!html.includes('shrink-to-fit'), 'the legacy `shrink-to-fit=no` directive is gone with the retired data line');
+  assert.ok(
+    !/user-scalable|maximum-scale/.test(html),
+    'zoom is never disabled — no user-scalable / maximum-scale in the export',
+  );
+  // Tag-scoped, never the bare string: the RSC flight payload reserializes the
+  // resolved metadata, so the export carries FOUR `theme-color` occurrences but
+  // only TWO real `<meta name="theme-color">` tags. A bare-string `=== 2` could
+  // never go green.
+  assert.equal(
+    (html.match(/<meta name="theme-color"/g) || []).length,
+    2,
+    'both theme-color metas survive the viewport migration — the typed export`s themeColor array is not collateral damage',
+  );
+
+  // --- REV-24: the avatar is gone from the export, DERIVED from the data file.
+  const avatarUrl = portfolio.about.profileImageUrl;
+  const avatarAlt = 'Portrait of ' + portfolio.about.name;
+  assert.ok(
+    !html.includes('src="' + avatarUrl + '"'),
+    `no element carries the retired avatar source (derived from the JSON: ${avatarUrl})`,
+  );
+  assert.ok(
+    !html.includes(avatarAlt),
+    `the avatar's alt text is gone from BOTH the tag and its flight-payload copy ("${avatarAlt}")`,
+  );
+  // The bare URL is deliberately NOT banned: the export legitimately carries
+  // `5cfm72u7` as head metadata (og:image, twitter:image, the JSON-LD image,
+  // plus their flight copies) and the Credentials panel renders several
+  // tinyurl.com article hrefs — either bare ban is permanently red.
+
+  // --- REV-23: the arc's base box is in the SSR markup (Tailwind emits the
+  // arbitrary class verbatim), and the <md hide gate is nowhere in the export.
+  assert.ok(html.includes('h-[200px]'), 'the base arc-zone box (h-[200px]) renders in the export');
+  assert.ok(!html.includes('hidden md:flex'), 'the retired arc-zone hide gate appears nowhere in the export');
+
+  // --- REV-23b + REV-25b: the touch contract is COMPLETE in the final tree.
+  // BOTH halves in one row because no other row can see them together: plan 02
+  // asserted only the ABSENCE of `touch-action: none` in the component, so a
+  // slipped wave order or a dropped plan 03 would delete the contract silently.
+  assert.ok(
+    html.includes('data-projects-swipe-stage'),
+    'the swipe stage hook survives into the export — client-component data attributes do render there (data-timeline-dot is the proven precedent)',
+  );
+  const css = read('src/app/globals.css');
+  const stageRuleStart = css.indexOf('[data-projects-swipe-stage]');
+  assert.ok(stageRuleStart > -1, 'globals.css targets the stage hook — the pack is the hook`s only consumer');
+  const stageRule = css.slice(stageRuleStart, css.indexOf('}', stageRuleStart));
+  assert.match(
+    stageRule,
+    /touch-action:\s*pan-y/,
+    'the stage rule carries `touch-action: pan-y` — the drag owns horizontal, vertical page scroll survives (never `none`)',
+  );
+
+  // --- The SSR layer invariants this phase must not disturb (they are why the
+  // layer gate is a RUNTIME gate, not an SSR one).
+  assert.ok(
+    (html.match(/visibility:hidden/g) || []).length >= 4,
+    'entries 2-5 still carry SSR visibility:hidden — the <md readable stack is a runtime clear, not an SSR change',
+  );
+  assert.ok(
+    text.includes('d="M 100 0 A 100 100 0 0 0 100 200"'),
+    'the left-bulging C arc path still renders via the fixed viewBox (sweep E-8`s invariant, re-pinned here at every width)',
   );
 });
