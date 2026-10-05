@@ -460,15 +460,21 @@ const PANELS_PATH = join(root, 'src/components/explore/explore-panels.tsx');
 const SHELL_PATH = join(root, 'src/components/explore/explore-shell.tsx');
 const stageSource = () => readFileSync(STACK_STAGE_PATH, 'utf8');
 
-/** Extract a Record<'full'|'compact', string> block's entries from the stage source. */
-function heightMap(source, constName) {
-  const block = source.match(new RegExp(`const ${constName}[\\s\\S]*?\\n\\};`));
-  assert.ok(block, `${constName}: height map present in the stage`);
-  const entries = Object.fromEntries(
-    [...block[0].matchAll(/(full|compact):\s*'([^']+)'/g)].map((m) => [m[1], m[2]]),
+/**
+ * Pull the single class-string height constant by name out of the stage source
+ * — e.g. 'h-[420px] md:h-[560px]'.
+ *
+ * REV-23b retires the mode-keyed Record: ONE constant now carries the base
+ * (<md, the phone) tier and the md: (desktop) tier on the same arithmetic, so
+ * there are no mode keys left to require and no `full`/`compact` pair to count.
+ */
+function heightClass(source, constName) {
+  const m = source.match(new RegExp(`const ${constName} = '([^']+)'`));
+  assert.ok(
+    m,
+    `${constName}: the single class-string height constant is present — the mode-keyed Record is retired (REV-23b)`,
   );
-  assert.deepEqual(Object.keys(entries).sort(), ['compact', 'full'], `${constName}: one entry per mode`);
-  return entries;
+  return m[1];
 }
 
 /** Every px height in a Tailwind height class string ('h-[520px] md:h-[560px]' -> [520, 560]). */
@@ -490,23 +496,56 @@ test('stage containment: the fixed stage height IS the arithmetic card + peek ba
   );
   assert.equal(safe, 20, 'the safe margin covers the curated ±1° rotation and ±4px translateX overhang');
 
-  const card = heightMap(src, 'CARD_HEIGHT_CLASS');
-  const stage = heightMap(src, 'STAGE_HEIGHT_CLASS');
-  for (const mode of ['full', 'compact']) {
-    const cardPx = heightPx(card[mode]);
-    const stagePx = heightPx(stage[mode]);
-    assert.ok(cardPx.length > 0 && cardPx.length === stagePx.length, `${mode}: one stage height per card height`);
-    stagePx.forEach((value, i) => {
-      assert.equal(
-        value,
-        cardPx[i] + band + safe,
-        `${mode}: stage ${value}px = card ${cardPx[i]}px + band ${band}px + safe ${safe}px`,
-      );
-    });
+  // REV-23b: ONE class string per constant, two tiers each — base (<md, the
+  // phone) then md: (desktop). Both tiers hold the arithmetic, so the depth
+  // peeks and the 500px fly-off cannot extend the layout at either width.
+  const cardClass = heightClass(src, 'CARD_HEIGHT_CLASS');
+  const stageClass = heightClass(src, 'STAGE_HEIGHT_CLASS');
+  assert.match(
+    cardClass,
+    /^h-\[\d+px\] md:h-\[\d+px\]$/,
+    'the card box is exactly one unprefixed (base/<md) height followed by one md: height — a md:-only form or a re-added mode Record cannot pass (REV-23b)',
+  );
+  assert.match(
+    stageClass,
+    /^h-\[\d+px\] md:h-\[\d+px\]$/,
+    'the stage box is exactly one unprefixed (base/<md) height followed by one md: height (REV-23b)',
+  );
+
+  const cardPx = heightPx(cardClass);
+  const stagePx = heightPx(stageClass);
+  assert.ok(cardPx.length > 0 && cardPx.length === stagePx.length, 'one stage height per card height');
+  assert.deepEqual(cardPx, [420, 560], 'the card box pair is 420px base (the <md phone tier) / 560px from md');
+  assert.deepEqual(stagePx, [690, 830], 'the stage box pair is 690px base (the <md phone tier) / 830px from md');
+  stagePx.forEach((value, i) => {
+    assert.equal(
+      value,
+      cardPx[i] + band + safe,
+      `tier ${i}: stage ${value}px = card ${cardPx[i]}px + band ${band}px + safe ${safe}px`,
+    );
+  });
+});
+
+test('REV-23b: the mode plumbing is retired — no SwipeMode, no compact branch, no compact width cap', () => {
+  // One swipe-stack contract at every width (D-02). Each literal below is a
+  // SPECIFIC residual form of the retired mode plumbing — never the bare
+  // identifier, which would collide with unrelated prose.
+  const src = stageSource();
+  const retiredPlumbing = [
+    ['SwipeMode', 'the SwipeMode union and its Record<>/prop annotations are retired — one contract, no mode key'],
+    ['compactHidden', 'the compactHidden depth cap is retired — every depth card is visible on the phone (REV-23b)'],
+    ['compact', 'no compact branch or compact prose survives — one contract at every width (REV-23b)'],
+    ['max-w-[320px]', 'the compact 320px width cap is retired — the stage keeps max-w-[540px] at every width (REV-23b)'],
+    ['mode={', 'no mode prop is passed down the tree (REV-23b)'],
+    ['mode="', 'no mode argument is passed to ProjectsSwipeStack (REV-23b)'],
+    [', mode }', 'no mode field is destructured out of the props object (REV-23b)'],
+    ['mode,', 'no mode field survives in a card destructure or an effect dependency array (REV-23b)'],
+    ['[mode]', 'the mode-keyed height/width class lookups are retired (REV-23b)'],
+    ['mode ===', 'no mode comparison survives — the class strings are unconditional (REV-23b)'],
+  ];
+  for (const [literal, message] of retiredPlumbing) {
+    assert.ok(!src.includes(literal), `${literal} absent: ${message}`);
   }
-  // <md invariant: the compact stage owns the base (unprefixed) height.
-  assert.equal(heightPx(stage.compact).length, 1, 'compact carries exactly one (base, <md) stage height');
-  assert.ok(!/md:/.test(stage.compact), 'the compact stage height is unprefixed — 375px uses it as-is');
 });
 
 test('stage containment: overflow-hidden stage, bottom-anchored card box, zero negative-space escape', () => {

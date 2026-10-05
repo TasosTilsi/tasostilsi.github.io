@@ -182,11 +182,13 @@ const sectionBodies = [
 // EXPLORE-08 plan 02 (UI-SPEC §9/§14 seams 2+3): the timeline stage moves to
 // the client slice — the stage component + its interaction hook carry
 // "use client"; the server set shrinks to skills/projects + the tiles.
+// Phase 13 (REV-23b): the compact mobile-stack wrapper is deleted with the
+// parity contract, so it leaves this list — a surviving read of it would throw
+// ENOENT and take down unrelated rows with an INVALID red.
 const clientBodies = [
   'src/components/explore/sections/experience-section.tsx',
   'src/components/explore/use-timeline-progress.ts',
   'src/components/explore/sections/projects-stack-stage.tsx',
-  'src/components/explore/sections/projects-mobile-stack.tsx',
 ];
 const phaseTouchedComponents = [...serverSlices, ...sectionBodies, ...clientBodies];
 
@@ -292,14 +294,14 @@ test('cross-cutting: viz-data is the sole data-shaping module — chart machiner
 
 test('cross-cutting: zero stat literals — no standalone 14/9/2016/2026 drives a rendered value (EXPLORE-07/OQ-1/U-1)', () => {
   const stripAll = (p) => read(p).replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/[^\n]*/g, '');
-  // The stack stage files render deterministic monochrome SVG mock visuals
-  // (terminal / contract-analysis / glyph panels). Their numeric literals are
+  // The stack stage renders deterministic monochrome SVG mock visuals
+  // (terminal / contract-analysis / glyph panels). Its numeric literals are
   // coordinate/font-size values inside those generative compositions, never
-  // hardcoded portfolio data counts or years, so they sit outside this scan.
+  // hardcoded portfolio data counts or years, so it sits outside this scan.
+  // (Phase 13 REV-23b: the compact wrapper that shared this exemption is
+  // deleted, so only the one stack stage is excluded now.)
   const zeroLiteralTargets = phaseTouchedComponents.filter(
-    (p) =>
-      p !== 'src/components/explore/sections/projects-stack-stage.tsx' &&
-      p !== 'src/components/explore/sections/projects-mobile-stack.tsx',
+    (p) => p !== 'src/components/explore/sections/projects-stack-stage.tsx',
   );
   for (const p of zeroLiteralTargets) {
     const code = stripAll(p);
@@ -1139,10 +1141,26 @@ test('EXPLORE-10 invariant (REV-18): projects stack is swipe-driven, centered, l
   );
 
   const section = read('src/components/explore/sections/projects-section.tsx');
-  assert.ok(section.includes('ProjectsStackStage'), 'ProjectsSection imports the swipe-driven stack stage');
-  assert.ok(section.includes('ProjectsMobileStack'), 'ProjectsSection imports the compact mobile stack');
-  assert.ok(section.includes('hidden md:block'), 'md+ viewport hosts the stack stage');
-  assert.ok(section.includes('md:hidden'), 'mobile stack owns the <md surface');
+  // Renewal (phase 13 REV-23b/D-02): the per-viewport split is retired — ONE
+  // unconditional stack renders at every width. `<ProjectsStackStage` occurs
+  // exactly once (a `>= 1` check could not detect a surviving second branch)
+  // and the compact wrapper + both wrapper classes are gone.
+  assert.equal(
+    (section.match(/<ProjectsStackStage/g) || []).length,
+    1,
+    'exactly ONE <ProjectsStackStage render — the md+ branch is the only render left (REV-23b)',
+  );
+  assert.equal(
+    (section.match(/<Projects(?:StackStage|MobileStack)/g) || []).length,
+    1,
+    'exactly ONE stack render at every width — the two viewport branches collapse to one (REV-23b/D-02)',
+  );
+  assert.ok(!section.includes('ProjectsMobileStack'), 'the compact mobile wrapper retires with the parity contract (REV-23b)');
+  assert.ok(
+    !section.includes('hidden md:block') && !section.includes('md:hidden'),
+    'no per-viewport stack wrapper survives — the same stack renders at every width (REV-23b)',
+  );
+  assert.ok(/REV-23b/.test(section), 'the ProjectsSection doc comment cites the parity requirement (REV-23b)');
 
   const stack = read('src/components/explore/sections/projects-stack-stage.tsx');
   assert.ok(stack.includes("from 'framer-motion'"), 'the stack stage is the sanctioned framer-motion import site');
@@ -1225,11 +1243,36 @@ test('EXPLORE-10 invariant (REV-18): projects stack is swipe-driven, centered, l
     );
   }
 
+});
+
+test('REV-23b retirement: the compact mobile-stack wrapper is gone (gone-check)', () => {
+  // Retirement discipline (the house precedent is the deleted-editorial loop
+  // inside the EXPLORE-10 invariant above): a retired artefact gets a
+  // GONE-CHECK — `existsSync === false` — never a silent delete. The wrapper's
+  // only content was `mode="compact"`; the one-contract stack replaces it.
   const mobilePath = 'src/components/explore/sections/projects-mobile-stack.tsx';
-  assert.ok(existsSync(join(root, mobilePath)), 'mobile stack file exists');
-  const mobile = codeOf(mobilePath);
-  assert.ok(!mobile.includes('framer-motion'), 'mobile stack does not import framer-motion (reuses the sanctioned stage)');
-  assert.ok(mobile.includes('ProjectsSwipeStack'), 'mobile wrapper delegates to the shared swipe stack');
+  assert.equal(
+    existsSync(join(root, mobilePath)),
+    false,
+    'projects-mobile-stack.tsx retired with the parity contract (REV-23b)',
+  );
+});
+
+test('REV-23b swipe-stage contract: the stage carries the stable hook and no touch-action: none exists in the shell CSS', () => {
+  // The stage box gains the inert `data-projects-swipe-stage` attribute that
+  // the platform pack's `touch-action: pan-y` rule targets. That POSITIVE rule
+  // ships with the pack (plan 03, globals.css tail) — this row pins only the
+  // hook it will target and the form the pack must NEVER use.
+  const stack = read('src/components/explore/sections/projects-stack-stage.tsx');
+  assert.ok(
+    stack.includes('data-projects-swipe-stage'),
+    'the stage box carries the stable data-projects-swipe-stage hook — the selector target for touch-action: pan-y (REV-23b)',
+  );
+  const css = read('src/app/globals.css');
+  assert.ok(
+    !css.includes('touch-action: none'),
+    'touch-action: none is rejected on the swipe stage and its cards — it kills vertical page scroll, the "carousel scrolls the wrong way" symptom (REV-23b/mobile-native §9)',
+  );
 });
 
 test('EXPLORE-10 invariant (AP-3/AP-6): the stack mount-gates reduced motion and marks non-active cards by attribute only', () => {
@@ -1285,11 +1328,13 @@ test('traceability: phase-10 projects-stack surfaces cite REV-18/REV-20, never p
   // detecting a reintroduced mis-cite. This whole comment block lives AFTER
   // the marker, so it cannot inflate the corpus it describes.
   //
-  // Clause 1 — the four phase-10 SOURCE surfaces carry ZERO phase-11 REV-21.
+  // Clause 1 — the three surviving phase-10 SOURCE surfaces carry ZERO
+  // phase-11 REV-21. (Phase 13 REV-23b retires the compact wrapper, so the
+  // former fourth surface is gone from this list; its REV-18/REV-21 clause
+  // would have thrown ENOENT.)
   const cardStateFile = read('src/components/explore/projects-card-state.ts');
   const panelsFile = read('src/components/explore/explore-panels.tsx');
   const sectionFile = read('src/components/explore/sections/projects-section.tsx');
-  const mobileStackFile = read('src/components/explore/sections/projects-mobile-stack.tsx');
 
   assert.strictEqual(
     (cardStateFile.match(/REV-21/g) || []).length,
@@ -1306,11 +1351,6 @@ test('traceability: phase-10 projects-stack surfaces cite REV-18/REV-20, never p
     0,
     'src/components/explore/sections/projects-section.tsx still cites phase 11\'s REV-21 — this panel body is phase-10 REV-18 (AP-12)',
   );
-  assert.strictEqual(
-    (mobileStackFile.match(/REV-21/g) || []).length,
-    0,
-    'src/components/explore/sections/projects-mobile-stack.tsx still cites phase 11\'s REV-21 — the compact stack is phase-10 REV-18/REV-20 (AP-12)',
-  );
 
   // Clause 2 — and each of them names its own phase-10 requirement.
   assert.ok(
@@ -1325,9 +1365,11 @@ test('traceability: phase-10 projects-stack surfaces cite REV-18/REV-20, never p
     (sectionFile.match(/REV-18/g) || []).length >= 1,
     'src/components/explore/sections/projects-section.tsx cites no phase-10 requirement id — it must name REV-18',
   );
+  // Phase 13 ADDS its own citation beside the retained phase-10 one: the
+  // one-contract renewal never substitutes REV-23b for REV-18.
   assert.ok(
-    (mobileStackFile.match(/REV-18/g) || []).length >= 1,
-    'src/components/explore/sections/projects-mobile-stack.tsx cites no phase-10 requirement id — it must name REV-18',
+    (sectionFile.match(/REV-23b/g) || []).length >= 1,
+    'src/components/explore/sections/projects-section.tsx cites no phase-13 requirement id — the renewal must ADD REV-23b beside the retained REV-18 clause',
   );
 
   // Clause 3 — the pure-module suite carries its OWN phase-10 id.
